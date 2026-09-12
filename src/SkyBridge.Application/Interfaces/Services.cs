@@ -24,3 +24,11 @@ public interface IPirepService
     Task<Result<PirepResultDto>> EnviarAsync(NovoPirepDto dto);
     Task<IReadOnlyList<Pirep>> ListarPendentesAsync();
 }
+
+public interface IAuthService
+{
+    Task<Result<AuthResponseDto>> RegistrarAsync(RegistroPilotoDto dto);
+    Task<Result<AuthResponseDto>> LoginAsync(LoginDto dto);
+    Task<Result<AuthResponseDto>> RefreshAsync(RefreshTokenDto dto);
+    Task LogoutAsync(RefreshTokenDto dto);
+}

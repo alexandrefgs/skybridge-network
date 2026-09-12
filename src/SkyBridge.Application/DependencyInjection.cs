@@ -12,6 +12,7 @@ public static class DependencyInjection
         services.AddScoped<IAirlineService, AirlineService>();
         services.AddScoped<IPilotService, PilotService>();
         services.AddScoped<IPirepService, PirepService>();
+        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ILandingEvaluator, LandingEvaluator>();
 
         return services;

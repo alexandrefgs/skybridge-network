@@ -19,6 +19,8 @@ public interface IAircraftRepository : IRepository<Aircraft>
 public interface IPilotRepository : IRepository<Pilot>
 {
     Task<Pilot?> GetWithCareerDetailsAsync(int id);
+    Task<Pilot?> GetByEmailAsync(string email);
+    Task<int> GetProximoNumeroCallsignAsync();
 }
 
 public interface IRankRepository : IRepository<Rank>
@@ -37,6 +39,11 @@ public interface IPirepRepository : IRepository<Pirep>
     Task<IReadOnlyList<Pirep>> GetPendentesAsync();
 }
 
+public interface IRefreshTokenRepository : IRepository<RefreshToken>
+{
+    Task<RefreshToken?> GetByTokenHashAsync(string tokenHash);
+}
+
 public interface IUnitOfWork
 {
     IAirlineRepository Airlines { get; }
@@ -46,6 +53,7 @@ public interface IUnitOfWork
     IRankRepository Ranks { get; }
     IPilotCareerRepository PilotCareers { get; }
     IPirepRepository Pireps { get; }
+    IRefreshTokenRepository RefreshTokens { get; }
 
     Task<int> SaveChangesAsync();
 }

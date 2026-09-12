@@ -17,6 +17,7 @@ public class UnitOfWork : IUnitOfWork
         Ranks = new RankRepository(db);
         PilotCareers = new PilotCareerRepository(db);
         Pireps = new PirepRepository(db);
+        RefreshTokens = new RefreshTokenRepository(db);
     }
 
     public IAirlineRepository Airlines { get; }
@@ -26,6 +27,7 @@ public class UnitOfWork : IUnitOfWork
     public IRankRepository Ranks { get; }
     public IPilotCareerRepository PilotCareers { get; }
     public IPirepRepository Pireps { get; }
+    public IRefreshTokenRepository RefreshTokens { get; }
 
     public Task<int> SaveChangesAsync() => _db.SaveChangesAsync();
 }

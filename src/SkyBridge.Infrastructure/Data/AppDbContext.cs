@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<Tour> Tours => Set<Tour>();
     public DbSet<TourStop> TourStops => Set<TourStop>();
     public DbSet<TourProgress> TourProgresses => Set<TourProgress>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
