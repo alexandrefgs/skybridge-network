@@ -54,3 +54,9 @@ public interface IAwardService
     Task<AwardDto> CriarAsync(NovoAwardDto dto);
     Task<Result<string>> DefinirImagemAsync(int id, string url);
 }
+
+public interface IVooAtivoService
+{
+    Task AtualizarAsync(int pilotId, TelemetriaDto dto);
+    Task<IReadOnlyList<VooAtivoDto>> ListarAtivosAsync();
+}

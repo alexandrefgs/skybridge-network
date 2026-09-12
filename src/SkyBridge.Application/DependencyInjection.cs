@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITourService, TourService>();
         services.AddScoped<IAwardService, AwardService>();
+        services.AddScoped<IVooAtivoService, VooAtivoService>();
         services.AddScoped<ILandingEvaluator, LandingEvaluator>();
 
         services.AddValidatorsFromAssemblyContaining<RegistroPilotoDtoValidator>();

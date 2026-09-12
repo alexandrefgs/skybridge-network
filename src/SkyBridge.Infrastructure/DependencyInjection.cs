@@ -7,6 +7,7 @@ using System.Text;
 using SkyBridge.Domain.Interfaces;
 using SkyBridge.Infrastructure.Auth;
 using SkyBridge.Infrastructure.Data;
+using SkyBridge.Infrastructure.Live;
 using SkyBridge.Infrastructure.Repositories;
 
 namespace SkyBridge.Infrastructure;
@@ -20,6 +21,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddSingleton<IVooAtivoStore, InMemoryVooAtivoStore>();
 
         var chave = configuration["Jwt:ChaveSecreta"]
             ?? throw new InvalidOperationException("Jwt:ChaveSecreta não configurada.");
