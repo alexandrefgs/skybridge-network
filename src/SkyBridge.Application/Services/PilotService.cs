@@ -81,4 +81,16 @@ public class PilotService : IPilotService
 
         return Result<string>.Ok($"Carreira iniciada como {rankInicial.Nome}.");
     }
+
+    public async Task<Result<string>> ExcluirAsync(int id)
+    {
+        var pilot = await _uow.Pilots.GetByIdAsync(id);
+        if (pilot is null)
+            return Result<string>.Falha("Piloto não encontrado.");
+
+        _uow.Pilots.Remove(pilot);
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok($"Piloto {pilot.Callsign} excluído. O número fica disponível para o próximo cadastro.");
+    }
 }

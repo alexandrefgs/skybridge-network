@@ -17,6 +17,7 @@ public interface IPilotService
     Task<PilotoDetalheDto?> ObterDetalheAsync(int id);
     Task<PilotoResumoDto> CriarAsync(NovoPilotoDto dto);
     Task<Result<string>> IniciarCarreiraAsync(int pilotId, int airlineId);
+    Task<Result<string>> ExcluirAsync(int id);
 }
 
 public interface IPirepService
