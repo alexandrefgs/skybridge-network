@@ -108,8 +108,9 @@ skybridge-network/
 
 ## 🗺️ Roadmap
 
-- [ ] Autenticação JWT (login de piloto)
-- [ ] Migrations do EF Core (substituindo `EnsureCreated`, hoje usado só em desenvolvimento)
+- [x] Autenticação JWT (login de piloto) com refresh token e rotação
+- [x] Migrations do EF Core
+- [ ] Cadastro de piloto inativo automaticamente após 90 dias sem voo, com e-mail disparado para o RH
 - [ ] Endpoints de Tour e painel de aprovação de PIREPs pendentes
 - [ ] App cliente ACARS (MSFS via FSUIPC7 → X-Plane via XPUIPC → P3D via FSUIPC6)
 - [ ] Import em massa de companhias/rotas reais (dataset OpenFlights), escalando além das 8 companhias iniciais
