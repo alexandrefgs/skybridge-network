@@ -1,5 +1,6 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SkyBridge.Application.DTOs;
 using SkyBridge.Application.Interfaces;
 
 namespace SkyBridge.Api.Controllers;
@@ -12,6 +13,7 @@ public class PilotsController : ControllerBase
     public PilotsController(IPilotService pilotService) => _pilotService = pilotService;
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var pilots = await _pilotService.ListarAsync();
@@ -19,29 +21,33 @@ public class PilotsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(int id)
     {
         var pilot = await _pilotService.ObterDetalheAsync(id);
         return pilot is null ? NotFound() : Ok(pilot);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Criar(NovoPilotoDto dto)
-    {
-        var pilot = await _pilotService.CriarAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = pilot.Id }, pilot);
-    }
-
     [HttpPost("{pilotId}/carreiras/{airlineId}")]
+    [Authorize]
     public async Task<IActionResult> IniciarCarreira(int pilotId, int airlineId)
     {
+        var idLogado = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (pilotId != idLogado)
+            return Forbid();
+
         var resultado = await _pilotService.IniciarCarreiraAsync(pilotId, airlineId);
         return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Excluir(int id)
     {
+        var idLogado = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (id != idLogado)
+            return Forbid();
+
         var resultado = await _pilotService.ExcluirAsync(id);
         return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
     }

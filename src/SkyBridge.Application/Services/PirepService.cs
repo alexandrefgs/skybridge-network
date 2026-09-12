@@ -19,9 +19,9 @@ public class PirepService : IPirepService
         _landingEvaluator = landingEvaluator;
     }
 
-    public async Task<Result<PirepResultDto>> EnviarAsync(NovoPirepDto dto)
+    public async Task<Result<PirepResultDto>> EnviarAsync(int pilotId, NovoPirepDto dto)
     {
-        var pilot = await _uow.Pilots.GetByIdAsync(dto.PilotId);
+        var pilot = await _uow.Pilots.GetByIdAsync(pilotId);
         var rota = await _uow.FlightRoutes.GetByIdAsync(dto.FlightRouteId);
         var aircraft = await _uow.Aircrafts.GetByIdAsync(dto.AircraftId);
         if (pilot is null || rota is null || aircraft is null)
@@ -37,7 +37,7 @@ public class PirepService : IPirepService
         pilot.AdicionarPontos(pontosGanhos);
         pilot.AjustarRating(avaliacao.ImpactoNoRating);
 
-        var carreira = await _uow.PilotCareers.GetByPilotAndAirlineAsync(dto.PilotId, rota.AirlineId);
+        var carreira = await _uow.PilotCareers.GetByPilotAndAirlineAsync(pilotId, rota.AirlineId);
         string? novaPatente = null;
 
         if (carreira is not null)
@@ -61,7 +61,7 @@ public class PirepService : IPirepService
 
         var pirep = new Pirep
         {
-            PilotId = dto.PilotId,
+            PilotId = pilotId,
             FlightRouteId = dto.FlightRouteId,
             AircraftId = dto.AircraftId,
             HorasDeVoo = dto.HorasDeVoo,

@@ -22,7 +22,7 @@ public interface IPilotService
 
 public interface IPirepService
 {
-    Task<Result<PirepResultDto>> EnviarAsync(NovoPirepDto dto);
+    Task<Result<PirepResultDto>> EnviarAsync(int pilotId, NovoPirepDto dto);
     Task<IReadOnlyList<Pirep>> ListarPendentesAsync();
 }
 
