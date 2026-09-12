@@ -42,7 +42,7 @@ public class PirepFlowTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Aprovar_pirep_pendente_deve_retornar_200()
+    public async Task Aprovar_pirep_pendente_deve_retornar_200_para_admin()
     {
         var piloto = await RegistrarAsync("pirep3@teste.com");
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", piloto!.Token);
@@ -50,9 +50,25 @@ public class PirepFlowTests : IClassFixture<CustomWebApplicationFactory>
         var pirepResponse = await _client.PostAsJsonAsync("/api/Pireps", new NovoPirepDto(1, 1, 1, -1500));
         var pirep = await pirepResponse.Content.ReadFromJsonAsync<PirepResultDto>();
 
+        var admin = await LogarComoAdminAsync();
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", admin.Token);
         var aprovarResponse = await _client.PostAsync($"/api/Pireps/{pirep!.Id}/aprovar", null);
 
         aprovarResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Aprovar_pirep_deve_retornar_403_para_piloto_comum()
+    {
+        var piloto = await RegistrarAsync("pirep5@teste.com");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", piloto!.Token);
+
+        var pirepResponse = await _client.PostAsJsonAsync("/api/Pireps", new NovoPirepDto(1, 1, 1, -1500));
+        var pirep = await pirepResponse.Content.ReadFromJsonAsync<PirepResultDto>();
+
+        var aprovarResponse = await _client.PostAsync($"/api/Pireps/{pirep!.Id}/aprovar", null);
+
+        aprovarResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -63,6 +79,9 @@ public class PirepFlowTests : IClassFixture<CustomWebApplicationFactory>
 
         var pirepResponse = await _client.PostAsJsonAsync("/api/Pireps", new NovoPirepDto(1, 1, 1, -1500));
         var pirep = await pirepResponse.Content.ReadFromJsonAsync<PirepResultDto>();
+
+        var admin = await LogarComoAdminAsync();
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", admin.Token);
 
         await _client.PostAsync($"/api/Pireps/{pirep!.Id}/aprovar", null);
         var rejeitarResponse = await _client.PostAsJsonAsync($"/api/Pireps/{pirep.Id}/rejeitar", new { motivo = "teste" });
@@ -75,5 +94,11 @@ public class PirepFlowTests : IClassFixture<CustomWebApplicationFactory>
         var dto = new RegistroPilotoDto("Piloto Teste", email, "Senha@123");
         var response = await _client.PostAsJsonAsync("/api/Auth/registrar", dto);
         return await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+    }
+
+    private async Task<AuthResponseDto> LogarComoAdminAsync()
+    {
+        var response = await _client.PostAsJsonAsync("/api/Auth/login", new LoginDto("admin@skybridge.com", "Admin@123"));
+        return (await response.Content.ReadFromJsonAsync<AuthResponseDto>())!;
     }
 }

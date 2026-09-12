@@ -26,7 +26,8 @@ public class TokenService : ITokenService
         {
             new Claim(JwtRegisteredClaimNames.Sub, pilot.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, pilot.Email),
-            new Claim("callsign", pilot.Callsign)
+            new Claim("callsign", pilot.Callsign),
+            new Claim(ClaimTypes.Role, pilot.Role.ToString())
         };
 
         var expiraEm = DateTime.UtcNow.AddMinutes(30);

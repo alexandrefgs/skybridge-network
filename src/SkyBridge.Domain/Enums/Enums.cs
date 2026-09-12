@@ -23,3 +23,9 @@ public enum PirepStatus
     Aprovado = 2,
     Rejeitado = 3
 }
+
+public enum PilotRole
+{
+    Piloto = 1,
+    Admin = 2
+}

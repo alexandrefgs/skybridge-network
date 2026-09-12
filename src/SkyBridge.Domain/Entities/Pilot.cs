@@ -1,3 +1,5 @@
+using SkyBridge.Domain.Enums;
+
 namespace SkyBridge.Domain.Entities;
 
 public class Pilot
@@ -7,6 +9,7 @@ public class Pilot
     public string Callsign { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
+    public PilotRole Role { get; set; } = PilotRole.Piloto;
 
     public double Rating { get; set; } = 3.0;
     public long PontosTotais { get; set; } = 0;

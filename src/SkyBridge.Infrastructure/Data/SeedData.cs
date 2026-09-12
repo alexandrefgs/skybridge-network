@@ -52,5 +52,19 @@ public static class SeedData
             new FlightRoute { Id = 11, AirlineId = 7, AeroportoOrigem = "KMEM", AeroportoDestino = "LFPG", DistanciaMilhas = 4802, NumeroVoo = "23", TipoOperacao = OperationType.Cargueiro, RatingMinimo = 0 },
             new FlightRoute { Id = 12, AirlineId = 8, AeroportoOrigem = "KTEB", AeroportoDestino = "KMIA", DistanciaMilhas = 1090, NumeroVoo = "1", TipoOperacao = OperationType.Executivo, RatingMinimo = 0 }
         );
+
+        modelBuilder.Entity<Pilot>().HasData(
+            new Pilot
+            {
+                Id = 1,
+                Nome = "Administrador",
+                Callsign = "SKB0001",
+                Email = "admin@skybridge.com",
+                PasswordHash = "$2b$11$L7D1gaNSZ23hKlaQUMICV.wGRxXl0hna9iUESw9eiiRmtqDSTmni6",
+                Role = PilotRole.Admin,
+                Rating = 5.0,
+                PontosTotais = 0
+            }
+        );
     }
 }

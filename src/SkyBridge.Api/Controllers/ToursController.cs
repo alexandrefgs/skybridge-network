@@ -30,7 +30,7 @@ public class ToursController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Criar(NovoTourDto dto)
     {
         var tour = await _tourService.CriarAsync(dto);
@@ -38,7 +38,7 @@ public class ToursController : ControllerBase
     }
 
     [HttpPut("{id}/foto")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DefinirFoto(int id, DefinirFotoDto dto)
     {
         var resultado = await _tourService.DefinirFotoAsync(id, dto.Url);
@@ -46,7 +46,7 @@ public class ToursController : ControllerBase
     }
 
     [HttpPut("{id}/foto-capa")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DefinirFotoCapa(int id, DefinirFotoDto dto)
     {
         var resultado = await _tourService.DefinirFotoCapaAsync(id, dto.Url);

@@ -32,6 +32,7 @@ public class PirepsController : ControllerBase
     }
 
     [HttpPost("{id}/aprovar")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Aprovar(int id)
     {
         var resultado = await _pirepService.AprovarAsync(id);
@@ -39,6 +40,7 @@ public class PirepsController : ControllerBase
     }
 
     [HttpPost("{id}/rejeitar")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Rejeitar(int id, RejeitarPirepDto dto)
     {
         var resultado = await _pirepService.RejeitarAsync(id, dto.Motivo);
