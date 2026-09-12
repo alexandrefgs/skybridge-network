@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using SkyBridge.Api.Filters;
 using SkyBridge.Api.Middleware;
 using SkyBridge.Application;
 using SkyBridge.Infrastructure;
@@ -7,7 +8,10 @@ using SkyBridge.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationActionFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

@@ -1,6 +1,8 @@
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using SkyBridge.Application.Interfaces;
 using SkyBridge.Application.Services;
+using SkyBridge.Application.Validators;
 using SkyBridge.Domain.Services;
 
 namespace SkyBridge.Application;
@@ -14,6 +16,8 @@ public static class DependencyInjection
         services.AddScoped<IPirepService, PirepService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ILandingEvaluator, LandingEvaluator>();
+
+        services.AddValidatorsFromAssemblyContaining<RegistroPilotoDtoValidator>();
 
         return services;
     }
