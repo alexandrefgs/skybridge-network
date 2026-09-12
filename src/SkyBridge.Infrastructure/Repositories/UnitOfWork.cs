@@ -1,0 +1,31 @@
+using SkyBridge.Domain.Interfaces;
+using SkyBridge.Infrastructure.Data;
+
+namespace SkyBridge.Infrastructure.Repositories;
+
+public class UnitOfWork : IUnitOfWork
+{
+    private readonly AppDbContext _db;
+
+    public UnitOfWork(AppDbContext db)
+    {
+        _db = db;
+        Airlines = new AirlineRepository(db);
+        FlightRoutes = new FlightRouteRepository(db);
+        Aircrafts = new AircraftRepository(db);
+        Pilots = new PilotRepository(db);
+        Ranks = new RankRepository(db);
+        PilotCareers = new PilotCareerRepository(db);
+        Pireps = new PirepRepository(db);
+    }
+
+    public IAirlineRepository Airlines { get; }
+    public IFlightRouteRepository FlightRoutes { get; }
+    public IAircraftRepository Aircrafts { get; }
+    public IPilotRepository Pilots { get; }
+    public IRankRepository Ranks { get; }
+    public IPilotCareerRepository PilotCareers { get; }
+    public IPirepRepository Pireps { get; }
+
+    public Task<int> SaveChangesAsync() => _db.SaveChangesAsync();
+}

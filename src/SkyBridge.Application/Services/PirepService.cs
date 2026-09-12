@@ -1,0 +1,91 @@
+using SkyBridge.Application.Common;
+using SkyBridge.Application.DTOs;
+using SkyBridge.Application.Interfaces;
+using SkyBridge.Domain.Entities;
+using SkyBridge.Domain.Enums;
+using SkyBridge.Domain.Interfaces;
+using SkyBridge.Domain.Services;
+
+namespace SkyBridge.Application.Services;
+
+public class PirepService : IPirepService
+{
+    private readonly IUnitOfWork _uow;
+    private readonly ILandingEvaluator _landingEvaluator;
+
+    public PirepService(IUnitOfWork uow, ILandingEvaluator landingEvaluator)
+    {
+        _uow = uow;
+        _landingEvaluator = landingEvaluator;
+    }
+
+    public async Task<Result<PirepResultDto>> EnviarAsync(NovoPirepDto dto)
+    {
+        var pilot = await _uow.Pilots.GetByIdAsync(dto.PilotId);
+        var rota = await _uow.FlightRoutes.GetByIdAsync(dto.FlightRouteId);
+        var aircraft = await _uow.Aircrafts.GetByIdAsync(dto.AircraftId);
+        if (pilot is null || rota is null || aircraft is null)
+            return Result<PirepResultDto>.Falha("Piloto, rota ou aeronave não encontrados.");
+
+        if (pilot.Rating < rota.RatingMinimo)
+            return Result<PirepResultDto>.Falha(
+                $"Rating insuficiente. Rota exige {rota.RatingMinimo:0.0} estrelas, piloto tem {pilot.Rating:0.0}.");
+
+        var avaliacao = _landingEvaluator.Avaliar(dto.TaxaDescidaTouchdownFpm);
+        var pontosGanhos = (long)Math.Round(rota.DistanciaMilhas * avaliacao.MultiplicadorPontos);
+
+        pilot.AdicionarPontos(pontosGanhos);
+        pilot.AjustarRating(avaliacao.ImpactoNoRating);
+
+        var carreira = await _uow.PilotCareers.GetByPilotAndAirlineAsync(dto.PilotId, rota.AirlineId);
+        string? novaPatente = null;
+
+        if (carreira is not null)
+        {
+            carreira.RegistrarHoras(dto.HorasDeVoo);
+
+            var nivelAtual = carreira.RankAtual?.Nivel ?? 0;
+            var proximoRank = await _uow.Ranks.GetProximoRankElegivelAsync(
+                rota.AirlineId, nivelAtual, carreira.HorasVoadas, pilot.Rating);
+
+            if (proximoRank is not null)
+            {
+                carreira.RankAtualId = proximoRank.Id;
+                novaPatente = proximoRank.Nome;
+            }
+        }
+
+        var status = avaliacao.Qualidade == LandingQuality.MuitoForte
+            ? PirepStatus.PendenteAprovacao
+            : PirepStatus.Aprovado;
+
+        var pirep = new Pirep
+        {
+            PilotId = dto.PilotId,
+            FlightRouteId = dto.FlightRouteId,
+            AircraftId = dto.AircraftId,
+            HorasDeVoo = dto.HorasDeVoo,
+            TaxaDescidaTouchdownFpm = dto.TaxaDescidaTouchdownFpm,
+            QualidadePouso = avaliacao.Qualidade,
+            PontosGanhos = pontosGanhos,
+            ImpactoNoRating = avaliacao.ImpactoNoRating,
+            Status = status
+        };
+
+        await _uow.Pireps.AddAsync(pirep);
+        await _uow.SaveChangesAsync();
+
+        var resultado = new PirepResultDto(
+            pirep.Id,
+            pirep.QualidadePouso.ToString(),
+            pirep.PontosGanhos,
+            pirep.Status.ToString(),
+            pilot.Rating,
+            pilot.PontosTotais,
+            novaPatente);
+
+        return Result<PirepResultDto>.Ok(resultado);
+    }
+
+    public Task<IReadOnlyList<Pirep>> ListarPendentesAsync() => _uow.Pireps.GetPendentesAsync();
+}
