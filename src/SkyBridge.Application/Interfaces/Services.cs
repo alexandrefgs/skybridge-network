@@ -23,7 +23,9 @@ public interface IPilotService
 public interface IPirepService
 {
     Task<Result<PirepResultDto>> EnviarAsync(int pilotId, NovoPirepDto dto);
-    Task<IReadOnlyList<Pirep>> ListarPendentesAsync();
+    Task<IReadOnlyList<PirepPendenteDto>> ListarPendentesAsync();
+    Task<Result<string>> AprovarAsync(int pirepId);
+    Task<Result<string>> RejeitarAsync(int pirepId, string motivo);
 }
 
 public interface IAuthService

@@ -10,3 +10,11 @@ public record PirepResultDto(
     double RatingAtualizado,
     long PontosTotaisAtualizados,
     string? NovaPatente);
+
+public record PirepPendenteDto(
+    int Id,
+    string PilotCallsign,
+    string PilotNome,
+    string Rota,
+    int TaxaDescidaTouchdownFpm,
+    DateTime DataVoo);

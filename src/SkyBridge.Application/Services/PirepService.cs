@@ -87,5 +87,55 @@ public class PirepService : IPirepService
         return Result<PirepResultDto>.Ok(resultado);
     }
 
-    public Task<IReadOnlyList<Pirep>> ListarPendentesAsync() => _uow.Pireps.GetPendentesAsync();
+    public async Task<IReadOnlyList<PirepPendenteDto>> ListarPendentesAsync()
+    {
+        var pendentes = await _uow.Pireps.GetPendentesAsync();
+        return pendentes
+            .Select(p => new PirepPendenteDto(
+                p.Id,
+                p.Pilot?.Callsign ?? string.Empty,
+                p.Pilot?.Nome ?? string.Empty,
+                p.FlightRoute is not null ? $"{p.FlightRoute.AeroportoOrigem} → {p.FlightRoute.AeroportoDestino}" : string.Empty,
+                p.TaxaDescidaTouchdownFpm,
+                p.DataVoo))
+            .ToList();
+    }
+
+    public async Task<Result<string>> AprovarAsync(int pirepId)
+    {
+        var pirep = await _uow.Pireps.GetByIdAsync(pirepId);
+        if (pirep is null)
+            return Result<string>.Falha("PIREP não encontrado.");
+
+        if (pirep.Status != PirepStatus.PendenteAprovacao)
+            return Result<string>.Falha("Esse PIREP já foi avaliado.");
+
+        pirep.Status = PirepStatus.Aprovado;
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok("PIREP aprovado.");
+    }
+
+    public async Task<Result<string>> RejeitarAsync(int pirepId, string motivo)
+    {
+        var pirep = await _uow.Pireps.GetByIdAsync(pirepId);
+        if (pirep is null)
+            return Result<string>.Falha("PIREP não encontrado.");
+
+        if (pirep.Status != PirepStatus.PendenteAprovacao)
+            return Result<string>.Falha("Esse PIREP já foi avaliado.");
+
+        var pilot = await _uow.Pilots.GetByIdAsync(pirep.PilotId);
+        if (pilot is not null)
+        {
+            pilot.AdicionarPontos(-pirep.PontosGanhos);
+            pilot.AjustarRating(-pirep.ImpactoNoRating);
+        }
+
+        pirep.Status = PirepStatus.Rejeitado;
+        pirep.Observacoes = motivo;
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok("PIREP rejeitado.");
+    }
 }
