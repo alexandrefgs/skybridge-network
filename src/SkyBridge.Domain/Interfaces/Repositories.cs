@@ -44,6 +44,28 @@ public interface IRefreshTokenRepository : IRepository<RefreshToken>
     Task<RefreshToken?> GetByTokenHashAsync(string tokenHash);
 }
 
+public interface ITourRepository : IRepository<Tour>
+{
+    Task<Tour?> GetWithEtapasAsync(int id);
+}
+
+public interface ITourProgressRepository : IRepository<TourProgress>
+{
+    Task<IReadOnlyList<TourProgress>> GetByPilotAsync(int pilotId);
+    Task<TourProgress?> GetByPilotAndTourAsync(int pilotId, int tourId);
+    Task<IReadOnlyList<TourProgress>> GetEmAndamentoPorRotaAsync(int flightRouteId);
+}
+
+public interface IAwardRepository : IRepository<Award>
+{
+}
+
+public interface IPilotAwardRepository : IRepository<PilotAward>
+{
+    Task<bool> PilotJaTemAwardAsync(int pilotId, int awardId);
+    Task<IReadOnlyList<PilotAward>> GetByPilotAsync(int pilotId);
+}
+
 public interface IUnitOfWork
 {
     IAirlineRepository Airlines { get; }
@@ -54,6 +76,10 @@ public interface IUnitOfWork
     IPilotCareerRepository PilotCareers { get; }
     IPirepRepository Pireps { get; }
     IRefreshTokenRepository RefreshTokens { get; }
+    ITourRepository Tours { get; }
+    ITourProgressRepository TourProgresses { get; }
+    IAwardRepository Awards { get; }
+    IPilotAwardRepository PilotAwards { get; }
 
     Task<int> SaveChangesAsync();
 }

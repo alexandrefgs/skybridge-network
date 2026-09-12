@@ -18,6 +18,10 @@ public class UnitOfWork : IUnitOfWork
         PilotCareers = new PilotCareerRepository(db);
         Pireps = new PirepRepository(db);
         RefreshTokens = new RefreshTokenRepository(db);
+        Tours = new TourRepository(db);
+        TourProgresses = new TourProgressRepository(db);
+        Awards = new AwardRepository(db);
+        PilotAwards = new PilotAwardRepository(db);
     }
 
     public IAirlineRepository Airlines { get; }
@@ -28,6 +32,10 @@ public class UnitOfWork : IUnitOfWork
     public IPilotCareerRepository PilotCareers { get; }
     public IPirepRepository Pireps { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
+    public ITourRepository Tours { get; }
+    public ITourProgressRepository TourProgresses { get; }
+    public IAwardRepository Awards { get; }
+    public IPilotAwardRepository PilotAwards { get; }
 
     public Task<int> SaveChangesAsync() => _db.SaveChangesAsync();
 }

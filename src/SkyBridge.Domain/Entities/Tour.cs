@@ -5,7 +5,12 @@ public class Tour
     public int Id { get; set; }
     public string Nome { get; set; } = string.Empty;
     public string? Descricao { get; set; }
+    public string? FotoUrl { get; set; }
+    public string? FotoCapaUrl { get; set; }
     public long PontosBonusConclusao { get; set; }
+
+    public int? AwardId { get; set; }
+    public Award? Award { get; set; }
 
     public ICollection<TourStop> Etapas { get; set; } = new List<TourStop>();
 }

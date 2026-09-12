@@ -15,6 +15,7 @@ public class Pilot
     public ICollection<Pirep> Pireps { get; set; } = new List<Pirep>();
     public ICollection<TourProgress> ToursEmAndamento { get; set; } = new List<TourProgress>();
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public ICollection<PilotAward> Awards { get; set; } = new List<PilotAward>();
 
     public void AjustarRating(double impacto) => Rating = Math.Clamp(Rating + impacto, 0, 5);
     public void AdicionarPontos(long pontos) => PontosTotais += pontos;

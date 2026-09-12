@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
     public DbSet<TourStop> TourStops => Set<TourStop>();
     public DbSet<TourProgress> TourProgresses => Set<TourProgress>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Award> Awards => Set<Award>();
+    public DbSet<PilotAward> PilotAwards => Set<PilotAward>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,7 +30,6 @@ public class AppDbContext : DbContext
             fk.DeleteBehavior = DeleteBehavior.Restrict;
         }
 
-        // RefreshToken não tem utilidade sem o piloto dono — apaga junto quando o piloto é excluído.
         modelBuilder.Entity<RefreshToken>()
             .HasOne(rt => rt.Pilot)
             .WithMany(p => p.RefreshTokens)
