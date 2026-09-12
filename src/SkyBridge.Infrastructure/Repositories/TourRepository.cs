@@ -15,4 +15,11 @@ public class TourRepository : Repository<Tour>, ITourRepository
             .ThenInclude(e => e.FlightRoute)
             .Include(t => t.Award)
             .FirstOrDefaultAsync(t => t.Id == id);
+
+    public async Task<IReadOnlyList<Tour>> GetAllWithDetailsAsync() =>
+        await DbSet
+            .Include(t => t.Etapas.OrderBy(e => e.Ordem))
+            .ThenInclude(e => e.FlightRoute)
+            .Include(t => t.Award)
+            .ToListAsync();
 }

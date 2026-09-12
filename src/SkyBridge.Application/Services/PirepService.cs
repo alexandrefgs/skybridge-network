@@ -75,6 +75,9 @@ public class PirepService : IPirepService
         await _uow.Pireps.AddAsync(pirep);
         await _uow.SaveChangesAsync();
 
+        if (status == PirepStatus.Aprovado)
+            await AvancarToursAsync(pilotId, dto.FlightRouteId);
+
         var resultado = new PirepResultDto(
             pirep.Id,
             pirep.QualidadePouso.ToString(),
@@ -113,6 +116,8 @@ public class PirepService : IPirepService
         pirep.Status = PirepStatus.Aprovado;
         await _uow.SaveChangesAsync();
 
+        await AvancarToursAsync(pirep.PilotId, pirep.FlightRouteId);
+
         return Result<string>.Ok("PIREP aprovado.");
     }
 
@@ -137,5 +142,33 @@ public class PirepService : IPirepService
         await _uow.SaveChangesAsync();
 
         return Result<string>.Ok("PIREP rejeitado.");
+    }
+
+    // Avança qualquer tour em andamento cuja próxima etapa seja exatamente essa rota.
+    // Ao completar a última etapa, concede o bônus de pontos e o Award vinculado (se houver).
+    private async Task AvancarToursAsync(int pilotId, int flightRouteId)
+    {
+        var progressos = await _uow.TourProgresses.GetEmAndamentoPorPilotoERotaAsync(pilotId, flightRouteId);
+
+        foreach (var progresso in progressos)
+        {
+            progresso.EtapasCompletas++;
+
+            var totalEtapas = progresso.Tour!.Etapas.Count;
+            if (progresso.EtapasCompletas < totalEtapas) continue;
+
+            progresso.Concluido = true;
+
+            var pilot = await _uow.Pilots.GetByIdAsync(pilotId);
+            pilot?.AdicionarPontos(progresso.Tour.PontosBonusConclusao);
+
+            if (progresso.Tour.AwardId is int awardId
+                && !await _uow.PilotAwards.PilotJaTemAwardAsync(pilotId, awardId))
+            {
+                await _uow.PilotAwards.AddAsync(new PilotAward { PilotId = pilotId, AwardId = awardId });
+            }
+        }
+
+        await _uow.SaveChangesAsync();
     }
 }

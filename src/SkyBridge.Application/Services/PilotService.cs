@@ -33,7 +33,16 @@ public class PilotService : IPilotService
                 c.RankAtual?.Nome ?? string.Empty))
             .ToList();
 
-        return new PilotoDetalheDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, carreiras);
+        var pilotAwards = await _uow.PilotAwards.GetByPilotAsync(id);
+        var awards = pilotAwards
+            .Select(pa => new AwardConquistadoDto(
+                pa.Award?.Nome ?? string.Empty,
+                pa.Award?.Descricao,
+                pa.Award?.ImagemUrl,
+                pa.DataConquista))
+            .ToList();
+
+        return new PilotoDetalheDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, carreiras, awards);
     }
 
     public async Task<PilotoResumoDto> CriarAsync(NovoPilotoDto dto)

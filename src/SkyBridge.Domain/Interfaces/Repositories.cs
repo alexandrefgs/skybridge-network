@@ -47,13 +47,14 @@ public interface IRefreshTokenRepository : IRepository<RefreshToken>
 public interface ITourRepository : IRepository<Tour>
 {
     Task<Tour?> GetWithEtapasAsync(int id);
+    Task<IReadOnlyList<Tour>> GetAllWithDetailsAsync();
 }
 
 public interface ITourProgressRepository : IRepository<TourProgress>
 {
     Task<IReadOnlyList<TourProgress>> GetByPilotAsync(int pilotId);
     Task<TourProgress?> GetByPilotAndTourAsync(int pilotId, int tourId);
-    Task<IReadOnlyList<TourProgress>> GetEmAndamentoPorRotaAsync(int flightRouteId);
+    Task<IReadOnlyList<TourProgress>> GetEmAndamentoPorPilotoERotaAsync(int pilotId, int flightRouteId);
 }
 
 public interface IAwardRepository : IRepository<Award>

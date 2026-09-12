@@ -35,3 +35,22 @@ public interface IAuthService
     Task<Result<AuthResponseDto>> RefreshAsync(RefreshTokenDto dto);
     Task LogoutAsync(RefreshTokenDto dto);
 }
+
+public interface ITourService
+{
+    Task<IReadOnlyList<TourDto>> ListarAsync();
+    Task<TourDto?> ObterDetalheAsync(int id);
+    Task<TourDto> CriarAsync(NovoTourDto dto);
+    Task<Result<string>> DefinirFotoAsync(int tourId, string url);
+    Task<Result<string>> DefinirFotoCapaAsync(int tourId, string url);
+    Task<Result<string>> IniciarAsync(int pilotId, int tourId);
+    Task<IReadOnlyList<TourProgressoDto>> ListarProgressoDoPilotoAsync(int pilotId);
+}
+
+public interface IAwardService
+{
+    Task<IReadOnlyList<AwardDto>> ListarAsync();
+    Task<AwardDto?> ObterDetalheAsync(int id);
+    Task<AwardDto> CriarAsync(NovoAwardDto dto);
+    Task<Result<string>> DefinirImagemAsync(int id, string url);
+}
