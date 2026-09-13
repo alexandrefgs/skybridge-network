@@ -1,0 +1,120 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-cyan-400">Dashboard</a>
+        <a routerLink="/reportar-voo" class="text-slate-400 hover:text-white transition-colors">Reportar Voo</a>
+        <a routerLink="/perfil" class="text-slate-400 hover:text-white transition-colors">Perfil</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+        @if (auth.ehAdmin()) {
+          <a routerLink="/admin/companhias" class="text-amber-400 hover:text-amber-300 transition-colors">Admin</a>
+        }
+        <button
+          (click)="auth.logout()"
+          class="text-xs text-slate-400 hover:text-white transition-colors border border-[var(--sb-border)] rounded-lg px-3 py-1.5">
+          Sair
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="font-display text-2xl font-bold text-white">Voos ao vivo</h1>
+        <p class="text-sm text-slate-400">Rede SkyBridge em tempo real</p>
+      </div>
+      <div class="flex items-center gap-2 rounded-lg border border-[var(--sb-border)] bg-white/[0.02] px-4 py-2">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+        </span>
+        <span class="text-sm font-mono text-white">{{ totalVoosAtivos() }}</span>
+        <span class="text-xs text-slate-500">no ar</span>
+      </div>
+    </div>
+
+    <div id="mapa-voos" class="mapa-escuro relative isolate w-full h-[420px] rounded-2xl border border-[var(--sb-border)] overflow-hidden mb-8"></div>
+
+    <div>
+      <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Últimos voos</h2>
+
+      @if (carregando()) {
+        <div class="text-center py-10 text-slate-500 text-sm">Carregando...</div>
+      } @else if (ultimosVoos().length === 0) {
+        <div class="rounded-xl border border-dashed border-[var(--sb-border)] p-8 text-center text-sm text-slate-500">
+          Nenhum voo registrado ainda.
+        </div>
+      } @else {
+        <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-[var(--sb-border)] text-left text-xs text-slate-500 uppercase tracking-wide">
+                <th class="px-4 py-3 font-medium">Piloto</th>
+                <th class="px-4 py-3 font-medium">Voo</th>
+                <th class="px-4 py-3 font-medium">Partida</th>
+                <th class="px-4 py-3 font-medium">Destino</th>
+                <th class="px-4 py-3 font-medium">Tempo</th>
+                <th class="px-4 py-3 font-medium">Aeronave</th>
+                <th class="px-4 py-3 font-medium">Rede</th>
+                <th class="px-4 py-3 font-medium text-right">PIREP</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (voo of ultimosVoos(); track voo.pirepId) {
+                <tr class="border-b border-[var(--sb-border)] last:border-0 hover:bg-white/[0.02] transition-colors">
+                  <td class="px-4 py-3">
+                    <div class="font-mono text-cyan-400 text-xs">{{ voo.pilotCallsign }}</div>
+                    <div class="text-xs text-slate-500">{{ voo.pilotNome }}</div>
+                  </td>
+                  <td class="px-4 py-3 font-mono text-white text-xs">{{ voo.vooCallsign }}</td>
+                  <td class="px-4 py-3 font-mono text-slate-300 text-xs">{{ voo.aeroportoOrigem }}</td>
+                  <td class="px-4 py-3 font-mono text-slate-300 text-xs">{{ voo.aeroportoDestino }}</td>
+                  <td class="px-4 py-3 text-xs text-slate-400">{{ voo.horasDeVoo.toFixed(1) }}h</td>
+                  <td class="px-4 py-3 text-xs text-slate-400">{{ voo.aeronaveModelo }}</td>
+                  <td class="px-4 py-3">
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-[var(--sb-border)] text-slate-400">
+                      {{ voo.rede }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      (click)="verPirep(voo)"
+                      class="text-cyan-400 hover:text-cyan-300 transition-colors"
+                      title="Ver PIREP completo">
+                      👁
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (vooSelecionado(); as voo) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="fecharDetalhe()">
+      <div class="max-w-md w-full rounded-2xl border border-[var(--sb-border)] bg-[var(--sb-bg-elevated)] p-6" (click)="$event.stopPropagation()">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-display font-bold text-white">PIREP #{{ voo.pirepId }}</h3>
+          <button (click)="fecharDetalhe()" class="text-slate-500 hover:text-white">✕</button>
+        </div>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span class="text-slate-500">Piloto</span><span class="text-white">{{ voo.pilotCallsign }} · {{ voo.pilotNome }}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Voo</span><span class="text-white font-mono">{{ voo.vooCallsign }}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Rota</span><span class="text-white font-mono">{{ voo.aeroportoOrigem }} → {{ voo.aeroportoDestino }}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Aeronave</span><span class="text-white">{{ voo.aeronaveModelo }}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Tempo de voo</span><span class="text-white">{{ voo.horasDeVoo.toFixed(1) }}h</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Rede</span><span class="text-white">{{ voo.rede }}</span></div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

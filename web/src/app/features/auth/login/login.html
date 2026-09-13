@@ -1,0 +1,95 @@
+<div class="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--sb-bg)]">
+  <div class="absolute inset-0 opacity-[0.07]"
+       style="background-image: linear-gradient(#22d3ee 1px, transparent 1px), linear-gradient(90deg, #22d3ee 1px, transparent 1px); background-size: 48px 48px;">
+  </div>
+  <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
+       style="background: radial-gradient(circle, #22d3ee, transparent 70%);">
+  </div>
+
+  <div class="relative w-full max-w-md mx-4">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 mb-3">
+        <span class="text-3xl">✈️</span>
+        <span class="font-display text-2xl font-bold tracking-tight text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <p class="text-sm text-slate-400">Sua carreira global de aviação virtual</p>
+    </div>
+
+    <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.03] backdrop-blur-xl shadow-2xl shadow-black/50 p-8">
+      <div class="flex mb-6 rounded-lg bg-black/30 p-1">
+        <button
+          type="button"
+          (click)="modo.set('login')"
+          [class.bg-cyan-500]="modo() === 'login'"
+          [class.text-black]="modo() === 'login'"
+          [class.text-slate-400]="modo() !== 'login'"
+          class="flex-1 py-2 rounded-md text-sm font-medium transition-all">
+          Entrar
+        </button>
+        <button
+          type="button"
+          (click)="modo.set('registro')"
+          [class.bg-cyan-500]="modo() === 'registro'"
+          [class.text-black]="modo() === 'registro'"
+          [class.text-slate-400]="modo() !== 'registro'"
+          class="flex-1 py-2 rounded-md text-sm font-medium transition-all">
+          Criar conta
+        </button>
+      </div>
+
+      <form (ngSubmit)="enviar()" class="space-y-4">
+        @if (modo() === 'registro') {
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1.5">Nome completo</label>
+            <input
+              type="text"
+              [(ngModel)]="nome"
+              name="nome"
+              required
+              class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+              placeholder="Seu nome" />
+          </div>
+        }
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">E-mail</label>
+          <input
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            required
+            class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+            placeholder="voce@email.com" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1.5">Senha</label>
+          <input
+            type="password"
+            [(ngModel)]="senha"
+            name="senha"
+            required
+            class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+            placeholder="••••••••" />
+        </div>
+
+        @if (erro()) {
+          <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2.5 text-sm text-red-400">
+            {{ erro() }}
+          </div>
+        }
+
+        <button
+          type="submit"
+          [disabled]="carregando()"
+          class="w-full rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-semibold py-2.5 text-sm transition-all shadow-lg shadow-cyan-500/20">
+          {{ carregando() ? 'Aguarde...' : (modo() === 'login' ? 'Entrar' : 'Criar conta') }}
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-xs text-slate-600 mt-6">
+      Compatível com MSFS 2020/2024 · X-Plane 11/12 · P3D
+    </p>
+  </div>
+</div>

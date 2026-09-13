@@ -33,6 +33,10 @@ namespace SkyBridge.Infrastructure.Migrations
                     b.Property<int>("AirlineId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CodigoIcao")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Matricula")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -56,6 +60,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         {
                             Id = 1,
                             AirlineId = 1,
+                            CodigoIcao = "A359",
                             Matricula = "PR-XTB",
                             Modelo = "Airbus A350-900",
                             TiposOperacaoSuportados = "Nacional,Internacional"
@@ -64,6 +69,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         {
                             Id = 2,
                             AirlineId = 2,
+                            CodigoIcao = "B738",
                             Matricula = "PR-GOA",
                             Modelo = "Boeing 737-800",
                             TiposOperacaoSuportados = "Nacional,Regional"
@@ -72,6 +78,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         {
                             Id = 3,
                             AirlineId = 3,
+                            CodigoIcao = "E295",
                             Matricula = "PR-YRH",
                             Modelo = "Embraer E195-E2",
                             TiposOperacaoSuportados = "Regional,Nacional"
@@ -80,6 +87,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         {
                             Id = 4,
                             AirlineId = 4,
+                            CodigoIcao = "A339",
                             Matricula = "N401DX",
                             Modelo = "Airbus A330-900",
                             TiposOperacaoSuportados = "Nacional,Internacional"
@@ -88,6 +96,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         {
                             Id = 5,
                             AirlineId = 5,
+                            CodigoIcao = "B748",
                             Matricula = "D-ABYA",
                             Modelo = "Boeing 747-8",
                             TiposOperacaoSuportados = "Internacional"
@@ -96,6 +105,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         {
                             Id = 6,
                             AirlineId = 6,
+                            CodigoIcao = "A388",
                             Matricula = "A6-EOA",
                             Modelo = "Airbus A380-800",
                             TiposOperacaoSuportados = "Internacional"
@@ -104,6 +114,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         {
                             Id = 7,
                             AirlineId = 7,
+                            CodigoIcao = "B77L",
                             Matricula = "N850FD",
                             Modelo = "Boeing 777F",
                             TiposOperacaoSuportados = "Cargueiro"
@@ -112,6 +123,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         {
                             Id = 8,
                             AirlineId = 8,
+                            CodigoIcao = "C750",
                             Matricula = "N121QS",
                             Modelo = "Cessna Citation X",
                             TiposOperacaoSuportados = "Executivo"
@@ -565,6 +577,9 @@ namespace SkyBridge.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<int>("QualidadePouso")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rede")
                         .HasColumnType("int");
 
                     b.Property<int>("Status")

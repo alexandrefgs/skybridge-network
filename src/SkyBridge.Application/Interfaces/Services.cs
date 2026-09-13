@@ -7,8 +7,11 @@ namespace SkyBridge.Application.Interfaces;
 public interface IAirlineService
 {
     Task<IReadOnlyList<AirlineDto>> ListarAsync();
-    Task<Airline?> ObterDetalheAsync(int id);
+    Task<AirlineDetalheDto?> ObterDetalheAsync(int id);
     Task<IReadOnlyList<FlightRouteDto>> ListarRotasAsync(int airlineId);
+    Task<AirlineDto> CriarAsync(NovaAirlineDto dto);
+    Task<Result<AeronaveDto>> AdicionarAeronaveAsync(int airlineId, NovaAeronaveDto dto);
+    Task<Result<FlightRouteDto>> AdicionarRotaAsync(int airlineId, NovaRotaDto dto);
 }
 
 public interface IPilotService
@@ -26,6 +29,8 @@ public interface IPirepService
     Task<IReadOnlyList<PirepPendenteDto>> ListarPendentesAsync();
     Task<Result<string>> AprovarAsync(int pirepId);
     Task<Result<string>> RejeitarAsync(int pirepId, string motivo);
+    Task<IReadOnlyList<UltimoVooDto>> ListarUltimosAsync(int quantidade);
+    Task<PirepDetalheDto?> ObterDetalheAsync(int id);
 }
 
 public interface IAuthService

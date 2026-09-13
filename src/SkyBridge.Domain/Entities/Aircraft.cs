@@ -6,6 +6,7 @@ public class Aircraft
 {
     public int Id { get; set; }
     public string Modelo { get; set; } = string.Empty;
+    public string CodigoIcao { get; set; } = string.Empty;
     public string Matricula { get; set; } = string.Empty;
 
     public int AirlineId { get; set; }

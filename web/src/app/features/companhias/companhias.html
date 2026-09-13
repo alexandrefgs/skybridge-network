@@ -1,0 +1,102 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/reportar-voo" class="text-slate-400 hover:text-white transition-colors">Reportar Voo</a>
+        <a routerLink="/perfil" class="text-slate-400 hover:text-white transition-colors">Perfil</a>
+        <a routerLink="/companhias" class="text-cyan-400">Companhias</a>
+        @if (auth.ehAdmin()) {
+          <a routerLink="/admin/companhias" class="text-amber-400 hover:text-amber-300 transition-colors">Admin</a>
+        }
+        <button
+          (click)="auth.logout()"
+          class="text-xs text-slate-400 hover:text-white transition-colors border border-[var(--sb-border)] rounded-lg px-3 py-1.5">
+          Sair
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <h1 class="font-display text-2xl font-bold text-white mb-1">Companhias Aéreas</h1>
+    <p class="text-sm text-slate-400 mb-8">Escolha uma companhia para ver a frota, as rotas e iniciar sua carreira.</p>
+
+    @if (mensagem()) {
+      <div class="rounded-lg bg-cyan-500/10 border border-cyan-500/30 px-4 py-3 text-sm text-cyan-300 mb-6">
+        {{ mensagem() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando companhias...</div>
+    } @else {
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (companhia of companhias(); track companhia.id) {
+          <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] overflow-hidden hover:border-cyan-500/30 transition-colors">
+            <button type="button" (click)="alternar(companhia)" class="w-full text-left p-5">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-[var(--sb-border)] flex items-center justify-center text-xs font-mono font-bold text-cyan-400">
+                  {{ companhia.icao }}
+                </div>
+                <span class="text-slate-500 text-sm transition-transform" [class.rotate-180]="expandida() === companhia.id">▾</span>
+              </div>
+
+              <div class="font-display font-semibold text-white text-base leading-tight">{{ companhia.nome }}</div>
+              <div class="text-xs text-slate-500 mt-1">{{ companhia.pais }}</div>
+
+              <div class="flex items-center gap-2 mt-3">
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-[var(--sb-border)] text-slate-400">IATA {{ companhia.iata || '—' }}</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-[var(--sb-border)] text-slate-400">ICAO {{ companhia.icao }}</span>
+              </div>
+
+              <div class="flex flex-wrap gap-1.5 mt-4">
+                @for (aeronave of companhia.frota; track aeronave.codigoIcao) {
+                  <span class="text-[10px] font-mono px-2 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-300">
+                    {{ aeronave.codigoIcao }}
+                  </span>
+                }
+              </div>
+            </button>
+
+            @if (expandida() === companhia.id) {
+              <div class="border-t border-[var(--sb-border)] p-5 bg-black/20">
+                <button
+                  type="button"
+                  (click)="iniciarCarreira(companhia)"
+                  class="mb-4 text-xs font-medium bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg px-4 py-2 transition-colors">
+                  Iniciar carreira
+                </button>
+
+                @if (carregandoRotas() === companhia.id) {
+                  <div class="text-xs text-slate-500">Carregando rotas...</div>
+                } @else {
+                  <div class="space-y-2">
+                    @for (rota of rotasDe(companhia.id); track rota.id) {
+                      <div class="rounded-lg border border-[var(--sb-border)] bg-white/[0.02] p-3 flex items-center justify-between">
+                        <div>
+                          <div class="font-mono text-sm text-white">{{ rota.aeroportoOrigem }} → {{ rota.aeroportoDestino }}</div>
+                          <div class="text-xs text-slate-500 mt-0.5">{{ companhia.callsignPadrao }}{{ rota.numeroVoo }} · {{ rota.tipoOperacao }}</div>
+                        </div>
+                        <div class="text-right">
+                          <div class="text-xs text-slate-400">{{ rota.distanciaMilhas }} nm</div>
+                          @if (rota.ratingMinimo > 0) {
+                            <div class="text-xs text-amber-400 mt-0.5">min {{ rota.ratingMinimo }}★</div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

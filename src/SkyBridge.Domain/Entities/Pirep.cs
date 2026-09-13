@@ -20,6 +20,7 @@ public class Pirep
 
     public int TaxaDescidaTouchdownFpm { get; set; }
     public LandingQuality QualidadePouso { get; set; }
+    public RedeOnline Rede { get; set; } = RedeOnline.Nenhuma;
 
     public long PontosGanhos { get; set; }
     public double ImpactoNoRating { get; set; }

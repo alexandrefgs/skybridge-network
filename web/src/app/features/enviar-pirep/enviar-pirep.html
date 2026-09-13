@@ -1,0 +1,170 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/reportar-voo" class="text-cyan-400">Reportar Voo</a>
+        <a routerLink="/perfil" class="text-slate-400 hover:text-white transition-colors">Perfil</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+        @if (auth.ehAdmin()) {
+          <a routerLink="/admin/companhias" class="text-amber-400 hover:text-amber-300 transition-colors">Admin</a>
+        }
+        <button
+          (click)="auth.logout()"
+          class="text-xs text-slate-400 hover:text-white transition-colors border border-[var(--sb-border)] rounded-lg px-3 py-1.5">
+          Sair
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="max-w-2xl mx-auto">
+      <h1 class="font-display text-2xl font-bold text-white mb-1">Reportar Voo</h1>
+      <p class="text-sm text-slate-400 mb-8">Envie os dados do seu voo para registrar o PIREP.</p>
+
+      @if (resultado(); as r) {
+        <div class="rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-8 text-center">
+          <div class="text-4xl mb-3">
+            @switch (r.qualidadePouso) {
+              @case ('Suave') { 🟢 }
+              @case ('Moderado') { 🟡 }
+              @case ('Forte') { 🟠 }
+              @default { 🔴 }
+            }
+          </div>
+          <h2 class="font-display text-xl font-bold text-white mb-1">PIREP #{{ r.id }} — {{ r.status }}</h2>
+          <p class="text-sm text-slate-400 mb-6">Pouso {{ r.qualidadePouso.toLowerCase() }}</p>
+
+          <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-6">
+            <div class="rounded-xl border border-[var(--sb-border)] bg-black/20 p-4">
+              <div class="text-2xl font-display font-bold text-cyan-400">+{{ r.pontosGanhos }}</div>
+              <div class="text-xs text-slate-500 mt-1">Pontos ganhos</div>
+            </div>
+            <div class="rounded-xl border border-[var(--sb-border)] bg-black/20 p-4">
+              <div class="text-2xl font-display font-bold text-white">{{ r.ratingAtualizado.toFixed(2) }}★</div>
+              <div class="text-xs text-slate-500 mt-1">Rating atual</div>
+            </div>
+          </div>
+
+          @if (r.novaPatente) {
+            <div class="rounded-lg bg-amber-500/10 border border-amber-500/30 px-4 py-2 text-sm text-amber-300 mb-6">
+              🎖️ Promovido para {{ r.novaPatente }}!
+            </div>
+          }
+
+          <button
+            type="button"
+            (click)="novoPirep()"
+            class="rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-6 py-2.5 text-sm transition-colors">
+            Reportar outro voo
+          </button>
+        </div>
+      } @else if (carregando()) {
+        <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+      } @else {
+        <form (ngSubmit)="enviar()" class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-8 space-y-5">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1.5">Companhia</label>
+            <select
+              [(ngModel)]="companhiaSelecionadaId"
+              (ngModelChange)="aoSelecionarCompanhia()"
+              name="companhia"
+              required
+              class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+              <option [ngValue]="null" disabled>Selecione uma companhia</option>
+              @for (c of companhias(); track c.id) {
+                <option [ngValue]="c.id">{{ c.nome }}</option>
+              }
+            </select>
+          </div>
+
+          @if (companhiaSelecionada(); as companhia) {
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Rota</label>
+              <select
+                [(ngModel)]="flightRouteId"
+                name="rota"
+                required
+                class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+                <option [ngValue]="null" disabled>Selecione uma rota</option>
+                @for (r of rotas(); track r.id) {
+                  <option [ngValue]="r.id">{{ companhia.callsignPadrao }}{{ r.numeroVoo }} · {{ r.aeroportoOrigem }} → {{ r.aeroportoDestino }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Aeronave</label>
+              <select
+                [(ngModel)]="aircraftId"
+                name="aeronave"
+                required
+                class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+                <option [ngValue]="null" disabled>Selecione a aeronave</option>
+                @for (a of companhia.frota; track a.id) {
+                  <option [ngValue]="a.id">{{ a.modelo }} ({{ a.codigoIcao }})</option>
+                }
+              </select>
+            </div>
+          }
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Horas de voo</label>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                [(ngModel)]="horasDeVoo"
+                name="horas"
+                required
+                placeholder="Ex: 2.5"
+                class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">V/S no touchdown (fpm)</label>
+              <input
+                type="number"
+                [(ngModel)]="taxaDescidaTouchdownFpm"
+                name="vs"
+                required
+                placeholder="Ex: -180"
+                class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1.5">Rede</label>
+            <select
+              [(ngModel)]="rede"
+              name="rede"
+              class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+              <option value="Nenhuma">Nenhuma (offline)</option>
+              <option value="IVAO">IVAO</option>
+              <option value="VATSIM">VATSIM</option>
+            </select>
+          </div>
+
+          @if (erro()) {
+            <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2.5 text-sm text-red-400">
+              {{ erro() }}
+            </div>
+          }
+
+          <button
+            type="submit"
+            [disabled]="enviando()"
+            class="w-full rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold py-2.5 text-sm transition-all">
+            {{ enviando() ? 'Enviando...' : 'Enviar PIREP' }}
+          </button>
+        </form>
+      }
+    </div>
+  </div>
+</div>

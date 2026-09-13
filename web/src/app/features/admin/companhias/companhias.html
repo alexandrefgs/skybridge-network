@@ -1,0 +1,167 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/reportar-voo" class="text-slate-400 hover:text-white transition-colors">Reportar Voo</a>
+        <a routerLink="/perfil" class="text-slate-400 hover:text-white transition-colors">Perfil</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+        <a routerLink="/admin/companhias" class="text-amber-400">Admin</a>
+        <button
+          (click)="auth.logout()"
+          class="text-xs text-slate-400 hover:text-white transition-colors border border-[var(--sb-border)] rounded-lg px-3 py-1.5">
+          Sair
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <h1 class="font-display text-2xl font-bold text-white mb-1">Administração</h1>
+    <p class="text-sm text-slate-400 mb-8">Cadastre companhias, frota e rotas.</p>
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else {
+      <div class="flex mb-6 rounded-lg bg-black/30 p-1 max-w-md">
+        <button type="button" (click)="aba.set('companhia')" [class.bg-cyan-500]="aba() === 'companhia'" [class.text-black]="aba() === 'companhia'" [class.text-slate-400]="aba() !== 'companhia'" class="flex-1 py-2 rounded-md text-xs font-medium transition-all">Companhia</button>
+        <button type="button" (click)="aba.set('aeronave')" [class.bg-cyan-500]="aba() === 'aeronave'" [class.text-black]="aba() === 'aeronave'" [class.text-slate-400]="aba() !== 'aeronave'" class="flex-1 py-2 rounded-md text-xs font-medium transition-all">Aeronave</button>
+        <button type="button" (click)="aba.set('rota')" [class.bg-cyan-500]="aba() === 'rota'" [class.text-black]="aba() === 'rota'" [class.text-slate-400]="aba() !== 'rota'" class="flex-1 py-2 rounded-md text-xs font-medium transition-all">Rota</button>
+      </div>
+
+      @if (mensagem()) {
+        <div class="rounded-lg bg-cyan-500/10 border border-cyan-500/30 px-4 py-3 text-sm text-cyan-300 mb-6 max-w-xl">{{ mensagem() }}</div>
+      }
+      @if (erro()) {
+        <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400 mb-6 max-w-xl">{{ erro() }}</div>
+      }
+
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-8 max-w-xl">
+        @if (aba() === 'companhia') {
+          <form (ngSubmit)="salvarCompanhia()" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Nome</label>
+              <input type="text" [(ngModel)]="novaCompanhia.nome" name="nome" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="Ex: American Airlines" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">IATA</label>
+                <input type="text" [(ngModel)]="novaCompanhia.iata" name="iata" maxlength="2" class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white uppercase focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="AA" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">ICAO</label>
+                <input type="text" [(ngModel)]="novaCompanhia.icao" name="icao" required maxlength="3" class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white uppercase focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="AAL" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">País</label>
+              <input type="text" [(ngModel)]="novaCompanhia.pais" name="pais" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="Estados Unidos" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Callsign padrão</label>
+              <input type="text" [(ngModel)]="novaCompanhia.callsignPadrao" name="callsign" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white uppercase focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="AMERICAN" />
+            </div>
+            <button type="submit" [disabled]="salvando()" class="w-full rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold py-2.5 text-sm transition-all">
+              {{ salvando() ? 'Salvando...' : 'Criar companhia' }}
+            </button>
+          </form>
+        }
+
+        @if (aba() === 'aeronave') {
+          <form (ngSubmit)="salvarAeronave()" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Companhia</label>
+              <select [(ngModel)]="companhiaSelecionadaId" name="companhia" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+                <option [ngValue]="null" disabled>Selecione</option>
+                @for (c of companhias(); track c.id) { <option [ngValue]="c.id">{{ c.nome }}</option> }
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Modelo</label>
+                <input type="text" [(ngModel)]="novaAeronave.modelo" name="modelo" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="Boeing 787-9" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Código ICAO</label>
+                <input type="text" [(ngModel)]="novaAeronave.codigoIcao" name="codigoIcao" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white uppercase focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="B789" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Matrícula</label>
+              <input type="text" [(ngModel)]="novaAeronave.matricula" name="matricula" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white uppercase focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="PR-ABC" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-2">Tipos de operação</label>
+              <div class="flex flex-wrap gap-2">
+                @for (tipo of tiposOperacao; track tipo) {
+                  <button type="button" (click)="alternarTipoOperacao(tipo)"
+                    [class.bg-cyan-500]="novaAeronave.tiposOperacaoSuportados.includes(tipo)"
+                    [class.text-black]="novaAeronave.tiposOperacaoSuportados.includes(tipo)"
+                    [class.bg-black/30]="!novaAeronave.tiposOperacaoSuportados.includes(tipo)"
+                    [class.text-slate-400]="!novaAeronave.tiposOperacaoSuportados.includes(tipo)"
+                    class="text-xs px-3 py-1.5 rounded-lg border border-[var(--sb-border)] transition-colors">
+                    {{ tipo }}
+                  </button>
+                }
+              </div>
+            </div>
+            <button type="submit" [disabled]="salvando()" class="w-full rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold py-2.5 text-sm transition-all">
+              {{ salvando() ? 'Salvando...' : 'Adicionar aeronave' }}
+            </button>
+          </form>
+        }
+
+        @if (aba() === 'rota') {
+          <form (ngSubmit)="salvarRota()" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Companhia</label>
+              <select [(ngModel)]="companhiaSelecionadaId" name="companhia" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+                <option [ngValue]="null" disabled>Selecione</option>
+                @for (c of companhias(); track c.id) { <option [ngValue]="c.id">{{ c.nome }}</option> }
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Origem (ICAO)</label>
+                <input type="text" [(ngModel)]="novaRota.aeroportoOrigem" name="origem" required maxlength="4" class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white uppercase focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="SBGR" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Destino (ICAO)</label>
+                <input type="text" [(ngModel)]="novaRota.aeroportoDestino" name="destino" required maxlength="4" class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white uppercase focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="KJFK" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Número do voo</label>
+                <input type="text" [(ngModel)]="novaRota.numeroVoo" name="numeroVoo" required class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50" placeholder="100" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Distância (nm)</label>
+                <input type="number" [(ngModel)]="novaRota.distanciaMilhas" name="distancia" required min="1" class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Tipo de operação</label>
+                <select [(ngModel)]="novaRota.tipoOperacao" name="tipoOperacao" class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+                  @for (tipo of tiposOperacao; track tipo) { <option [value]="tipo">{{ tipo }}</option> }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">Rating mínimo</label>
+                <input type="number" [(ngModel)]="novaRota.ratingMinimo" name="ratingMinimo" step="0.5" min="0" max="5" class="w-full rounded-lg bg-black/30 border border-[var(--sb-border)] px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50" />
+              </div>
+            </div>
+            <button type="submit" [disabled]="salvando()" class="w-full rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold py-2.5 text-sm transition-all">
+              {{ salvando() ? 'Salvando...' : 'Adicionar rota' }}
+            </button>
+          </form>
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -37,6 +37,8 @@ public interface IPilotCareerRepository : IRepository<PilotCareer>
 public interface IPirepRepository : IRepository<Pirep>
 {
     Task<IReadOnlyList<Pirep>> GetPendentesAsync();
+    Task<IReadOnlyList<Pirep>> GetUltimosAsync(int quantidade);
+    Task<Pirep?> GetComDetalhesAsync(int id);
 }
 
 public interface IRefreshTokenRepository : IRepository<RefreshToken>

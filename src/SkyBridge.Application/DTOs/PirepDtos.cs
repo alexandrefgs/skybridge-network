@@ -1,6 +1,6 @@
 namespace SkyBridge.Application.DTOs;
 
-public record NovoPirepDto(int FlightRouteId, int AircraftId, double HorasDeVoo, int TaxaDescidaTouchdownFpm);
+public record NovoPirepDto(int FlightRouteId, int AircraftId, double HorasDeVoo, int TaxaDescidaTouchdownFpm, string Rede = "Nenhuma");
 
 public record PirepResultDto(
     int Id,
@@ -18,3 +18,32 @@ public record PirepPendenteDto(
     string Rota,
     int TaxaDescidaTouchdownFpm,
     DateTime DataVoo);
+
+public record UltimoVooDto(
+    int PirepId,
+    string PilotCallsign,
+    string PilotNome,
+    string VooCallsign,
+    string AeroportoOrigem,
+    string AeroportoDestino,
+    double HorasDeVoo,
+    string AeronaveModelo,
+    string Rede);
+
+public record PirepDetalheDto(
+    int Id,
+    string PilotCallsign,
+    string PilotNome,
+    string VooCallsign,
+    string AeroportoOrigem,
+    string AeroportoDestino,
+    string AeronaveModelo,
+    double HorasDeVoo,
+    int TaxaDescidaTouchdownFpm,
+    string QualidadePouso,
+    long PontosGanhos,
+    double ImpactoNoRating,
+    string Status,
+    string Rede,
+    DateTime DataVoo,
+    string? Observacoes);

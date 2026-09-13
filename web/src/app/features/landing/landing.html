@@ -1,0 +1,247 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-400">
+        <a href="#recursos" class="hover:text-white transition-colors">Recursos</a>
+        <a href="#companhias" class="hover:text-white transition-colors">Companhias</a>
+        <a href="#como-funciona" class="hover:text-white transition-colors">Como funciona</a>
+        <a href="#voos" class="hover:text-white transition-colors">Voos ao vivo</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <a routerLink="/login" class="text-sm text-slate-300 hover:text-white transition-colors">Entrar</a>
+        <a routerLink="/login" class="text-sm bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-lg px-4 py-2 transition-colors">Criar conta</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.06]"
+         style="background-image: linear-gradient(#22d3ee 1px, transparent 1px), linear-gradient(90deg, #22d3ee 1px, transparent 1px); background-size: 48px 48px;"></div>
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full blur-3xl opacity-20"
+         style="background: radial-gradient(circle, #22d3ee, transparent 70%);"></div>
+
+    <div class="relative max-w-4xl mx-auto px-6 pt-20 pb-16 text-center">
+      <div class="inline-flex items-center gap-2 rounded-full border border-[var(--sb-border)] bg-white/[0.03] px-4 py-1.5 text-xs text-cyan-300 mb-6">
+        <span class="relative flex h-1.5 w-1.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400"></span>
+        </span>
+        Rotas e callsigns reais · Grátis para voar
+      </div>
+
+      <h1 class="font-display text-4xl sm:text-5xl font-bold text-white leading-tight mb-5">
+        Uma Virtual Airline global,<br class="hidden sm:block" /> todas as companhias em <span class="text-cyan-400">uma conta só</span>
+      </h1>
+
+      <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-8">
+        Voe rotas e callsigns reais por qualquer companhia da rede. Progrida em patentes, complete tours,
+        conquiste awards e acompanhe sua carreira — compatível com MSFS, X-Plane e P3D.
+      </p>
+
+      <div class="flex items-center justify-center gap-4 mb-12">
+        <a routerLink="/login" class="rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-6 py-3 text-sm transition-colors shadow-lg shadow-cyan-500/20">
+          Criar conta grátis
+        </a>
+        <a href="#voos" class="rounded-lg border border-[var(--sb-border)] hover:border-cyan-500/40 text-white font-medium px-6 py-3 text-sm transition-colors">
+          Ver voos ao vivo
+        </a>
+      </div>
+
+      @if (!carregando()) {
+        <div class="flex items-center justify-center gap-10 sm:gap-16">
+          <div>
+            <div class="font-display text-2xl sm:text-3xl font-bold text-white">{{ companhias().length }}</div>
+            <div class="text-xs text-slate-500 uppercase tracking-wide mt-1">Companhias</div>
+          </div>
+          <div>
+            <div class="font-display text-2xl sm:text-3xl font-bold text-white">{{ totalPilotos() }}</div>
+            <div class="text-xs text-slate-500 uppercase tracking-wide mt-1">Pilotos</div>
+          </div>
+          <div>
+            <div class="font-display text-2xl sm:text-3xl font-bold text-white">3</div>
+            <div class="text-xs text-slate-500 uppercase tracking-wide mt-1">Simuladores</div>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section id="recursos" class="max-w-6xl mx-auto px-6 py-16">
+    <div class="text-center mb-12">
+      <p class="text-xs font-semibold text-cyan-400 uppercase tracking-wide mb-2">Plataforma completa</p>
+      <h2 class="font-display text-3xl font-bold text-white">Por que voar no SkyBridge Network</h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+        <div class="text-2xl mb-3">🛫</div>
+        <h3 class="font-display font-semibold text-white mb-2">Rotas e Callsigns Reais</h3>
+        <p class="text-sm text-slate-400">Voe com números de voo e callsigns reais de cada companhia da rede.</p>
+      </div>
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+        <div class="text-2xl mb-3">🌐</div>
+        <h3 class="font-display font-semibold text-white mb-2">Todas as Companhias, Uma Conta</h3>
+        <p class="text-sm text-slate-400">Nacionais, regionais, internacionais, executivas e cargueiras — sem aplicação separada pra cada uma.</p>
+      </div>
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+        <div class="text-2xl mb-3">📡</div>
+        <h3 class="font-display font-semibold text-white mb-2">Rastreamento ao Vivo</h3>
+        <p class="text-sm text-slate-400">Acompanhe voos ativos da rede em tempo real, atualizados a cada 5 segundos, direto no mapa.</p>
+      </div>
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+        <div class="text-2xl mb-3">📈</div>
+        <h3 class="font-display font-semibold text-white mb-2">PIREP com Pontuação</h3>
+        <p class="text-sm text-slate-400">Pontos por milha voada, com penalidade por qualidade de pouso e rating que evolui a cada voo.</p>
+      </div>
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+        <div class="text-2xl mb-3">🏆</div>
+        <h3 class="font-display font-semibold text-white mb-2">Tours e Conquistas</h3>
+        <p class="text-sm text-slate-400">Complete sequências de voos e ganhe awards exibidos direto no seu perfil.</p>
+      </div>
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+        <div class="text-2xl mb-3">🖥️</div>
+        <h3 class="font-display font-semibold text-white mb-2">Multi-Simulador</h3>
+        <p class="text-sm text-slate-400">Compatível com MSFS 2020/2024, X-Plane 11/12 e Prepar3D.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="companhias" class="max-w-6xl mx-auto px-6 py-16 border-t border-[var(--sb-border)]">
+    <div class="text-center mb-12">
+      <p class="text-xs font-semibold text-cyan-400 uppercase tracking-wide mb-2">Rede global</p>
+      <h2 class="font-display text-3xl font-bold text-white">Companhias da rede</h2>
+    </div>
+
+    @if (carregando()) {
+      <div class="text-center py-10 text-slate-500 text-sm">Carregando...</div>
+    } @else {
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (c of companhias(); track c.id) {
+          <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] p-5 hover:border-cyan-500/30 transition-colors">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 border border-[var(--sb-border)] flex items-center justify-center text-xs font-mono font-bold text-cyan-400 mb-3">
+              {{ c.icao }}
+            </div>
+            <div class="font-medium text-white text-sm">{{ c.nome }}</div>
+            <div class="text-xs text-slate-500 mt-0.5">{{ c.pais }}</div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <section id="como-funciona" class="max-w-5xl mx-auto px-6 py-16 border-t border-[var(--sb-border)]">
+    <div class="text-center mb-12">
+      <p class="text-xs font-semibold text-cyan-400 uppercase tracking-wide mb-2">Comece agora</p>
+      <h2 class="font-display text-3xl font-bold text-white">Como funciona</h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="text-center">
+        <div class="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-display font-bold flex items-center justify-center mx-auto mb-4">1</div>
+        <h3 class="font-display font-semibold text-white text-sm mb-1.5">Crie sua conta</h3>
+        <p class="text-xs text-slate-400">Cadastro gratuito, seu callsign é gerado na hora.</p>
+      </div>
+      <div class="text-center">
+        <div class="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-display font-bold flex items-center justify-center mx-auto mb-4">2</div>
+        <h3 class="font-display font-semibold text-white text-sm mb-1.5">Escolha uma rota</h3>
+        <p class="text-xs text-slate-400">Selecione a companhia e a rota que quiser voar.</p>
+      </div>
+      <div class="text-center">
+        <div class="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-display font-bold flex items-center justify-center mx-auto mb-4">3</div>
+        <h3 class="font-display font-semibold text-white text-sm mb-1.5">Conecte o simulador</h3>
+        <p class="text-xs text-slate-400">O app ACARS envia sua telemetria automaticamente.</p>
+      </div>
+      <div class="text-center">
+        <div class="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-display font-bold flex items-center justify-center mx-auto mb-4">4</div>
+        <h3 class="font-display font-semibold text-white text-sm mb-1.5">Voe e registre</h3>
+        <p class="text-xs text-slate-400">Seu PIREP é gerado com pontos, rating e progresso.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="voos" class="max-w-5xl mx-auto px-6 py-16 border-t border-[var(--sb-border)]">
+    <div class="text-center mb-8">
+      <p class="text-xs font-semibold text-cyan-400 uppercase tracking-wide mb-2">Atividade da rede</p>
+      <h2 class="font-display text-3xl font-bold text-white">Voos ao vivo</h2>
+    </div>
+
+    <div class="flex items-center justify-center gap-2 mb-6">
+      <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+      </span>
+      <span class="text-sm font-mono text-white">{{ totalVoosAtivos() }}</span>
+      <span class="text-xs text-slate-500">voos no ar agora</span>
+    </div>
+
+    <div id="mapa-landing" class="mapa-escuro relative isolate w-full h-[360px] rounded-2xl border border-[var(--sb-border)] overflow-hidden mb-10"></div>
+
+    <h3 class="font-display text-lg font-semibold text-white mb-4 text-center">Últimos voos registrados</h3>
+
+    @if (carregando()) {
+      <div class="text-center py-10 text-slate-500 text-sm">Carregando...</div>
+    } @else if (ultimosVoos().length === 0) {
+      <div class="rounded-xl border border-dashed border-[var(--sb-border)] p-8 text-center text-sm text-slate-500">
+        Nenhum voo registrado ainda. Seja o primeiro!
+      </div>
+    } @else {
+      <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-[var(--sb-border)] text-left text-xs text-slate-500 uppercase tracking-wide">
+              <th class="px-4 py-3 font-medium">Piloto</th>
+              <th class="px-4 py-3 font-medium">Voo</th>
+              <th class="px-4 py-3 font-medium">Rota</th>
+              <th class="px-4 py-3 font-medium">Aeronave</th>
+              <th class="px-4 py-3 font-medium">Rede</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (voo of ultimosVoos(); track voo.pirepId) {
+              <tr class="border-b border-[var(--sb-border)] last:border-0">
+                <td class="px-4 py-3 font-mono text-cyan-400 text-xs">{{ voo.pilotCallsign }}</td>
+                <td class="px-4 py-3 font-mono text-white text-xs">{{ voo.vooCallsign }}</td>
+                <td class="px-4 py-3 font-mono text-slate-300 text-xs">{{ voo.aeroportoOrigem }} → {{ voo.aeroportoDestino }}</td>
+                <td class="px-4 py-3 text-xs text-slate-400">{{ voo.aeronaveModelo }}</td>
+                <td class="px-4 py-3">
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-[var(--sb-border)] text-slate-400">{{ voo.rede }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <section class="max-w-4xl mx-auto px-6 py-20 text-center border-t border-[var(--sb-border)]">
+    <h2 class="font-display text-3xl font-bold text-white mb-4">Pronto pra decolar?</h2>
+    <p class="text-slate-400 mb-8">Crie sua conta grátis e comece a voar em minutos.</p>
+    <a routerLink="/login" class="inline-block rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-8 py-3 text-sm transition-colors shadow-lg shadow-cyan-500/20">
+      Criar conta grátis
+    </a>
+  </section>
+
+  <footer class="border-t border-[var(--sb-border)] py-8">
+    <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">✈️</span>
+        <span class="font-display font-bold text-white text-sm">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <p class="text-xs text-slate-500">Compatível com MSFS 2020/2024 · X-Plane 11/12 · P3D</p>
+    </div>
+  </footer>
+
+  @if (mostrarBotaoTopo()) {
+    <button
+      type="button"
+      (click)="voltarAoTopo()"
+      class="fixed bottom-6 right-6 z-30 w-11 h-11 rounded-full bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center shadow-lg shadow-cyan-500/30 transition-all">
+      ↑
+    </button>
+  }
+</div>

@@ -31,6 +31,22 @@ public class PirepsController : ControllerBase
         return Ok(pendentes);
     }
 
+    [HttpGet("ultimos")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Ultimos([FromQuery] int quantidade = 10)
+    {
+        var ultimos = await _pirepService.ListarUltimosAsync(quantidade);
+        return Ok(ultimos);
+    }
+
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ObterDetalhe(int id)
+    {
+        var detalhe = await _pirepService.ObterDetalheAsync(id);
+        return detalhe is null ? NotFound() : Ok(detalhe);
+    }
+
     [HttpPost("{id}/aprovar")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Aprovar(int id)

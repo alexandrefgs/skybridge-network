@@ -59,6 +59,8 @@ public class PirepService : IPirepService
             ? PirepStatus.PendenteAprovacao
             : PirepStatus.Aprovado;
 
+        Enum.TryParse<RedeOnline>(dto.Rede, out var rede);
+
         var pirep = new Pirep
         {
             PilotId = pilotId,
@@ -67,6 +69,7 @@ public class PirepService : IPirepService
             HorasDeVoo = dto.HorasDeVoo,
             TaxaDescidaTouchdownFpm = dto.TaxaDescidaTouchdownFpm,
             QualidadePouso = avaliacao.Qualidade,
+            Rede = rede,
             PontosGanhos = pontosGanhos,
             ImpactoNoRating = avaliacao.ImpactoNoRating,
             Status = status
@@ -144,8 +147,47 @@ public class PirepService : IPirepService
         return Result<string>.Ok("PIREP rejeitado.");
     }
 
-    // Avança qualquer tour em andamento cuja próxima etapa seja exatamente essa rota.
-    // Ao completar a última etapa, concede o bônus de pontos e o Award vinculado (se houver).
+    public async Task<IReadOnlyList<UltimoVooDto>> ListarUltimosAsync(int quantidade)
+    {
+        var pireps = await _uow.Pireps.GetUltimosAsync(quantidade);
+        return pireps.Select(MapParaUltimoVoo).ToList();
+    }
+
+    public async Task<PirepDetalheDto?> ObterDetalheAsync(int id)
+    {
+        var pirep = await _uow.Pireps.GetComDetalhesAsync(id);
+        if (pirep is null) return null;
+
+        return new PirepDetalheDto(
+            pirep.Id,
+            pirep.Pilot?.Callsign ?? string.Empty,
+            pirep.Pilot?.Nome ?? string.Empty,
+            pirep.FlightRoute is not null ? $"{pirep.FlightRoute.Airline?.CallsignPadrao}{pirep.FlightRoute.NumeroVoo}" : string.Empty,
+            pirep.FlightRoute?.AeroportoOrigem ?? string.Empty,
+            pirep.FlightRoute?.AeroportoDestino ?? string.Empty,
+            pirep.Aircraft?.Modelo ?? string.Empty,
+            pirep.HorasDeVoo,
+            pirep.TaxaDescidaTouchdownFpm,
+            pirep.QualidadePouso.ToString(),
+            pirep.PontosGanhos,
+            pirep.ImpactoNoRating,
+            pirep.Status.ToString(),
+            pirep.Rede.ToString(),
+            pirep.DataVoo,
+            pirep.Observacoes);
+    }
+
+    private static UltimoVooDto MapParaUltimoVoo(Pirep p) => new(
+        p.Id,
+        p.Pilot?.Callsign ?? string.Empty,
+        p.Pilot?.Nome ?? string.Empty,
+        p.FlightRoute is not null ? $"{p.FlightRoute.Airline?.CallsignPadrao}{p.FlightRoute.NumeroVoo}" : string.Empty,
+        p.FlightRoute?.AeroportoOrigem ?? string.Empty,
+        p.FlightRoute?.AeroportoDestino ?? string.Empty,
+        p.HorasDeVoo,
+        p.Aircraft?.Modelo ?? string.Empty,
+        p.Rede.ToString());
+
     private async Task AvancarToursAsync(int pilotId, int flightRouteId)
     {
         var progressos = await _uow.TourProgresses.GetEmAndamentoPorPilotoERotaAsync(pilotId, flightRouteId);

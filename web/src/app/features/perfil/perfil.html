@@ -1,0 +1,104 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/reportar-voo" class="text-slate-400 hover:text-white transition-colors">Reportar Voo</a>
+        <a routerLink="/perfil" class="text-cyan-400">Perfil</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+        @if (auth.ehAdmin()) {
+          <a routerLink="/admin/companhias" class="text-amber-400 hover:text-amber-300 transition-colors">Admin</a>
+        }
+        <button
+          (click)="auth.logout()"
+          class="text-xs text-slate-400 hover:text-white transition-colors border border-[var(--sb-border)] rounded-lg px-3 py-1.5">
+          Sair
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  @if (carregando()) {
+    <div class="flex items-center justify-center py-32 text-slate-500 text-sm">Carregando perfil...</div>
+  } @else if (piloto(); as p) {
+    <div class="max-w-6xl mx-auto px-6 py-10">
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.03] backdrop-blur-xl p-8 mb-8 relative overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-64 h-64 rounded-full blur-3xl opacity-20"
+             style="background: radial-gradient(circle, #22d3ee, transparent 70%);"></div>
+
+        <div class="relative flex flex-col sm:flex-row sm:items-center gap-6">
+          <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-2xl font-display font-bold text-black shrink-0">
+            {{ p.callsign.substring(3) }}
+          </div>
+
+          <div class="flex-1">
+            <h1 class="font-display text-2xl font-bold text-white">{{ p.nome }}</h1>
+            <div class="flex items-center gap-3 mt-1">
+              <span class="text-cyan-400 font-mono text-sm tracking-wider">{{ p.callsign }}</span>
+              <span class="text-slate-600">·</span>
+              <div class="flex items-center gap-0.5">
+                @for (cheia of estrelas(p.rating); track $index) {
+                  <span [class.text-cyan-400]="cheia === 1" [class.text-slate-700]="cheia === 0">★</span>
+                }
+                <span class="text-xs text-slate-500 ml-1">{{ p.rating.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <div class="text-3xl font-display font-bold text-white">{{ p.pontosTotais.toLocaleString() }}</div>
+            <div class="text-xs text-slate-500 uppercase tracking-wide">Pontos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <section>
+          <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Carreiras</h2>
+          @if (p.carreiras.length === 0) {
+            <div class="rounded-xl border border-dashed border-[var(--sb-border)] p-6 text-center text-sm text-slate-500">
+              Você ainda não iniciou carreira em nenhuma companhia.
+            </div>
+          } @else {
+            <div class="space-y-3">
+              @for (carreira of p.carreiras; track carreira.airlineId) {
+                <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] p-4 flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-white text-sm">{{ carreira.airlineNome }}</div>
+                    <div class="text-xs text-cyan-400 mt-0.5">{{ carreira.rankAtual }}</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-sm font-mono text-white">{{ carreira.horasVoadas.toFixed(1) }}h</div>
+                    <div class="text-xs text-slate-500">voadas</div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <section>
+          <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Conquistas</h2>
+          @if (p.awards.length === 0) {
+            <div class="rounded-xl border border-dashed border-[var(--sb-border)] p-6 text-center text-sm text-slate-500">
+              Nenhuma conquista ainda. Complete um Tour para ganhar sua primeira!
+            </div>
+          } @else {
+            <div class="grid grid-cols-2 gap-3">
+              @for (award of p.awards; track award.nome) {
+                <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] p-4 text-center">
+                  <div class="text-2xl mb-2">🏆</div>
+                  <div class="text-xs font-medium text-white">{{ award.nome }}</div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </div>
+    </div>
+  }
+</div>

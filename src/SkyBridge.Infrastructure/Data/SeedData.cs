@@ -20,14 +20,14 @@ public static class SeedData
         );
 
         modelBuilder.Entity<Aircraft>().HasData(
-            new Aircraft { Id = 1, Modelo = "Airbus A350-900", Matricula = "PR-XTB", AirlineId = 1, TiposOperacaoSuportados = new List<OperationType> { OperationType.Nacional, OperationType.Internacional } },
-            new Aircraft { Id = 2, Modelo = "Boeing 737-800", Matricula = "PR-GOA", AirlineId = 2, TiposOperacaoSuportados = new List<OperationType> { OperationType.Nacional, OperationType.Regional } },
-            new Aircraft { Id = 3, Modelo = "Embraer E195-E2", Matricula = "PR-YRH", AirlineId = 3, TiposOperacaoSuportados = new List<OperationType> { OperationType.Regional, OperationType.Nacional } },
-            new Aircraft { Id = 4, Modelo = "Airbus A330-900", Matricula = "N401DX", AirlineId = 4, TiposOperacaoSuportados = new List<OperationType> { OperationType.Nacional, OperationType.Internacional } },
-            new Aircraft { Id = 5, Modelo = "Boeing 747-8", Matricula = "D-ABYA", AirlineId = 5, TiposOperacaoSuportados = new List<OperationType> { OperationType.Internacional } },
-            new Aircraft { Id = 6, Modelo = "Airbus A380-800", Matricula = "A6-EOA", AirlineId = 6, TiposOperacaoSuportados = new List<OperationType> { OperationType.Internacional } },
-            new Aircraft { Id = 7, Modelo = "Boeing 777F", Matricula = "N850FD", AirlineId = 7, TiposOperacaoSuportados = new List<OperationType> { OperationType.Cargueiro } },
-            new Aircraft { Id = 8, Modelo = "Cessna Citation X", Matricula = "N121QS", AirlineId = 8, TiposOperacaoSuportados = new List<OperationType> { OperationType.Executivo } }
+            new Aircraft { Id = 1, Modelo = "Airbus A350-900", CodigoIcao = "A359", Matricula = "PR-XTB", AirlineId = 1, TiposOperacaoSuportados = new List<OperationType> { OperationType.Nacional, OperationType.Internacional } },
+            new Aircraft { Id = 2, Modelo = "Boeing 737-800", CodigoIcao = "B738", Matricula = "PR-GOA", AirlineId = 2, TiposOperacaoSuportados = new List<OperationType> { OperationType.Nacional, OperationType.Regional } },
+            new Aircraft { Id = 3, Modelo = "Embraer E195-E2", CodigoIcao = "E295", Matricula = "PR-YRH", AirlineId = 3, TiposOperacaoSuportados = new List<OperationType> { OperationType.Regional, OperationType.Nacional } },
+            new Aircraft { Id = 4, Modelo = "Airbus A330-900", CodigoIcao = "A339", Matricula = "N401DX", AirlineId = 4, TiposOperacaoSuportados = new List<OperationType> { OperationType.Nacional, OperationType.Internacional } },
+            new Aircraft { Id = 5, Modelo = "Boeing 747-8", CodigoIcao = "B748", Matricula = "D-ABYA", AirlineId = 5, TiposOperacaoSuportados = new List<OperationType> { OperationType.Internacional } },
+            new Aircraft { Id = 6, Modelo = "Airbus A380-800", CodigoIcao = "A388", Matricula = "A6-EOA", AirlineId = 6, TiposOperacaoSuportados = new List<OperationType> { OperationType.Internacional } },
+            new Aircraft { Id = 7, Modelo = "Boeing 777F", CodigoIcao = "B77L", Matricula = "N850FD", AirlineId = 7, TiposOperacaoSuportados = new List<OperationType> { OperationType.Cargueiro } },
+            new Aircraft { Id = 8, Modelo = "Cessna Citation X", CodigoIcao = "C750", Matricula = "N121QS", AirlineId = 8, TiposOperacaoSuportados = new List<OperationType> { OperationType.Executivo } }
         );
 
         modelBuilder.Entity<Rank>().HasData(

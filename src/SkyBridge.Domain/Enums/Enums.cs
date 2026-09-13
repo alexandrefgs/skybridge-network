@@ -29,3 +29,10 @@ public enum PilotRole
     Piloto = 1,
     Admin = 2
 }
+
+public enum RedeOnline
+{
+    Nenhuma = 1,
+    IVAO = 2,
+    VATSIM = 3
+}

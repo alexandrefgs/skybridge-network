@@ -26,4 +26,20 @@ public class PirepRepository : Repository<Pirep>, IPirepRepository
             .Include(p => p.Pilot)
             .Include(p => p.FlightRoute)
             .ToListAsync();
+
+    public async Task<IReadOnlyList<Pirep>> GetUltimosAsync(int quantidade) =>
+        await DbSet
+            .Include(p => p.Pilot)
+            .Include(p => p.FlightRoute).ThenInclude(f => f!.Airline)
+            .Include(p => p.Aircraft)
+            .OrderByDescending(p => p.DataVoo)
+            .Take(quantidade)
+            .ToListAsync();
+
+    public async Task<Pirep?> GetComDetalhesAsync(int id) =>
+        await DbSet
+            .Include(p => p.Pilot)
+            .Include(p => p.FlightRoute).ThenInclude(f => f!.Airline)
+            .Include(p => p.Aircraft)
+            .FirstOrDefaultAsync(p => p.Id == id);
 }
