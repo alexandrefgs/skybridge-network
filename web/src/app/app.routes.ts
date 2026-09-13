@@ -6,7 +6,11 @@ export const routes: Routes = [
   { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard) },
   { path: 'perfil', loadComponent: () => import('./features/perfil/perfil').then(m => m.Perfil) },
   { path: 'companhias', loadComponent: () => import('./features/companhias/companhias').then(m => m.Companhias) },
-  { path: 'reportar-voo', loadComponent: () => import('./features/enviar-pirep/enviar-pirep').then(m => m.EnviarPirep) },
+  { path: 'booking/nova', loadComponent: () => import('./features/booking/nova/nova').then(m => m.BookingNova) },
+  { path: 'booking/:id/perfil', loadComponent: () => import('./features/booking/perfil/perfil').then(m => m.BookingPerfil) },
+  { path: 'booking/:id/alternados', loadComponent: () => import('./features/booking/alternados/alternados').then(m => m.BookingAlternados) },
   { path: 'admin/companhias', loadComponent: () => import('./features/admin/companhias/companhias').then(m => m.AdminCompanhias) },
+  { path: 'booking/:id/configurar', loadComponent: () => import('./features/booking/configurar/configurar').then(m => m.BookingConfigurar) },
+  { path: 'booking/:id/briefing', loadComponent: () => import('./features/booking/briefing/briefing').then(m => m.BookingBriefing) },
   { path: '**', redirectTo: '' },
 ];

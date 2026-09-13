@@ -1,0 +1,78 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/booking" class="text-cyan-400">Booking</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+      <span>1. Aeronave</span>
+      <span>›</span>
+      <span class="text-cyan-400 font-medium">2. Perfil</span>
+      <span>›</span>
+      <span>3. Alternados</span>
+      <span>›</span>
+      <span>4. Configurar</span>
+      <span>›</span>
+      <span>5. Briefing</span>
+    </div>
+
+    <h1 class="font-display text-2xl font-bold text-white mb-2">Perfil da Aeronave (SimBrief)</h1>
+
+    @if (booking()) {
+      <p class="text-sm text-slate-400 mb-6">
+        {{ booking()!.callsign }} · {{ booking()!.aeroportoOrigem }} → {{ booking()!.aeroportoDestino }} · {{ booking()!.aeronaveModelo }}
+      </p>
+    }
+
+    @if (erro()) {
+      <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300 mb-4">
+        {{ erro() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else {
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-4">
+        <p class="text-xs text-slate-400">
+          Escolha o perfil de aeronave que você usa no SimBrief para essa aeronave. Isso é só uma referência — você poderá confirmar o perfil exato dentro do próprio SimBrief na próxima etapa.
+        </p>
+
+        <div class="grid sm:grid-cols-2 gap-2">
+          @for (s of sugestoes; track s) {
+            <button type="button" (click)="perfilSelecionado = s"
+                    class="text-left text-sm px-4 py-2 rounded-lg border transition-colors"
+                    [class.bg-cyan-500]="perfilSelecionado === s"
+                    [class.text-black]="perfilSelecionado === s"
+                    [class.border-cyan-500]="perfilSelecionado === s"
+                    [class.border-[var(--sb-border)]]="perfilSelecionado !== s"
+                    [class.text-slate-300]="perfilSelecionado !== s">
+              {{ s }}
+            </button>
+          }
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">Ou digite outro perfil</label>
+          <input [(ngModel)]="perfilSelecionado" placeholder="Ex: PMDG (MSFS)"
+                 class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
+        </div>
+
+        <button (click)="continuar()" [disabled]="salvando()"
+                class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-4 py-2 transition-colors">
+          {{ salvando() ? 'Salvando...' : 'Continuar' }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

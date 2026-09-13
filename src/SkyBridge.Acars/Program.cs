@@ -61,8 +61,7 @@ while (true)
 
         Console.WriteLine($"Lat: {lat:F4} | Lon: {lon:F4} | Altitude: {altitudePes:F0} ft | Velocidade: {velocidadeNos:F0} kt | V/S: {vsFpm} fpm | No solo: {estaNoSolo}");
 
-        var telemetria = new { latitude = lat, longitude = lon, altitudePes, velocidadeNos, heading };
-        var envio = await http.PostAsJsonAsync("/api/VoosAtivos/telemetria", telemetria);
+        var telemetria = new { latitude = lat, longitude = lon, altitudePes, velocidadeNos, heading, estaNoSolo, velocidadeVerticalFpm = vsFpm };        var envio = await http.PostAsJsonAsync("/api/VoosAtivos/telemetria", telemetria);
         if (!envio.IsSuccessStatusCode)
             Console.WriteLine($"Falha ao enviar telemetria: {envio.StatusCode}");
     }

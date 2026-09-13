@@ -69,6 +69,13 @@ public interface IPilotAwardRepository : IRepository<PilotAward>
     Task<IReadOnlyList<PilotAward>> GetByPilotAsync(int pilotId);
 }
 
+public interface IBookingRepository : IRepository<Booking>
+{
+    Task<Booking?> GetComDetalhesAsync(int id);
+    Task<IReadOnlyList<Booking>> GetByPilotAsync(int pilotId);
+    Task<Booking?> GetEmVooPorPilotoAsync(int pilotId);
+}
+
 public interface IUnitOfWork
 {
     IAirlineRepository Airlines { get; }
@@ -83,6 +90,7 @@ public interface IUnitOfWork
     ITourProgressRepository TourProgresses { get; }
     IAwardRepository Awards { get; }
     IPilotAwardRepository PilotAwards { get; }
+    IBookingRepository Bookings { get; }
 
     Task<int> SaveChangesAsync();
 }

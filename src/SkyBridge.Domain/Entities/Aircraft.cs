@@ -13,4 +13,6 @@ public class Aircraft
     public Airline? Airline { get; set; }
 
     public List<OperationType> TiposOperacaoSuportados { get; set; } = new();
+
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }

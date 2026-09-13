@@ -1,0 +1,111 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/booking" class="text-cyan-400">Booking</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+      <span>1. Aeronave</span>
+      <span>›</span>
+      <span>2. Perfil</span>
+      <span>›</span>
+      <span>3. Alternados</span>
+      <span>›</span>
+      <span>4. Configurar</span>
+      <span>›</span>
+      <span class="text-cyan-400 font-medium">5. Briefing</span>
+    </div>
+
+    <h1 class="font-display text-2xl font-bold text-white mb-6">Briefing do Voo</h1>
+
+    @if (erro()) {
+      <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300 mb-4">
+        {{ erro() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else if (booking()) {
+      <div class="space-y-6">
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <div class="font-display text-xl font-bold text-white">{{ booking()!.callsign }}</div>
+              <div class="text-sm text-slate-400">{{ booking()!.aeroportoOrigem }} → {{ booking()!.aeroportoDestino }} · Voo {{ booking()!.numeroVoo }}</div>
+            </div>
+            <span class="text-xs font-mono px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
+              {{ booking()!.status }}
+            </span>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4 text-sm">
+            <div class="bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+              <div class="text-xs text-slate-500">Aeronave</div>
+              <div class="text-white">{{ booking()!.aeronaveModelo }} ({{ booking()!.matricula }})</div>
+            </div>
+            <div class="bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+              <div class="text-xs text-slate-500">Perfil SimBrief</div>
+              <div class="text-white">{{ booking()!.simBriefPerfilId || '—' }}</div>
+            </div>
+            <div class="bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+              <div class="text-xs text-slate-500">Payload</div>
+              <div class="text-white">{{ booking()!.payloadPassageiros || 0 }} pax · {{ booking()!.payloadCargaKg || 0 }} kg</div>
+            </div>
+            <div class="bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+              <div class="text-xs text-slate-500">OFP</div>
+              <div class="text-white font-mono">{{ booking()!.simBriefOfpId || '—' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 text-center">
+          @if (booking()!.status === 'BriefingGerado') {
+            <p class="text-sm text-slate-400 mb-4">Plano de voo confirmado. Quando estiver pronto no simulador, inicie o voo.</p>
+            <button (click)="iniciarVoo()" [disabled]="iniciando()"
+                    class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-6 py-3 transition-colors">
+              {{ iniciando() ? 'Iniciando...' : 'Iniciar Voo' }}
+            </button>
+          }
+
+          @if (booking()!.status === 'EmVoo' && !statusVoo()?.prontoParaPirep) {
+            <p class="text-sm text-cyan-300 mb-2">Voo em andamento...</p>
+            <p class="text-xs text-slate-500">Aguardando pouso e parada no gate para liberar o envio do PIREP.</p>
+          }
+
+          @if (booking()!.status === 'EmVoo' && statusVoo()?.prontoParaPirep) {
+            <p class="text-sm text-slate-400 mb-1">Chegada detectada!</p>
+            @if (statusVoo()?.horasDeVoo) {
+              <p class="text-xs text-slate-500 mb-4">
+                Tempo de voo: {{ (statusVoo()!.horasDeVoo! * 60) | number: '1.0-0' }} min ·
+                Touchdown: {{ statusVoo()!.taxaDescidaTouchdownFpm }} fpm
+              </p>
+            }
+            <button (click)="enviarPirep()" [disabled]="enviandoPirep()"
+                    class="text-sm font-medium bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black rounded-lg px-6 py-3 transition-colors">
+              {{ enviandoPirep() ? 'Enviando...' : 'Enviar PIREP' }}
+            </button>
+          }
+
+          @if (booking()!.status === 'Concluido') {
+            <p class="text-sm text-cyan-300">PIREP enviado com sucesso! ✈️</p>
+          }
+
+          @if (booking()!.status === 'Cancelado') {
+            <p class="text-sm text-red-400">Este voo foi cancelado (sem telemetria por tempo demais).</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

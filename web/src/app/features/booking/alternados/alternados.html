@@ -1,0 +1,188 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/booking" class="text-cyan-400">Booking</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+      <span>1. Aeronave</span>
+      <span>›</span>
+      <span>2. Perfil</span>
+      <span>›</span>
+      <span class="text-cyan-400 font-medium">3. Alternados</span>
+      <span>›</span>
+      <span>4. Configurar</span>
+      <span>›</span>
+      <span>5. Briefing</span>
+    </div>
+
+    <h1 class="font-display text-2xl font-bold text-white mb-2">Aeroportos Alternados</h1>
+
+    @if (booking()) {
+      <p class="text-sm text-slate-400 mb-6">
+        {{ booking()!.callsign }} · {{ booking()!.aeroportoOrigem }} → {{ booking()!.aeroportoDestino }}
+      </p>
+    }
+
+    @if (erro()) {
+      <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300 mb-4">
+        {{ erro() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else {
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-5">
+        <p class="text-xs text-slate-400">Informe até 4 aeroportos alternados (ICAO). Opcional.</p>
+
+        <div>
+          <label class="text-xs text-slate-400">Alternado 1</label>
+          <div class="flex gap-2 mt-1">
+            <input [(ngModel)]="alternado1" maxlength="4" placeholder="Ex: SBJV"
+                   class="flex-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white font-mono uppercase" />
+            <button type="button" (click)="consultarClima(alternado1)"
+                    class="text-xs px-3 py-2 rounded-lg border border-[var(--sb-border)] text-slate-300 hover:text-white transition-colors">
+              Consultar Clima
+            </button>
+          </div>
+          @if (climaDe(alternado1) === 'carregando') {
+            <p class="text-xs text-slate-500 mt-1">Buscando METAR/TAF...</p>
+          }
+          @if (climaDe(alternado1) && climaDe(alternado1) !== 'carregando') {
+            <div class="mt-2 space-y-1.5">
+              @if ($any(climaDe(alternado1)).metarEncontrado) {
+                <div class="text-xs font-mono text-cyan-300 bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+                  <span class="text-cyan-500 font-semibold">METAR</span> {{ $any(climaDe(alternado1)).metar }}
+                </div>
+              } @else {
+                <p class="text-xs text-red-400">METAR não encontrado.</p>
+              }
+              @if ($any(climaDe(alternado1)).tafEncontrado) {
+                <div class="text-xs font-mono text-amber-300 bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+                  <span class="text-amber-500 font-semibold">TAF</span> {{ $any(climaDe(alternado1)).taf }}
+                </div>
+              } @else {
+                <p class="text-xs text-slate-500">TAF não publicado para esse aeroporto.</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">Alternado 2</label>
+          <div class="flex gap-2 mt-1">
+            <input [(ngModel)]="alternado2" maxlength="4" placeholder="Ex: SBSV"
+                   class="flex-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white font-mono uppercase" />
+            <button type="button" (click)="consultarClima(alternado2)"
+                    class="text-xs px-3 py-2 rounded-lg border border-[var(--sb-border)] text-slate-300 hover:text-white transition-colors">
+              Consultar Clima
+            </button>
+          </div>
+          @if (climaDe(alternado2) === 'carregando') {
+            <p class="text-xs text-slate-500 mt-1">Buscando METAR/TAF...</p>
+          }
+          @if (climaDe(alternado2) && climaDe(alternado2) !== 'carregando') {
+            <div class="mt-2 space-y-1.5">
+              @if ($any(climaDe(alternado2)).metarEncontrado) {
+                <div class="text-xs font-mono text-cyan-300 bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+                  <span class="text-cyan-500 font-semibold">METAR</span> {{ $any(climaDe(alternado2)).metar }}
+                </div>
+              } @else {
+                <p class="text-xs text-red-400">METAR não encontrado.</p>
+              }
+              @if ($any(climaDe(alternado2)).tafEncontrado) {
+                <div class="text-xs font-mono text-amber-300 bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+                  <span class="text-amber-500 font-semibold">TAF</span> {{ $any(climaDe(alternado2)).taf }}
+                </div>
+              } @else {
+                <p class="text-xs text-slate-500">TAF não publicado para esse aeroporto.</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">Alternado 3</label>
+          <div class="flex gap-2 mt-1">
+            <input [(ngModel)]="alternado3" maxlength="4" placeholder="Ex: SBGL"
+                   class="flex-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white font-mono uppercase" />
+            <button type="button" (click)="consultarClima(alternado3)"
+                    class="text-xs px-3 py-2 rounded-lg border border-[var(--sb-border)] text-slate-300 hover:text-white transition-colors">
+              Consultar Clima
+            </button>
+          </div>
+          @if (climaDe(alternado3) === 'carregando') {
+            <p class="text-xs text-slate-500 mt-1">Buscando METAR/TAF...</p>
+          }
+          @if (climaDe(alternado3) && climaDe(alternado3) !== 'carregando') {
+            <div class="mt-2 space-y-1.5">
+              @if ($any(climaDe(alternado3)).metarEncontrado) {
+                <div class="text-xs font-mono text-cyan-300 bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+                  <span class="text-cyan-500 font-semibold">METAR</span> {{ $any(climaDe(alternado3)).metar }}
+                </div>
+              } @else {
+                <p class="text-xs text-red-400">METAR não encontrado.</p>
+              }
+              @if ($any(climaDe(alternado3)).tafEncontrado) {
+                <div class="text-xs font-mono text-amber-300 bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+                  <span class="text-amber-500 font-semibold">TAF</span> {{ $any(climaDe(alternado3)).taf }}
+                </div>
+              } @else {
+                <p class="text-xs text-slate-500">TAF não publicado para esse aeroporto.</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">Alternado 4</label>
+          <div class="flex gap-2 mt-1">
+            <input [(ngModel)]="alternado4" maxlength="4" placeholder="Ex: SBRJ"
+                   class="flex-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white font-mono uppercase" />
+            <button type="button" (click)="consultarClima(alternado4)"
+                    class="text-xs px-3 py-2 rounded-lg border border-[var(--sb-border)] text-slate-300 hover:text-white transition-colors">
+              Consultar Clima
+            </button>
+          </div>
+          @if (climaDe(alternado4) === 'carregando') {
+            <p class="text-xs text-slate-500 mt-1">Buscando METAR/TAF...</p>
+          }
+          @if (climaDe(alternado4) && climaDe(alternado4) !== 'carregando') {
+            <div class="mt-2 space-y-1.5">
+              @if ($any(climaDe(alternado4)).metarEncontrado) {
+                <div class="text-xs font-mono text-cyan-300 bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+                  <span class="text-cyan-500 font-semibold">METAR</span> {{ $any(climaDe(alternado4)).metar }}
+                </div>
+              } @else {
+                <p class="text-xs text-red-400">METAR não encontrado.</p>
+              }
+              @if ($any(climaDe(alternado4)).tafEncontrado) {
+                <div class="text-xs font-mono text-amber-300 bg-black/30 rounded-lg px-3 py-2 border border-[var(--sb-border)]">
+                  <span class="text-amber-500 font-semibold">TAF</span> {{ $any(climaDe(alternado4)).taf }}
+                </div>
+              } @else {
+                <p class="text-xs text-slate-500">TAF não publicado para esse aeroporto.</p>
+              }
+            </div>
+          }
+        </div>
+
+        <button (click)="continuar()" [disabled]="salvando()"
+                class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-4 py-2 transition-colors">
+          {{ salvando() ? 'Salvando...' : 'Continuar' }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

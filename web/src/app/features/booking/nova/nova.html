@@ -1,0 +1,109 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/booking" class="text-cyan-400">Booking</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+      <span class="text-cyan-400 font-medium">1. Aeronave</span>
+      <span>›</span>
+      <span>2. Perfil</span>
+      <span>›</span>
+      <span>3. Alternados</span>
+      <span>›</span>
+      <span>4. Configurar</span>
+      <span>›</span>
+      <span>5. Briefing</span>
+    </div>
+
+    <h1 class="font-display text-2xl font-bold text-white mb-6">Nova Reserva de Voo</h1>
+
+    @if (erro()) {
+      <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300 mb-4">
+        {{ erro() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else {
+      <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-4">
+        <div>
+          <label class="text-xs text-slate-400">Companhia</label>
+          <select [(ngModel)]="airlineIdSelecionada" (ngModelChange)="aoSelecionarCompanhia()"
+                  class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white">
+            <option [ngValue]="null" disabled>Selecione</option>
+            @for (c of companhias(); track c.id) {
+              <option [ngValue]="c.id">{{ c.nome }} ({{ c.icao }})</option>
+            }
+          </select>
+        </div>
+
+        @if (rotasDaCompanhia().length > 0) {
+          <div>
+            <label class="text-xs text-slate-400">Rota</label>
+            <select [(ngModel)]="rotaIdSelecionada"
+                    class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white">
+              <option [ngValue]="null" disabled>Selecione</option>
+              @for (r of rotasDaCompanhia(); track r.id) {
+                <option [ngValue]="r.id">{{ r.aeroportoOrigem }} → {{ r.aeroportoDestino }} · {{ r.numeroVoo }} ({{ r.tipoOperacao }})</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (companhiaSelecionada && companhiaSelecionada!.frota.length > 0) {
+          <div>
+            <label class="text-xs text-slate-400">Aeronave</label>
+            <select [(ngModel)]="aircraftIdSelecionado"
+                    class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white">
+              <option [ngValue]="null" disabled>Selecione</option>
+              @for (a of companhiaSelecionada!.frota; track a.id) {
+                <option [ngValue]="a.id">{{ a.modelo }} ({{ a.codigoIcao }})</option>
+              }
+            </select>
+          </div>
+        }
+
+        <div>
+          <label class="text-xs text-slate-400">Callsign</label>
+          <input [(ngModel)]="callsign" placeholder="Ex: LATAM4471"
+                 class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white font-mono uppercase" />
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="text-xs text-slate-400">Data do Voo</label>
+            <input [(ngModel)]="dataVoo" type="date"
+                   class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Partida (UTC)</label>
+            <input [(ngModel)]="horaPartida" type="time"
+                   class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Chegada (UTC)</label>
+            <input [(ngModel)]="horaChegada" type="time"
+                   class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
+          </div>
+        </div>
+
+        <button (click)="criar()" [disabled]="salvando()"
+                class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-4 py-2 transition-colors">
+          {{ salvando() ? 'Criando...' : 'Continuar' }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

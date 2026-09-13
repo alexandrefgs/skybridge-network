@@ -22,6 +22,7 @@ public class UnitOfWork : IUnitOfWork
         TourProgresses = new TourProgressRepository(db);
         Awards = new AwardRepository(db);
         PilotAwards = new PilotAwardRepository(db);
+        Bookings = new BookingRepository(db);
     }
 
     public IAirlineRepository Airlines { get; }
@@ -36,6 +37,7 @@ public class UnitOfWork : IUnitOfWork
     public ITourProgressRepository TourProgresses { get; }
     public IAwardRepository Awards { get; }
     public IPilotAwardRepository PilotAwards { get; }
+    public IBookingRepository Bookings { get; }
 
     public Task<int> SaveChangesAsync() => _db.SaveChangesAsync();
 }

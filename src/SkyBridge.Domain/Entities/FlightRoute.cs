@@ -18,4 +18,5 @@ public class FlightRoute
     public Airline? Airline { get; set; }
 
     public ICollection<Pirep> Pireps { get; set; } = new List<Pirep>();
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }

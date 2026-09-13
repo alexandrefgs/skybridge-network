@@ -12,6 +12,8 @@ public class PilotsController : ControllerBase
     private readonly IPilotService _pilotService;
     public PilotsController(IPilotService pilotService) => _pilotService = pilotService;
 
+    public record SimBriefUsernameDto(string SimBriefUsername);
+
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetAll()
@@ -37,6 +39,18 @@ public class PilotsController : ControllerBase
             return Forbid();
 
         var resultado = await _pilotService.IniciarCarreiraAsync(pilotId, airlineId);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
+
+    [HttpPut("{pilotId}/simbrief-username")]
+    [Authorize]
+    public async Task<IActionResult> DefinirSimBriefUsername(int pilotId, SimBriefUsernameDto dto)
+    {
+        var idLogado = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (pilotId != idLogado)
+            return Forbid();
+
+        var resultado = await _pilotService.DefinirSimBriefUsernameAsync(pilotId, dto.SimBriefUsername);
         return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
     }
 

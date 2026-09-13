@@ -1,0 +1,93 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✈️</span>
+        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
+        <a routerLink="/booking" class="text-cyan-400">Booking</a>
+        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+      <span>1. Aeronave</span>
+      <span>›</span>
+      <span>2. Perfil</span>
+      <span>›</span>
+      <span>3. Alternados</span>
+      <span>›</span>
+      <span class="text-cyan-400 font-medium">4. Configurar</span>
+      <span>›</span>
+      <span>5. Briefing</span>
+    </div>
+
+    <h1 class="font-display text-2xl font-bold text-white mb-2">Configurar Voo</h1>
+
+    @if (booking()) {
+      <p class="text-sm text-slate-400 mb-6">
+        {{ booking()!.callsign }} · {{ booking()!.aeroportoOrigem }} → {{ booking()!.aeroportoDestino }} · {{ booking()!.aeronaveModelo }}
+      </p>
+    }
+
+    @if (erro()) {
+      <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300 mb-4">
+        {{ erro() }}
+      </div>
+    }
+    @if (mensagem()) {
+      <div class="rounded-lg bg-cyan-500/10 border border-cyan-500/30 px-4 py-2 text-sm text-cyan-300 mb-4">
+        {{ mensagem() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else {
+      <div class="space-y-6">
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-4">
+          <h2 class="font-display text-lg font-semibold text-white">Payload</h2>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-slate-400">Passageiros</label>
+              <input [(ngModel)]="payloadPassageiros" type="number" min="0"
+                     class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Carga (kg)</label>
+              <input [(ngModel)]="payloadCargaKg" type="number" min="0"
+                     class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
+            </div>
+          </div>
+          <button (click)="salvarPayload()" [disabled]="salvandoPayload()"
+                  class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-4 py-2 transition-colors">
+            {{ salvandoPayload() ? 'Salvando...' : 'Salvar Payload' }}
+          </button>
+        </div>
+
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-4">
+          <h2 class="font-display text-lg font-semibold text-white">Plano de Voo (SimBrief)</h2>
+          <p class="text-xs text-slate-400">
+            Clique abaixo para abrir o SimBrief numa nova aba com os dados desse voo já preenchidos. Gere o plano de voo normalmente por lá, depois volte aqui e clique em "Confirmar".
+          </p>
+
+          <div class="flex flex-wrap gap-3">
+            <button (click)="gerarNoSimBrief()" [disabled]="gerandoRedirect()"
+                    class="text-sm font-medium bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black rounded-lg px-4 py-2 transition-colors">
+              {{ gerandoRedirect() ? 'Gerando link...' : 'Gerar Plano de Voo no SimBrief' }}
+            </button>
+
+            <button (click)="confirmarOfp()" [disabled]="confirmando()"
+                    class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-4 py-2 transition-colors">
+              {{ confirmando() ? 'Confirmando...' : 'Já gerei, Confirmar OFP' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

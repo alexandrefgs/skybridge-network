@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SkyBridge.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SkyBridge.Infrastructure.Data;
 namespace SkyBridge.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260913114605_AddBooking")]
+    partial class AddBooking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -303,18 +306,6 @@ namespace SkyBridge.Infrastructure.Migrations
                     b.Property<TimeOnly>("HorarioPartidaUtc")
                         .HasColumnType("time");
 
-                    b.Property<bool>("JaDecolou")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("MomentoDecolagemUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("MomentoToqueUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ParadoDesdeUtc")
-                        .HasColumnType("datetime2");
-
                     b.Property<int?>("PayloadCargaKg")
                         .HasColumnType("int");
 
@@ -324,9 +315,6 @@ namespace SkyBridge.Infrastructure.Migrations
                     b.Property<int>("PilotId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("ProntoParaPirep")
-                        .HasColumnType("bit");
-
                     b.Property<string>("SimBriefOfpId")
                         .HasColumnType("nvarchar(max)");
 
@@ -335,12 +323,6 @@ namespace SkyBridge.Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<int?>("TaxaDescidaTouchdownFpm")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UltimaTelemetriaUtc")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
