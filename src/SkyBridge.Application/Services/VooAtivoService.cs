@@ -8,6 +8,7 @@ namespace SkyBridge.Application.Services;
 public class VooAtivoService : IVooAtivoService
 {
     private static readonly TimeSpan TempoParadoNecessario = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan TempoConfirmacaoTransicao = TimeSpan.FromSeconds(12);
 
     private readonly IVooAtivoStore _store;
     private readonly IUnitOfWork _uow;
@@ -61,7 +62,7 @@ public class VooAtivoService : IVooAtivoService
 
             if (!booking.ProntoParaPirep)
             {
-                booking.RegistrarTelemetria(dto.EstaNoSolo, dto.VelocidadeNos, dto.VelocidadeVerticalFpm, DateTime.UtcNow, TempoParadoNecessario);
+                booking.RegistrarTelemetria(dto.EstaNoSolo, dto.VelocidadeNos, dto.VelocidadeVerticalFpm, DateTime.UtcNow, TempoParadoNecessario, TempoConfirmacaoTransicao);
                 _uow.Bookings.Update(booking);
             }
 

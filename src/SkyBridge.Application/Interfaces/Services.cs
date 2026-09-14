@@ -72,6 +72,8 @@ public interface IAwardService
     Task<Result<string>> DefinirImagemAsync(int id, string url);
     Task<Award> ObterOuCriarPatenteAsync(int rankId, string nome);
     Task<Award> ObterOuCriarStaffAsync();
+    Task<Result<AwardDto>> AtualizarAsync(int id, NovoAwardDto dto);
+    Task<Result<string>> ExcluirAsync(int id);
 }
 
 public interface IVooAtivoService

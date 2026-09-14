@@ -42,6 +42,33 @@ public class AwardService : IAwardService
         return Result<string>.Ok("Imagem do award atualizada.");
     }
 
+    public async Task<Result<AwardDto>> AtualizarAsync(int id, NovoAwardDto dto)
+    {
+        var award = await _uow.Awards.GetByIdAsync(id);
+        if (award is null) return Result<AwardDto>.Falha("Award não encontrada.");
+
+        award.Nome = dto.Nome;
+        award.Descricao = dto.Descricao;
+        await _uow.SaveChangesAsync();
+
+        return Result<AwardDto>.Ok(MapToDto(award));
+    }
+
+    public async Task<Result<string>> ExcluirAsync(int id)
+    {
+        var award = await _uow.Awards.GetByIdAsync(id);
+        if (award is null) return Result<string>.Falha("Award não encontrada.");
+
+        var pilotAwards = await _uow.PilotAwards.GetByAwardAsync(id);
+        foreach (var pa in pilotAwards)
+            _uow.PilotAwards.Remove(pa);
+
+        _uow.Awards.Remove(award);
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok($"Award \"{award.Nome}\" excluída.");
+    }
+
     public async Task<Award> ObterOuCriarPatenteAsync(int rankId, string nome)
     {
         var todas = await _uow.Awards.GetAllAsync();

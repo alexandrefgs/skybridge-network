@@ -20,5 +20,8 @@ export const routes: Routes = [
   { path: 'admin/tours', loadComponent: () => import('./features/admin/tours/tours').then(m => m.AdminTours) },
   { path: 'admin/tours/nova', loadComponent: () => import('./features/admin/tours/nova/nova').then(m => m.AdminTourNova) },
   { path: 'admin/tours/:id/editar', loadComponent: () => import('./features/admin/tours/nova/nova').then(m => m.AdminTourNova) },
+  { path: 'admin/awards', loadComponent: () => import('./features/admin/awards/awards').then(m => m.AdminAwards) },
+  { path: 'admin/awards/nova', loadComponent: () => import('./features/admin/awards/nova/nova').then(m => m.AdminAwardNova) },
+  { path: 'admin/awards/:id/editar', loadComponent: () => import('./features/admin/awards/nova/nova').then(m => m.AdminAwardNova) },
   { path: '**', redirectTo: '' },
 ];

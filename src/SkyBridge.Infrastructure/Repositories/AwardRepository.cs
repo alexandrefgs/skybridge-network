@@ -22,4 +22,7 @@ public class PilotAwardRepository : Repository<PilotAward>, IPilotAwardRepositor
             .Include(pa => pa.Award)
             .Where(pa => pa.PilotId == pilotId)
             .ToListAsync();
+
+    public async Task<IReadOnlyList<PilotAward>> GetByAwardAsync(int awardId) =>
+        await DbSet.Where(pa => pa.AwardId == awardId).ToListAsync();
 }

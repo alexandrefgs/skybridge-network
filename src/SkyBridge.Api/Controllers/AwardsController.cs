@@ -43,4 +43,20 @@ public class AwardsController : ControllerBase
         var resultado = await _awardService.DefinirImagemAsync(id, dto.Url);
         return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
     }
+
+        [HttpPut("{id}")]
+    [Authorize]
+    public async Task<IActionResult> Atualizar(int id, NovoAwardDto dto)
+    {
+        var resultado = await _awardService.AtualizarAsync(id, dto);
+        return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> Excluir(int id)
+    {
+        var resultado = await _awardService.ExcluirAsync(id);
+        return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
+    }
 }

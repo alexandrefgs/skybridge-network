@@ -72,28 +72,70 @@
         </div>
 
         @if (rotasDaCompanhia().length > 0) {
-          <div>
+          <div class="relative">
             <label class="text-xs text-slate-400">Rota</label>
-            <select [(ngModel)]="rotaIdSelecionada"
-                    class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white">
-              <option [ngValue]="null" disabled>Selecione</option>
-              @for (r of rotasDaCompanhia(); track r.id) {
-                <option [ngValue]="r.id">{{ r.aeroportoOrigem }} → {{ r.aeroportoDestino }} · {{ r.numeroVoo }} ({{ r.tipoOperacao }})</option>
+            <button type="button" (click)="alternarRotaDropdown()"
+              class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white flex items-center justify-between">
+              @if (rotaSelecionada) {
+                <span>{{ rotaSelecionada!.aeroportoOrigem }} → {{ rotaSelecionada!.aeroportoDestino }} · {{ rotaSelecionada!.numeroVoo }} ({{ rotaSelecionada!.tipoOperacao }})</span>
+              } @else {
+                <span class="text-slate-500">Selecione</span>
               }
-            </select>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform"
+                [class.rotate-180]="rotaDropdownAberto()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            @if (rotaDropdownAberto()) {
+              <div class="fixed inset-0 z-10" (click)="alternarRotaDropdown()"></div>
+              <div class="absolute z-20 mt-1 w-full rounded-lg border border-[var(--sb-border)] bg-[var(--sb-bg)] shadow-2xl max-h-64 overflow-y-auto">
+                @for (r of rotasDaCompanhia(); track r.id) {
+                  <button type="button" (click)="selecionarRota(r)"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors"
+                    [class.bg-cyan-500/10]="rotaIdSelecionada === r.id"
+                    [class.text-cyan-300]="rotaIdSelecionada === r.id"
+                    [class.text-slate-300]="rotaIdSelecionada !== r.id">
+                    <span>{{ r.aeroportoOrigem }} → {{ r.aeroportoDestino }} · {{ r.numeroVoo }}</span>
+                    <span class="text-xs text-slate-500">{{ r.tipoOperacao }}</span>
+                  </button>
+                }
+              </div>
+            }
           </div>
         }
 
         @if (companhiaSelecionada && companhiaSelecionada!.frota.length > 0) {
-          <div>
+          <div class="relative">
             <label class="text-xs text-slate-400">Aeronave</label>
-            <select [(ngModel)]="aircraftIdSelecionado"
-                    class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white">
-              <option [ngValue]="null" disabled>Selecione</option>
-              @for (a of companhiaSelecionada!.frota; track a.id) {
-                <option [ngValue]="a.id">{{ a.modelo }} ({{ a.codigoIcao }})</option>
+            <button type="button" (click)="alternarAeronaveDropdown()"
+              class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white flex items-center justify-between">
+              @if (aeronaveSelecionada) {
+                <span>{{ aeronaveSelecionada!.modelo }} ({{ aeronaveSelecionada!.codigoIcao }})</span>
+              } @else {
+                <span class="text-slate-500">Selecione</span>
               }
-            </select>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform"
+                [class.rotate-180]="aeronaveDropdownAberto()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            @if (aeronaveDropdownAberto()) {
+              <div class="fixed inset-0 z-10" (click)="alternarAeronaveDropdown()"></div>
+              <div class="absolute z-20 mt-1 w-full rounded-lg border border-[var(--sb-border)] bg-[var(--sb-bg)] shadow-2xl max-h-64 overflow-y-auto">
+                @for (a of companhiaSelecionada!.frota; track a.id) {
+                  <button type="button" (click)="selecionarAeronave(a)"
+                    class="w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors"
+                    [class.bg-cyan-500/10]="aircraftIdSelecionado === a.id"
+                    [class.text-cyan-300]="aircraftIdSelecionado === a.id"
+                    [class.text-slate-300]="aircraftIdSelecionado !== a.id">
+                    <span>{{ a.modelo }}</span>
+                    <span class="text-xs font-mono text-slate-500">{{ a.codigoIcao }}</span>
+                  </button>
+                }
+              </div>
+            }
           </div>
         }
 

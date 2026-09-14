@@ -7,7 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AirlineService } from '../../../core/services/airline.service';
 import { BookingService } from '../../../core/services/booking.service';
 import { PilotService } from '../../../core/services/pilot.service';
-import { Airline, AirlineDetalhe, FlightRoute } from '../../../core/models/airline.models';
+import { Airline, AirlineDetalhe, FlightRoute, Aeronave } from '../../../core/models/airline.models';
 
 @Component({
   selector: 'app-booking-nova',
@@ -31,6 +31,9 @@ export class BookingNova implements OnInit {
 
   companhiaDropdownAberto = signal(false);
   buscaCompanhia = signal('');
+
+  rotaDropdownAberto = signal(false);
+  aeronaveDropdownAberto = signal(false);
 
   companhiasFiltradas = computed(() => {
     const termo = this.buscaCompanhia().trim().toLowerCase();
@@ -64,11 +67,37 @@ export class BookingNova implements OnInit {
     return this.companhias().find(c => c.id === this.airlineIdSelecionada);
   }
 
+  get rotaSelecionada(): FlightRoute | undefined {
+    return this.rotasDaCompanhia().find(r => r.id === this.rotaIdSelecionada);
+  }
+
+  get aeronaveSelecionada(): Aeronave | undefined {
+    return this.companhiaSelecionada?.frota.find(a => a.id === this.aircraftIdSelecionado);
+  }
+
   rotasDaCompanhia = signal<FlightRoute[]>([]);
 
   alternarCompanhiaDropdown(): void {
     this.companhiaDropdownAberto.set(!this.companhiaDropdownAberto());
     if (!this.companhiaDropdownAberto()) this.buscaCompanhia.set('');
+  }
+
+  alternarRotaDropdown(): void {
+    this.rotaDropdownAberto.set(!this.rotaDropdownAberto());
+  }
+
+  selecionarRota(rota: FlightRoute): void {
+    this.rotaIdSelecionada = rota.id;
+    this.rotaDropdownAberto.set(false);
+  }
+
+  alternarAeronaveDropdown(): void {
+    this.aeronaveDropdownAberto.set(!this.aeronaveDropdownAberto());
+  }
+
+  selecionarAeronave(aeronave: Aeronave): void {
+    this.aircraftIdSelecionado = aeronave.id;
+    this.aeronaveDropdownAberto.set(false);
   }
 
   async selecionarCompanhia(companhia: AirlineDetalhe): Promise<void> {

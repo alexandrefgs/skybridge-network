@@ -72,6 +72,7 @@ public interface IPilotAwardRepository : IRepository<PilotAward>
 {
     Task<bool> PilotJaTemAwardAsync(int pilotId, int awardId);
     Task<IReadOnlyList<PilotAward>> GetByPilotAsync(int pilotId);
+    Task<IReadOnlyList<PilotAward>> GetByAwardAsync(int awardId);
 }
 
 public interface IBookingRepository : IRepository<Booking>

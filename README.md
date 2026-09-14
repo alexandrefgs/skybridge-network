@@ -77,13 +77,25 @@ Página de perfil com histórico completo de voos (rota, companhia, aeronave, st
 ### Flight Recorder
 Cada ponto de telemetria recebido durante um voo em andamento é persistido (não só mantido em memória), incluindo posição, altitude, velocidade, atitude (pitch/bank), flaps, spoilers, trem de pouso, squawk, frequência de rádio ativa e nome da aeronave carregada no simulador. Esses logs alimentam:
 - A tela de aprovação de PIREPs no Admin, com mapa da trilha completa do voo e um log de eventos discretos gerado automaticamente a partir dos pontos brutos (decolagem, mudanças de flap/gear, touchdown, cruzeiro, aproximação, pouso)
-- A mesma visão, disponível para o próprio piloto ver seus voos passados no Perfil
+- A mesma visão, disponível para qualquer piloto ver voos passados — os seus e os de outros pilotos da rede
 
 ### Aprovação de PIREPs (Admin)
 Tela dedicada (`/admin/pireps`) com todos os PIREPs pendentes de aprovação — pousos fora do padrão operacional ficam retidos até um Admin revisar. Cada PIREP pode ser aberto numa tela de detalhe com o mapa da trilha voada e o log de eventos do voo antes de aprovar ou rejeitar (rejeição exige motivo, exibido depois para o piloto no seu histórico).
 
 ### Cancelamento de voo em andamento
 Além de excluir uma reserva, o piloto pode cancelar um voo já em `EmVoo` sem precisar excluir o Booking — útil quando o simulador trava ou o ACARS perde conexão no meio do voo. O booking cancelado libera a regra de "1 reserva ativa por vez" sem apagar o histórico de telemetria já registrado.
+
+### Dashboard enriquecido
+Painel inicial com resumo enxuto do próprio piloto (rating, pontos, link para o perfil completo), estatísticas agregadas da rede (total de pilotos, voos aprovados, milhas voadas, Tours disponíveis, e PIREPs pendentes para Admins), Tours em destaque com progresso e botão de iniciar, mapa ao vivo e histórico de voos — cada voo agora abre a mesma tela de detalhe completa (mapa da trilha + log de eventos) usada no Perfil e no Admin, tornando os voos da rede públicos para qualquer piloto autenticado ver.
+
+### Módulo de Tours (CRUD completo)
+Criação, edição e exclusão de Tours pelo Admin (`/admin/tours`), com etapas dinâmicas que podem cruzar múltiplas companhias, upload real de imagem (foto do Tour e foto de capa) e vínculo opcional com uma Award de conclusão.
+
+### Awards (CRUD completo)
+Criação, edição e exclusão de Awards pelo Admin (`/admin/awards`), com upload real de imagem. Awards continuam sendo concedidas automaticamente por Patente e Staff, ou manualmente ao completar um Tour.
+
+### Upload de imagens
+Endpoint genérico de upload (`POST /api/Uploads/imagem`, restrito a Admin) salva arquivos em `wwwroot/uploads` e retorna uma URL pública — usado hoje por Tours e Awards.
 
 ### Mapa ao vivo
 Dashboard com todos os voos ativos da rede em tempo real (posição, ícone por categoria de aeronave — monomotor, bimotor, executivo, regional, narrowbody, widebody), com origem/destino plotados ao clicar em qualquer avião. O Briefing individual mostra a trilha percorrida pela própria aeronave durante o voo.
@@ -110,13 +122,14 @@ Dashboard com todos os voos ativos da rede em tempo real (posição, ícone por 
 - **Callsign de voo**: livre (o piloto escolhe o número), mas precisa começar com o prefixo ICAO real da companhia.
 - **Tours e Awards**: sequências de voos definidas (podendo cruzar várias companhias), com progresso avançado automaticamente a cada PIREP aprovado. Ao completar todas as etapas, o piloto ganha um bônus de pontos e uma conquista (Award) exibida no seu perfil.
 - **Aprovação de PIREP**: pousos muito fortes ficam pendentes até um admin aprovar ou rejeitar (rejeitar desfaz os pontos/rating aplicados no envio).
+- **Detecção de decolagem/pouso resiliente a ruído**: em vez de confiar na primeira leitura de telemetria que indica a mudança de estado, o sistema exige que o novo estado (no ar / no solo) se mantenha por um período mínimo de confirmação antes de registrar o evento — evita falsos positivos por oscilação momentânea de dados do simulador.
 
 ## 🔐 Autenticação
 
 - **JWT** (access token de 30 min) + **refresh token** de 7 dias, com **rotação** (o token antigo é revogado a cada uso — reuso é bloqueado com `401`).
 - **Renovação automática no frontend**: um interceptor Angular detecta qualquer `401`, renova o token em segundo plano e repete a requisição original — o piloto nunca precisa relogar manualmente.
 - Todo PIREP e ação de piloto usa o **`PilotId` extraído do token**, nunca do corpo da requisição — impossível agir em nome de outro piloto.
-- Papéis (Admin/Piloto): ações administrativas (cadastro/edição/exclusão de companhias, aeronaves e rotas) exigem `role=Admin`.
+- Papéis (Admin/Piloto): ações administrativas (cadastro/edição/exclusão de companhias, aeronaves, rotas, Tours, Awards e upload de imagens) exigem `role=Admin`.
 
 ## 🛠️ Tecnologias
 
@@ -137,7 +150,7 @@ Dashboard com todos os voos ativos da rede em tempo real (posição, ícone por 
 - Tailwind CSS (utilitário, tema escuro customizado)
 
 **ACARS (app cliente de telemetria)**
-- Console app em C# usando **FSUIPCClientDLL**, compatível com FSUIPC7 (MSFS 2020/2024). Lê posição, altitude, velocidade, V/S e status "no solo", e envia para a API a cada 5 segundos.
+- Console app em C# usando **FSUIPCClientDLL**, compatível com FSUIPC7 (MSFS 2020/2024). Lê posição, altitude, velocidade, V/S, atitude (pitch/bank), flaps, spoilers, trem de pouso, squawk, frequência de rádio ativa e nome da aeronave, e envia para a API a cada 5 segundos.
 
 ## 🚀 Como rodar localmente
 
@@ -207,7 +220,8 @@ skybridge-network/
 │   ├── SkyBridge.Api/
 │   │   ├── Controllers/
 │   │   ├── Filters/
-│   │   └── Middleware/
+│   │   ├── Middleware/
+│   │   └── wwwroot/uploads/     # imagens enviadas (Tours, Awards)
 │   └── SkyBridge.Acars/         # app cliente de telemetria (FSUIPC)
 ├── web/                         # frontend Angular
 │   └── src/app/
@@ -242,16 +256,20 @@ skybridge-network/
 - [x] Continuidade de localização do piloto + Jumpseat
 - [x] Cancelamento de voo em andamento (sem precisar excluir a reserva)
 - [x] Perfil do piloto com histórico de voos e conquistas por categoria
+- [x] Dashboard com estatísticas da rede, resumo do piloto e Tours em destaque
+- [x] Tela de criação, edição e exclusão de Tours no Admin
+- [x] CRUD completo de Awards no Admin, com upload de imagem
+- [x] Upload real de imagem (foto de tour/award) via endpoint próprio
+- [x] Detecção de decolagem/pouso exigindo confirmação por tempo mínimo (evita falso positivo por ruído de telemetria)
+- [x] Voos da rede públicos para qualquer piloto (mapa da trilha + log completo)
 - [ ] Integração de verdade com VATSIM e IVAO (aguardando confirmação do schema JSON do SimBrief)
 - [ ] Preencher campos de Flight Plan Summary / Load Sheet do Briefing com dados reais do SimBrief (aguardando o mesmo schema)
 - [ ] Mapa de rotas interativo na tela de Nova Reserva
 - [ ] Base de aeroportos própria (dataset OurAirports), substituindo a dependência do METAR para coordenadas
 - [ ] X-Plane (XPUIPC) e P3D (FSUIPC6) no ACARS
-- [ ] Upload real de imagem (foto de tour/award), não só URL
 - [ ] Cadastro de piloto inativo automaticamente após 90 dias sem voo, com e-mail disparado para o RH
 - [ ] Import em massa de companhias/rotas reais (dataset OpenFlights), escalando além do seed inicial
 - [ ] Continuidade de localização aplicada também a Tours
-- [ ] Tela de criação de Tours no Admin
 
 ## 📄 Licença
 

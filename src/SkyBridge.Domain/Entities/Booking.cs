@@ -45,6 +45,8 @@ public class Booking
     public DateTime? ParadoDesdeUtc { get; set; }
     public bool ProntoParaPirep { get; set; }
     public DateTime? UltimaTelemetriaUtc { get; set; }
+    public DateTime? PossivelDecolagemDesdeUtc { get; set; }
+    public DateTime? PossivelPousoDesdeUtc { get; set; }
 
     public void DefinirCallsign(string callsign, string prefixoCompanhia)
     {
@@ -82,11 +84,13 @@ public class Booking
         MomentoToqueUtc = null;
         TaxaDescidaTouchdownFpm = null;
         ParadoDesdeUtc = null;
+        PossivelDecolagemDesdeUtc = null;
+        PossivelPousoDesdeUtc = null;
         ProntoParaPirep = false;
         UltimaTelemetriaUtc = DateTime.UtcNow;
     }
 
-    public void RegistrarTelemetria(bool estaNoSolo, double velocidadeNos, double velocidadeVerticalFpm, DateTime agoraUtc, TimeSpan tempoParadoNecessario)
+    public void RegistrarTelemetria(bool estaNoSolo, double velocidadeNos, double velocidadeVerticalFpm, DateTime agoraUtc, TimeSpan tempoParadoNecessario, TimeSpan tempoConfirmacaoTransicao)
     {
         UltimaTelemetriaUtc = agoraUtc;
 
@@ -94,8 +98,17 @@ public class Booking
         {
             if (!estaNoSolo)
             {
-                JaDecolou = true;
-                MomentoDecolagemUtc = agoraUtc;
+                PossivelDecolagemDesdeUtc ??= agoraUtc;
+                if (agoraUtc - PossivelDecolagemDesdeUtc.Value >= tempoConfirmacaoTransicao)
+                {
+                    JaDecolou = true;
+                    MomentoDecolagemUtc = PossivelDecolagemDesdeUtc;
+                    PossivelDecolagemDesdeUtc = null;
+                }
+            }
+            else
+            {
+                PossivelDecolagemDesdeUtc = null;
             }
             return;
         }
@@ -104,8 +117,17 @@ public class Booking
         {
             if (estaNoSolo)
             {
-                MomentoToqueUtc = agoraUtc;
-                TaxaDescidaTouchdownFpm = (int)Math.Round(velocidadeVerticalFpm);
+                PossivelPousoDesdeUtc ??= agoraUtc;
+                if (agoraUtc - PossivelPousoDesdeUtc.Value >= tempoConfirmacaoTransicao)
+                {
+                    MomentoToqueUtc = PossivelPousoDesdeUtc;
+                    TaxaDescidaTouchdownFpm = (int)Math.Round(velocidadeVerticalFpm);
+                    PossivelPousoDesdeUtc = null;
+                }
+            }
+            else
+            {
+                PossivelPousoDesdeUtc = null;
             }
             return;
         }
