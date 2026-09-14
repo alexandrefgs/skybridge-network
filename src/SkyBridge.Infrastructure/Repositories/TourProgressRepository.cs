@@ -25,4 +25,7 @@ public class TourProgressRepository : Repository<TourProgress>, ITourProgressRep
                         && !tp.Concluido
                         && tp.Tour!.Etapas.Any(e => e.Ordem == tp.EtapasCompletas + 1 && e.FlightRouteId == flightRouteId))
             .ToListAsync();
+
+    public async Task<IReadOnlyList<TourProgress>> GetByTourAsync(int tourId) =>
+        await DbSet.Where(tp => tp.TourId == tourId).ToListAsync();
 }

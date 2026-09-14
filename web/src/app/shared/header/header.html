@@ -48,6 +48,10 @@
               [class.bg-white]="rlaAdminPireps.isActive" [class.bg-opacity-5]="rlaAdminPireps.isActive"
               class="block px-4 py-2.5 text-sm hover:bg-white/[0.05] hover:text-amber-400 transition-colors">PIREPs
               Pendentes</a>
+            <a routerLink="/admin/tours" routerLinkActive #rlaAdminTours="routerLinkActive"
+              [class.text-amber-400]="rlaAdminTours.isActive" [class.text-slate-300]="!rlaAdminTours.isActive"
+              [class.bg-white]="rlaAdminTours.isActive" [class.bg-opacity-5]="rlaAdminTours.isActive"
+              class="block px-4 py-2.5 text-sm hover:bg-white/[0.05] hover:text-amber-400 transition-colors">Tours</a>
           </div>
         </div>
       </div>

@@ -70,4 +70,20 @@ public class ToursController : ControllerBase
         var progresso = await _tourService.ListarProgressoDoPilotoAsync(pilotId);
         return Ok(progresso);
     }
+
+        [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Atualizar(int id, NovoTourDto dto)
+    {
+        var resultado = await _tourService.AtualizarAsync(id, dto);
+        return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Excluir(int id)
+    {
+        var resultado = await _tourService.ExcluirAsync(id);
+        return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
+    }
 }

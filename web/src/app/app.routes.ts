@@ -17,5 +17,8 @@ export const routes: Routes = [
   { path: 'booking/:id/configurar', loadComponent: () => import('./features/booking/configurar/configurar').then(m => m.BookingConfigurar) },
   { path: 'booking/:id/briefing', loadComponent: () => import('./features/booking/briefing/briefing').then(m => m.BookingBriefing) },
   { path: 'booking', loadComponent: () => import('./features/booking/lista/lista').then(m => m.BookingLista) },
+  { path: 'admin/tours', loadComponent: () => import('./features/admin/tours/tours').then(m => m.AdminTours) },
+  { path: 'admin/tours/nova', loadComponent: () => import('./features/admin/tours/nova/nova').then(m => m.AdminTourNova) },
+  { path: 'admin/tours/:id/editar', loadComponent: () => import('./features/admin/tours/nova/nova').then(m => m.AdminTourNova) },
   { path: '**', redirectTo: '' },
 ];

@@ -1,26 +1,37 @@
 import { Component, OnDestroy, OnInit, signal, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import * as L from 'leaflet';
 import { Header } from '../../shared/header/header';
 import { AuthService } from '../../core/services/auth.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { WeatherService } from '../../core/services/weather.service';
+import { PilotService } from '../../core/services/pilot.service';
+import { TourService } from '../../core/services/tour.service';
+import { EstatisticasService } from '../../core/services/estatisticas.service';
 import { UltimoVoo, VooAtivo } from '../../core/models/dashboard.models';
+import { PilotoDetalhe } from '../../core/models/pilot.models';
+import { Tour, TourProgresso } from '../../core/models/tour.models';
+import { EstatisticasRede } from '../../core/models/estatisticas.models';
 import { categorizarAeronave, tamanhoIconePorCategoria, svgAeronavePorCategoria } from '../../core/data/categoria-aeronave';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, Header],
+  imports: [CommonModule, RouterLink, Header],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   ultimosVoos = signal<UltimoVoo[]>([]);
-  vooSelecionado = signal<UltimoVoo | null>(null);
   totalVoosAtivos = signal(0);
   carregando = signal(true);
+
+  meuPiloto = signal<PilotoDetalhe | null>(null);
+  estatisticas = signal<EstatisticasRede | null>(null);
+  tours = signal<Tour[]>([]);
+  meuProgresso = signal<TourProgresso[]>([]);
+  iniciandoTour = signal<number | null>(null);
 
   private mapa: L.Map | null = null;
   private marcadores = new Map<number, L.Marker>();
@@ -32,39 +43,77 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     public auth: AuthService,
     private dashboardService: DashboardService,
     private weatherService: WeatherService,
+    private pilotService: PilotService,
+    private tourService: TourService,
+    private estatisticasService: EstatisticasService,
     private router: Router
   ) { }
 
   async ngOnInit(): Promise<void> {
-    if (!this.auth.piloto()) {
+    const logado = this.auth.piloto();
+    if (!logado) {
       this.router.navigateByUrl('/login');
       return;
     }
 
-    this.ultimosVoos.set(await this.dashboardService.listarUltimosVoos(10));
-    this.carregando.set(false);
-  }
+    const [ultimosVoos, meuPiloto, estatisticas, tours, progresso] = await Promise.all([
+      this.dashboardService.listarUltimosVoos(10),
+      this.pilotService.obterDetalhe(logado.id),
+      this.estatisticasService.obter(),
+      this.tourService.listar(),
+      this.tourService.listarMeuProgresso(),
+    ]);
 
-  ngAfterViewInit(): void {
-    this.iniciarMapa();
+    this.ultimosVoos.set(ultimosVoos);
+    this.meuPiloto.set(meuPiloto);
+    this.estatisticas.set(estatisticas);
+    this.tours.set(tours);
+    this.meuProgresso.set(progresso);
+    this.carregando.set(false);
+
+    setTimeout(() => this.iniciarMapa(), 50);
     this.atualizarVoosAtivos();
     this.intervalo = setInterval(() => this.atualizarVoosAtivos(), 5000);
   }
+
+  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     if (this.intervalo) clearInterval(this.intervalo);
     this.mapa?.remove();
   }
 
-  verPirep(voo: UltimoVoo): void {
-    this.vooSelecionado.set(voo);
+  estrelas(rating: number): number[] {
+    return Array.from({ length: 5 }, (_, i) => (i < Math.round(rating) ? 1 : 0));
   }
 
-  fecharDetalhe(): void {
-    this.vooSelecionado.set(null);
+  progressoDoTour(tourId: number): TourProgresso | null {
+    return this.meuProgresso().find(p => p.tourId === tourId) ?? null;
+  }
+
+  async iniciarTour(tour: Tour): Promise<void> {
+    this.iniciandoTour.set(tour.id);
+    try {
+      await this.tourService.iniciar(tour.id);
+      this.meuProgresso.set(await this.tourService.listarMeuProgresso());
+    } catch {
+      // silencioso — botão volta ao normal
+    } finally {
+      this.iniciandoTour.set(null);
+    }
+  }
+
+  verVoo(voo: UltimoVoo): void {
+    this.router.navigateByUrl(`/perfil/voo/${voo.pirepId}`);
   }
 
   private iniciarMapa(): void {
+    const elemento = document.getElementById('mapa-voos');
+    if (!elemento) {
+      setTimeout(() => this.iniciarMapa(), 100);
+      return;
+    }
+
     this.mapa = L.map('mapa-voos', {
       center: [10, 0],
       zoom: 2,

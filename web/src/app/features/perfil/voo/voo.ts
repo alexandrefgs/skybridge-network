@@ -36,14 +36,6 @@ export class PerfilVoo implements OnInit, OnDestroy {
     this.pirepId = Number(this.route.snapshot.paramMap.get('id'));
     try {
       const pirep = await this.pirepService.obterDetalhe(this.pirepId);
-
-      const piloto = this.auth.piloto();
-      if (!piloto || pirep.pilotCallsign !== piloto.callsign) {
-        this.erro.set('Você não tem permissão para ver este voo.');
-        this.carregando.set(false);
-        return;
-      }
-
       this.pirep.set(pirep);
 
       let logs: TelemetriaLog[] = [];

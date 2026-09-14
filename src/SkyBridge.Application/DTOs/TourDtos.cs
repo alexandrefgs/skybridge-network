@@ -6,7 +6,7 @@ public record NovoTourDto(string Nome, string? Descricao, long PontosBonusConclu
 
 public record DefinirFotoDto(string Url);
 
-public record EtapaTourDto(int Ordem, string AeroportoOrigem, string AeroportoDestino, string NumeroVoo);
+public record EtapaTourDto(int Ordem, int FlightRouteId, int AirlineId, string AirlineNome, string AeroportoOrigem, string AeroportoDestino, string NumeroVoo);
 
 public record TourDto(
     int Id,

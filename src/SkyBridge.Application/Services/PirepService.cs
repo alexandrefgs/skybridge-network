@@ -238,7 +238,6 @@ public class PirepService : IPirepService
     {
         var pirep = await _uow.Pireps.GetByIdAsync(pirepId);
         if (pirep is null || pirep.BookingId is null) return null;
-        if (!ehAdmin && pirep.PilotId != solicitanteId) return null;
 
         var logs = await _uow.TelemetriaLogs.GetByBookingAsync(pirep.BookingId.Value);
         return logs.Select(t => new TelemetriaLogDto(

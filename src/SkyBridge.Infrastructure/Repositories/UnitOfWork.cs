@@ -19,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
         Pireps = new PirepRepository(db);
         RefreshTokens = new RefreshTokenRepository(db);
         Tours = new TourRepository(db);
+        TourStops = new TourStopRepository(db);
         TourProgresses = new TourProgressRepository(db);
         Awards = new AwardRepository(db);
         PilotAwards = new PilotAwardRepository(db);
@@ -35,6 +36,7 @@ public class UnitOfWork : IUnitOfWork
     public IPirepRepository Pireps { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
     public ITourRepository Tours { get; }
+    public ITourStopRepository TourStops { get; }
     public ITourProgressRepository TourProgresses { get; }
     public IAwardRepository Awards { get; }
     public IPilotAwardRepository PilotAwards { get; }

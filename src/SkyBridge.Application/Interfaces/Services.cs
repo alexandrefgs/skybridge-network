@@ -60,6 +60,8 @@ public interface ITourService
     Task<Result<string>> DefinirFotoCapaAsync(int tourId, string url);
     Task<Result<string>> IniciarAsync(int pilotId, int tourId);
     Task<IReadOnlyList<TourProgressoDto>> ListarProgressoDoPilotoAsync(int pilotId);
+    Task<Result<TourDto>> AtualizarAsync(int id, NovoTourDto dto);
+    Task<Result<string>> ExcluirAsync(int id);
 }
 
 public interface IAwardService
@@ -76,4 +78,9 @@ public interface IVooAtivoService
 {
     Task AtualizarAsync(int pilotId, TelemetriaDto dto);
     Task<IReadOnlyList<VooAtivoDto>> ListarAtivosAsync();
+}
+
+public interface IEstatisticasService
+{
+    Task<EstatisticasRedeDto> ObterAsync(bool ehAdmin);
 }

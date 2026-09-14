@@ -37,7 +37,7 @@ public interface IPilotCareerRepository : IRepository<PilotCareer>
 public interface IPirepRepository : IRepository<Pirep>
 {
     Task<IReadOnlyList<Pirep>> GetPendentesAsync();
-        Task<IReadOnlyList<Pirep>> GetUltimosAsync(int quantidade, int? pilotoId = null);
+    Task<IReadOnlyList<Pirep>> GetUltimosAsync(int quantidade, int? pilotoId = null);
     Task<Pirep?> GetComDetalhesAsync(int id);
 }
 
@@ -52,11 +52,16 @@ public interface ITourRepository : IRepository<Tour>
     Task<IReadOnlyList<Tour>> GetAllWithDetailsAsync();
 }
 
+public interface ITourStopRepository : IRepository<TourStop>
+{
+}
+
 public interface ITourProgressRepository : IRepository<TourProgress>
 {
     Task<IReadOnlyList<TourProgress>> GetByPilotAsync(int pilotId);
     Task<TourProgress?> GetByPilotAndTourAsync(int pilotId, int tourId);
     Task<IReadOnlyList<TourProgress>> GetEmAndamentoPorPilotoERotaAsync(int pilotId, int flightRouteId);
+    Task<IReadOnlyList<TourProgress>> GetByTourAsync(int tourId);
 }
 
 public interface IAwardRepository : IRepository<Award>
@@ -93,6 +98,7 @@ public interface IUnitOfWork
     IPirepRepository Pireps { get; }
     IRefreshTokenRepository RefreshTokens { get; }
     ITourRepository Tours { get; }
+    ITourStopRepository TourStops { get; }
     ITourProgressRepository TourProgresses { get; }
     IAwardRepository Awards { get; }
     IPilotAwardRepository PilotAwards { get; }

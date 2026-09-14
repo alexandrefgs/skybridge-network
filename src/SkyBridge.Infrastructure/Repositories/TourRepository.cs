@@ -13,6 +13,7 @@ public class TourRepository : Repository<Tour>, ITourRepository
         await DbSet
             .Include(t => t.Etapas.OrderBy(e => e.Ordem))
             .ThenInclude(e => e.FlightRoute)
+            .ThenInclude(r => r!.Airline)
             .Include(t => t.Award)
             .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -20,6 +21,7 @@ public class TourRepository : Repository<Tour>, ITourRepository
         await DbSet
             .Include(t => t.Etapas.OrderBy(e => e.Ordem))
             .ThenInclude(e => e.FlightRoute)
+            .ThenInclude(r => r!.Airline)
             .Include(t => t.Award)
             .ToListAsync();
 }

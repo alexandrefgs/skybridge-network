@@ -1,0 +1,149 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <app-header></app-header>
+
+  <div class="max-w-3xl mx-auto px-6 py-10">
+    <h1 class="font-display text-2xl font-bold text-white mb-6">{{ modoEdicao ? 'Editar Tour' : 'Novo Tour' }}</h1>
+
+    @if (erro()) {
+      <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300 mb-4">
+        {{ erro() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else {
+      <div class="space-y-6">
+
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-4">
+          <div>
+            <label class="text-xs text-slate-400">Nome do Tour</label>
+            <input [(ngModel)]="nome" placeholder="Ex: Rota das Ilhas do Pacífico"
+              class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-400">Descrição</label>
+            <textarea [(ngModel)]="descricao" rows="3" placeholder="Descrição opcional do tour..."
+              class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white"></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-slate-400">Foto do Tour</label>
+              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="aoSelecionarFoto($event)"
+                class="w-full mt-1 text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-cyan-500 file:text-black hover:file:bg-cyan-400 file:cursor-pointer" />
+              @if (fotoPreview() || fotoAtualUrl) {
+                <img [src]="fotoPreview() || fotoAtualUrl" class="mt-2 h-20 rounded-lg object-cover border border-[var(--sb-border)]" />
+              }
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Foto de Capa</label>
+              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="aoSelecionarFotoCapa($event)"
+                class="w-full mt-1 text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-cyan-500 file:text-black hover:file:bg-cyan-400 file:cursor-pointer" />
+              @if (fotoCapaPreview() || fotoCapaAtualUrl) {
+                <img [src]="fotoCapaPreview() || fotoCapaAtualUrl" class="mt-2 h-20 w-full rounded-lg object-cover border border-[var(--sb-border)]" />
+              }
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-slate-400">Pontos bônus ao concluir</label>
+              <input type="number" [(ngModel)]="pontosBonusConclusao" min="0"
+                class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Award ao concluir (opcional)</label>
+              <select [(ngModel)]="awardId"
+                class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white">
+                <option [ngValue]="null">Nenhuma</option>
+                @for (award of awards(); track award.id) {
+                  <option [ngValue]="award.id">{{ award.nome }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide">Etapas</h2>
+            <button type="button" (click)="adicionarEtapa()"
+              class="text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors">
+              + Adicionar etapa
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            @for (etapa of etapas(); track $index) {
+              <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] p-4">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-mono text-slate-500">Etapa {{ $index + 1 }}</span>
+                  <div class="flex items-center gap-2">
+                    <button type="button" (click)="moverEtapa($index, -1)" [disabled]="$index === 0"
+                      class="text-slate-400 hover:text-white disabled:opacity-30 transition-colors" title="Mover para cima">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                      </svg>
+                    </button>
+                    <button type="button" (click)="moverEtapa($index, 1)" [disabled]="$index === etapas().length - 1"
+                      class="text-slate-400 hover:text-white disabled:opacity-30 transition-colors" title="Mover para baixo">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <button type="button" (click)="removerEtapa($index)"
+                      class="text-red-400 hover:text-red-300 transition-colors" title="Remover etapa">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs text-slate-400">Companhia</label>
+                    <select [ngModel]="etapa.airlineId" (ngModelChange)="aoSelecionarCompanhia($index, $event)"
+                      class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white">
+                      <option [ngValue]="null" disabled>Selecione</option>
+                      @for (c of companhias(); track c.id) {
+                        <option [ngValue]="c.id">{{ c.nome }} ({{ c.icao }})</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="text-xs text-slate-400">Rota</label>
+                    <select [ngModel]="etapa.routeId" (ngModelChange)="aoSelecionarRota($index, $event)"
+                      [disabled]="!etapa.airlineId || etapa.carregandoRotas"
+                      class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white disabled:opacity-50">
+                      <option [ngValue]="null" disabled>
+                        {{ etapa.carregandoRotas ? 'Carregando...' : 'Selecione' }}
+                      </option>
+                      @for (r of etapa.rotasDisponiveis; track r.id) {
+                        <option [ngValue]="r.id">{{ r.aeroportoOrigem }} → {{ r.aeroportoDestino }} · {{ r.numeroVoo }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3">
+          <button type="button" (click)="cancelar()"
+            class="text-sm font-medium text-slate-300 hover:text-white border border-[var(--sb-border)] rounded-lg px-4 py-2 transition-colors">
+            Cancelar
+          </button>
+          <button type="button" (click)="salvar()" [disabled]="!podeSalvar() || salvando()"
+            class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-black rounded-lg px-4 py-2 transition-colors">
+            {{ salvando() ? 'Salvando...' : (modoEdicao ? 'Salvar Alterações' : 'Criar Tour') }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

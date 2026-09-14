@@ -41,6 +41,48 @@ public class TourService : ITourService
         return MapToDto(tourCompleto!);
     }
 
+    public async Task<Result<TourDto>> AtualizarAsync(int id, NovoTourDto dto)
+    {
+        var tour = await _uow.Tours.GetWithEtapasAsync(id);
+        if (tour is null) return Result<TourDto>.Falha("Tour não encontrado.");
+
+        foreach (var etapaAntiga in tour.Etapas.ToList())
+            _uow.TourStops.Remove(etapaAntiga);
+
+        tour.Nome = dto.Nome;
+        tour.Descricao = dto.Descricao;
+        tour.PontosBonusConclusao = dto.PontosBonusConclusao;
+        tour.AwardId = dto.AwardId;
+
+        tour.Etapas.Clear();
+        foreach (var etapa in dto.Etapas)
+            tour.Etapas.Add(new TourStop { FlightRouteId = etapa.FlightRouteId, Ordem = etapa.Ordem });
+
+        await _uow.SaveChangesAsync();
+
+        var tourAtualizado = await _uow.Tours.GetWithEtapasAsync(id);
+        return Result<TourDto>.Ok(MapToDto(tourAtualizado!));
+    }
+
+    public async Task<Result<string>> ExcluirAsync(int id)
+    {
+        var tour = await _uow.Tours.GetWithEtapasAsync(id);
+        if (tour is null) return Result<string>.Falha("Tour não encontrado.");
+
+        var progressos = await _uow.TourProgresses.GetByTourAsync(id);
+        foreach (var progresso in progressos)
+            _uow.TourProgresses.Remove(progresso);
+
+        foreach (var etapa in tour.Etapas.ToList())
+            _uow.TourStops.Remove(etapa);
+
+        tour.Etapas.Clear();
+        _uow.Tours.Remove(tour);
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok($"Tour \"{tour.Nome}\" excluído.");
+    }
+
     public async Task<Result<string>> DefinirFotoAsync(int tourId, string url)
     {
         var tour = await _uow.Tours.GetByIdAsync(tourId);
@@ -89,6 +131,13 @@ public class TourService : ITourService
         tour.Award?.Nome,
         tour.Etapas
             .OrderBy(e => e.Ordem)
-            .Select(e => new EtapaTourDto(e.Ordem, e.FlightRoute!.AeroportoOrigem, e.FlightRoute.AeroportoDestino, e.FlightRoute.NumeroVoo))
+            .Select(e => new EtapaTourDto(
+                e.Ordem,
+                e.FlightRouteId,
+                e.FlightRoute?.AirlineId ?? 0,
+                e.FlightRoute?.Airline?.Nome ?? string.Empty,
+                e.FlightRoute!.AeroportoOrigem,
+                e.FlightRoute.AeroportoDestino,
+                e.FlightRoute.NumeroVoo))
             .ToList());
 }

@@ -17,3 +17,10 @@ public record PilotoDetalheDto(
     string? LocalizacaoAtualIcao,
     IReadOnlyList<CarreiraDto> Carreiras,
     IReadOnlyList<AwardConquistadoDto> Awards);
+
+public record EstatisticasRedeDto(
+    int TotalPilotos,
+    int TotalVoosAprovados,
+    double TotalMilhasVoadas,
+    int TotalTours,
+    int PirepsPendentes);
