@@ -92,4 +92,11 @@ public class BookingsController : ControllerBase
         var resultado = await _bookingService.EnviarPirepAsync(PilotIdLogado, id);
         return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Excluir(int id)
+    {
+        var resultado = await _bookingService.ExcluirAsync(PilotIdLogado, id);
+        return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
+    }
 }

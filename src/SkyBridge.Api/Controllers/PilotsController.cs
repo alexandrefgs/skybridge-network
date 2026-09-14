@@ -13,6 +13,7 @@ public class PilotsController : ControllerBase
     public PilotsController(IPilotService pilotService) => _pilotService = pilotService;
 
     public record SimBriefUsernameDto(string SimBriefUsername);
+    public record LocalizacaoDto(string AeroportoIcao);
 
     [HttpGet]
     [AllowAnonymous]
@@ -51,6 +52,18 @@ public class PilotsController : ControllerBase
             return Forbid();
 
         var resultado = await _pilotService.DefinirSimBriefUsernameAsync(pilotId, dto.SimBriefUsername);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
+
+    [HttpPut("{pilotId}/localizacao")]
+    [Authorize]
+    public async Task<IActionResult> DefinirLocalizacao(int pilotId, LocalizacaoDto dto)
+    {
+        var idLogado = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (pilotId != idLogado)
+            return Forbid();
+
+        var resultado = await _pilotService.DefinirLocalizacaoAsync(pilotId, dto.AeroportoIcao);
         return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
     }
 

@@ -95,7 +95,7 @@ public class AuthService : IAuthService
         await _uow.RefreshTokens.AddAsync(refreshToken);
         await _uow.SaveChangesAsync();
 
-        var pilotoDto = new PilotoResumoDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais);
+                var pilotoDto = new PilotoResumoDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, pilot.LocalizacaoAtualIcao);
 
         return Result<AuthResponseDto>.Ok(new AuthResponseDto(accessToken, expiraEm, refreshTokenTexto, pilotoDto));
     }

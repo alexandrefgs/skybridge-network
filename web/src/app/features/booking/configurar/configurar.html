@@ -1,17 +1,5 @@
 <div class="min-h-screen bg-[var(--sb-bg)]">
-  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-xl">✈️</span>
-        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
-      </div>
-      <nav class="flex items-center gap-4 text-sm">
-        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
-        <a routerLink="/booking" class="text-cyan-400">Booking</a>
-        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
-      </nav>
-    </div>
-  </header>
+  <app-header></app-header>
 
   <div class="max-w-3xl mx-auto px-6 py-10">
     <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
@@ -49,26 +37,6 @@
       <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
     } @else {
       <div class="space-y-6">
-        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-4">
-          <h2 class="font-display text-lg font-semibold text-white">Payload</h2>
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="text-xs text-slate-400">Passageiros</label>
-              <input [(ngModel)]="payloadPassageiros" type="number" min="0"
-                     class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
-            </div>
-            <div>
-              <label class="text-xs text-slate-400">Carga (kg)</label>
-              <input [(ngModel)]="payloadCargaKg" type="number" min="0"
-                     class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
-            </div>
-          </div>
-          <button (click)="salvarPayload()" [disabled]="salvandoPayload()"
-                  class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-4 py-2 transition-colors">
-            {{ salvandoPayload() ? 'Salvando...' : 'Salvar Payload' }}
-          </button>
-        </div>
-
         <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-4">
           <h2 class="font-display text-lg font-semibold text-white">Plano de Voo (SimBrief)</h2>
           <p class="text-xs text-slate-400">

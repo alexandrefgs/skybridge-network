@@ -1,7 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Header } from '../../../shared/header/header';
 import { BookingService } from '../../../core/services/booking.service';
 import { WeatherService } from '../../../core/services/weather.service';
 import { Booking } from '../../../core/models/booking.models';
@@ -16,7 +17,7 @@ interface ClimaAeroporto {
 @Component({
   selector: 'app-booking-alternados',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, Header],
   templateUrl: './alternados.html',
 })
 export class BookingAlternados implements OnInit {

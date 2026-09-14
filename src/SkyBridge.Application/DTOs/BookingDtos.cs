@@ -35,7 +35,11 @@ public record BookingDto(
     string? Alternado3,
     string? Alternado4,
     int? PayloadPassageiros,
-    int? PayloadCargaKg
+    int? PayloadCargaKg,
+    double? OfpDistanciaMn,
+    double? OfpBlockFuelKg,
+    double? OfpTripFuelKg,
+    string? OfpRotaTexto
 );
 
 public record SimBriefRedirectDto(string Url);

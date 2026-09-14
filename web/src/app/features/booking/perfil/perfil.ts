@@ -1,14 +1,15 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Header } from '../../../shared/header/header';
 import { BookingService } from '../../../core/services/booking.service';
 import { Booking } from '../../../core/models/booking.models';
 
 @Component({
   selector: 'app-booking-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, Header],
   templateUrl: './perfil.html',
 })
 export class BookingPerfil implements OnInit {

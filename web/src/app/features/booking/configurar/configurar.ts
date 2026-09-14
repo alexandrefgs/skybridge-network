@@ -1,14 +1,15 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Header } from '../../../shared/header/header';
 import { BookingService } from '../../../core/services/booking.service';
 import { Booking } from '../../../core/models/booking.models';
 
 @Component({
   selector: 'app-booking-configurar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, Header],
   templateUrl: './configurar.html',
 })
 export class BookingConfigurar implements OnInit {
@@ -17,10 +18,6 @@ export class BookingConfigurar implements OnInit {
   carregando = signal(true);
   erro = signal<string | null>(null);
   mensagem = signal<string | null>(null);
-
-  payloadPassageiros: number | null = null;
-  payloadCargaKg: number | null = null;
-  salvandoPayload = signal(false);
 
   gerandoRedirect = signal(false);
   confirmando = signal(false);
@@ -40,25 +37,10 @@ export class BookingConfigurar implements OnInit {
     try {
       const booking = await this.bookingService.obterDetalhe(this.bookingId);
       this.booking.set(booking);
-      this.payloadPassageiros = booking.payloadPassageiros;
-      this.payloadCargaKg = booking.payloadCargaKg;
     } catch {
       this.erro.set('Booking não encontrado.');
     } finally {
       this.carregando.set(false);
-    }
-  }
-
-  async salvarPayload(): Promise<void> {
-    this.erro.set(null);
-    this.salvandoPayload.set(true);
-    try {
-      await this.bookingService.definirPayload(this.bookingId, this.payloadPassageiros, this.payloadCargaKg);
-      this.mensagem.set('Payload salvo.');
-    } catch (erro: any) {
-      this.erro.set(erro?.error ?? 'Não foi possível salvar o payload.');
-    } finally {
-      this.salvandoPayload.set(false);
     }
   }
 

@@ -15,4 +15,10 @@ export class PilotService {
   obterDetalhe(id: number): Promise<PilotoDetalhe> {
     return firstValueFrom(this.http.get<PilotoDetalhe>(`${environment.apiUrl}/Pilots/${id}`));
   }
+
+  definirLocalizacao(id: number, aeroportoIcao: string): Promise<string> {
+    return firstValueFrom(
+      this.http.put(`${environment.apiUrl}/Pilots/${id}/localizacao`, { aeroportoIcao }, { responseType: 'text' })
+    );
+  }
 }

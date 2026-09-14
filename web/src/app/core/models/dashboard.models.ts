@@ -7,6 +7,10 @@ export interface VooAtivo {
   velocidadeNos: number;
   heading: number;
   atualizadoEm: string;
+  aeronaveModelo: string | null;
+  aeronaveCodigoIcao: string | null;
+  aeroportoOrigem: string | null;
+  aeroportoDestino: string | null;
 }
 
 export interface UltimoVoo {

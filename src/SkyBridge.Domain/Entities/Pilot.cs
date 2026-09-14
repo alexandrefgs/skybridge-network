@@ -15,6 +15,7 @@ public class Pilot
     public long PontosTotais { get; set; } = 0;
 
     public string? SimBriefUsername { get; set; }
+    public string? LocalizacaoAtualIcao { get; set; }
 
     public ICollection<PilotCareer> Carreiras { get; set; } = new List<PilotCareer>();
     public ICollection<Pirep> Pireps { get; set; } = new List<Pirep>();
@@ -26,4 +27,6 @@ public class Pilot
     public void AjustarRating(double impacto) => Rating = Math.Clamp(Rating + impacto, 0, 5);
     public void AdicionarPontos(long pontos) => PontosTotais += pontos;
     public void DefinirSimBriefUsername(string username) => SimBriefUsername = username;
+
+    public void DefinirLocalizacao(string aeroportoIcao) => LocalizacaoAtualIcao = aeroportoIcao.Trim().ToUpperInvariant();
 }

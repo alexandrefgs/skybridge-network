@@ -44,12 +44,39 @@ public class VooAtivoService : IVooAtivoService
         }
     }
 
-    public Task<IReadOnlyList<VooAtivoDto>> ListarAtivosAsync()
+    public async Task<IReadOnlyList<VooAtivoDto>> ListarAtivosAsync()
     {
-        var ativos = _store.ListarAtivos()
-            .Select(v => new VooAtivoDto(v.PilotId, v.Callsign, v.Latitude, v.Longitude, v.AltitudePes, v.VelocidadeNos, v.Heading, v.AtualizadoEm))
-            .ToList();
+        var ativos = _store.ListarAtivos();
+        var resultado = new List<VooAtivoDto>();
 
-        return Task.FromResult<IReadOnlyList<VooAtivoDto>>(ativos);
+        foreach (var v in ativos)
+        {
+            var booking = await _uow.Bookings.GetEmVooPorPilotoAsync(v.PilotId);
+            string callsign = v.Callsign;
+            string? aeronave = null;
+            string? aeronaveIcao = null;
+            string? origem = null;
+            string? destino = null;
+
+            if (booking is not null)
+            {
+                var detalhe = await _uow.Bookings.GetComDetalhesAsync(booking.Id);
+                if (detalhe is not null)
+                {
+                    callsign = detalhe.Callsign;
+                    aeronave = detalhe.Aircraft?.Modelo;
+                    aeronaveIcao = detalhe.Aircraft?.CodigoIcao;
+                    origem = detalhe.FlightRoute?.AeroportoOrigem;
+                    destino = detalhe.FlightRoute?.AeroportoDestino;
+                }
+            }
+
+            resultado.Add(new VooAtivoDto(
+                v.PilotId, callsign, v.Latitude, v.Longitude, v.AltitudePes, v.VelocidadeNos, v.Heading, v.AtualizadoEm,
+                aeronave, aeronaveIcao, origem, destino
+            ));
+        }
+
+        return resultado;
     }
 }

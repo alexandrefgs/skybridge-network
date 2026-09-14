@@ -1,0 +1,91 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <app-header></app-header>
+
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-display text-2xl font-bold text-white mb-1">Minhas Reservas</h1>
+        <p class="text-sm text-slate-400">Seus voos reservados e em andamento.</p>
+      </div>
+      <a routerLink="/booking/nova"
+         class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg px-4 py-2 transition-colors">
+        + Nova Reserva
+      </a>
+    </div>
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else if (bookings().length === 0) {
+      <div class="text-center py-20 rounded-2xl border border-[var(--sb-border)] bg-white/[0.02]">
+        <p class="text-sm text-slate-400 mb-4">Você ainda não tem nenhuma reserva.</p>
+        <a routerLink="/booking/nova"
+           class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg px-4 py-2 transition-colors">
+          Criar minha primeira reserva
+        </a>
+      </div>
+    } @else {
+      <div class="space-y-3">
+        @for (booking of bookings(); track booking.id) {
+          <a [routerLink]="linkDoBooking(booking)"
+             class="flex items-center justify-between rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-5 hover:border-cyan-500/40 hover:bg-white/[0.04] transition-all">
+            <div>
+              <div class="font-display font-semibold text-white">{{ booking.callsign }}</div>
+              <div class="text-sm text-slate-400 mt-0.5">
+                {{ booking.aeroportoOrigem }} → {{ booking.aeroportoDestino }} · Voo {{ booking.numeroVoo }} · {{ booking.aeronaveModelo }}
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-mono px-3 py-1.5 rounded-lg border" [class]="corDoStatus(booking.status)">
+                {{ booking.status }}
+              </span>
+              <button type="button" (click)="pedirConfirmacao($event, booking)" [disabled]="excluindo() === booking.id"
+                      class="text-slate-500 hover:text-red-400 disabled:opacity-50 transition-colors p-1.5"
+                      title="Excluir reserva">
+                @if (excluindo() === booking.id) {
+                  <span class="text-xs">...</span>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m2 0v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12z" />
+                  </svg>
+                }
+              </button>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  @if (bookingParaExcluir()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" (click)="cancelarExclusao()">
+      <div class="w-full max-w-sm rounded-2xl border border-[var(--sb-border)] bg-[var(--sb-bg)] p-6 shadow-2xl" (click)="$event.stopPropagation()">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m2 0v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12z" />
+            </svg>
+          </div>
+          <h2 class="font-display text-lg font-semibold text-white">Excluir reserva</h2>
+        </div>
+
+        <p class="text-sm text-slate-400 mb-6">
+          Tem certeza que deseja excluir a reserva
+          <span class="text-white font-mono">{{ bookingParaExcluir()!.callsign }}</span>
+          ({{ bookingParaExcluir()!.aeroportoOrigem }} → {{ bookingParaExcluir()!.aeroportoDestino }})?
+          Essa ação não pode ser desfeita.
+        </p>
+
+        <div class="flex gap-3 justify-end">
+          <button type="button" (click)="cancelarExclusao()"
+                  class="text-sm font-medium text-slate-300 hover:text-white border border-[var(--sb-border)] rounded-lg px-4 py-2 transition-colors">
+            Cancelar
+          </button>
+          <button type="button" (click)="confirmarExclusao()"
+                  class="text-sm font-medium bg-red-500 hover:bg-red-400 text-white rounded-lg px-4 py-2 transition-colors">
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

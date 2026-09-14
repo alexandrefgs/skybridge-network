@@ -28,6 +28,27 @@ export interface Booking {
   alternado4: string | null;
   payloadPassageiros: number | null;
   payloadCargaKg: number | null;
+  ofpDistanciaMn: number | null;
+  ofpBlockFuelKg: number | null;
+  ofpTripFuelKg: number | null;
+  ofpRotaTexto: string | null;
+
+  ofpAirTimeMin?: number | null;
+  ofpBlockTimeMin?: number | null;
+  ofpFlightAltitude?: number | null;
+  ofpCruiseProfile?: string | null;
+  ofpAverageWind?: string | null;
+  ofpWindComponent?: string | null;
+  ofpIsaDeviation?: string | null;
+  ofpEnrouteBurnKg?: number | null;
+  ofpEmptyWeightKg?: number | null;
+  ofpEstimatedZfwKg?: number | null;
+  ofpEstimatedTowKg?: number | null;
+  ofpEstimatedLwKg?: number | null;
+  ofpBaggageKg?: number | null;
+  ofpMaxZfwKg?: number | null;
+  ofpMaxTowKg?: number | null;
+  ofpMaxLwKg?: number | null;
 }
 
 export interface StatusVoo {
@@ -48,6 +69,8 @@ export interface Metar {
   qnhHpa: number | null;
   ventoDirecao: number | null;
   ventoVelocidadeKt: number | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface Taf {

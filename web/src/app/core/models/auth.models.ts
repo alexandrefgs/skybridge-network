@@ -4,6 +4,7 @@ export interface PilotoResumo {
   callsign: string;
   rating: number;
   pontosTotais: number;
+  localizacaoAtualIcao: string | null;
 }
 
 export interface AuthResponse {

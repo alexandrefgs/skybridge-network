@@ -1,6 +1,6 @@
 namespace SkyBridge.Domain.Interfaces;
 
-public record MetarDto(string Icao, string Raw, double? TemperaturaC, double? QnhHpa, int? VentoDirecao, int? VentoVelocidadeKt);
+public record MetarDto(string Icao, string Raw, double? TemperaturaC, double? QnhHpa, int? VentoDirecao, int? VentoVelocidadeKt, double? Latitude, double? Longitude);
 public record TafDto(string Icao, string Raw);
 
 public interface IWeatherClient

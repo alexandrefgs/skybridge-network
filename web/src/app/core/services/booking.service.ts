@@ -6,7 +6,7 @@ import { Booking, NovoBookingPayload, StatusVoo, SimBriefRedirect } from '../mod
 
 @Injectable({ providedIn: 'root' })
 export class BookingService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   listarMeus(): Promise<Booking[]> {
     return firstValueFrom(this.http.get<Booking[]>(`${environment.apiUrl}/Bookings`));
@@ -58,5 +58,9 @@ export class BookingService {
 
   enviarPirep(id: number): Promise<any> {
     return firstValueFrom(this.http.post(`${environment.apiUrl}/Bookings/${id}/enviar-pirep`, {}));
+  }
+
+  excluir(id: number): Promise<string> {
+    return firstValueFrom(this.http.delete(`${environment.apiUrl}/Bookings/${id}`, { responseType: 'text' }));
   }
 }

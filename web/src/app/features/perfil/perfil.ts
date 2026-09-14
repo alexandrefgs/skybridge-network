@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { Header } from '../../shared/header/header';
 import { AuthService } from '../../core/services/auth.service';
 import { PilotService } from '../../core/services/pilot.service';
 import { PilotoDetalhe } from '../../core/models/pilot.models';
@@ -8,7 +9,7 @@ import { PilotoDetalhe } from '../../core/models/pilot.models';
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, Header],
   templateUrl: './perfil.html',
 })
 export class Perfil implements OnInit {

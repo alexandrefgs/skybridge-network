@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { Header } from '../../../shared/header/header';
 import { AuthService } from '../../../core/services/auth.service';
 import { AirlineService } from '../../../core/services/airline.service';
 import { BookingService } from '../../../core/services/booking.service';
@@ -10,7 +11,7 @@ import { Airline, AirlineDetalhe, FlightRoute } from '../../../core/models/airli
 @Component({
   selector: 'app-booking-nova',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, Header],
   templateUrl: './nova.html',
 })
 export class BookingNova implements OnInit {
@@ -23,9 +24,17 @@ export class BookingNova implements OnInit {
   rotaIdSelecionada: number | null = null;
   aircraftIdSelecionado: number | null = null;
   callsign = '';
-  dataVoo = '';
-  horaPartida = '';
-  horaChegada = '';
+
+  companhiaDropdownAberto = signal(false);
+  buscaCompanhia = signal('');
+
+  companhiasFiltradas = computed(() => {
+    const termo = this.buscaCompanhia().trim().toLowerCase();
+    if (!termo) return this.companhias();
+    return this.companhias().filter(c =>
+      c.nome.toLowerCase().includes(termo) || c.icao.toLowerCase().includes(termo)
+    );
+  });
 
   constructor(
     private auth: AuthService,
@@ -52,6 +61,18 @@ export class BookingNova implements OnInit {
 
   rotasDaCompanhia = signal<FlightRoute[]>([]);
 
+  alternarCompanhiaDropdown(): void {
+    this.companhiaDropdownAberto.set(!this.companhiaDropdownAberto());
+    if (!this.companhiaDropdownAberto()) this.buscaCompanhia.set('');
+  }
+
+  async selecionarCompanhia(companhia: AirlineDetalhe): Promise<void> {
+    this.airlineIdSelecionada = companhia.id;
+    this.companhiaDropdownAberto.set(false);
+    this.buscaCompanhia.set('');
+    await this.aoSelecionarCompanhia();
+  }
+
   async aoSelecionarCompanhia(): Promise<void> {
     this.rotaIdSelecionada = null;
     this.aircraftIdSelecionado = null;
@@ -64,7 +85,7 @@ export class BookingNova implements OnInit {
   }
 
   async criar(): Promise<void> {
-    if (!this.rotaIdSelecionada || !this.aircraftIdSelecionado || !this.dataVoo || !this.horaPartida || !this.horaChegada) {
+    if (!this.rotaIdSelecionada || !this.aircraftIdSelecionado || !this.callsign.trim()) {
       this.erro.set('Preencha todos os campos.');
       return;
     }
@@ -72,19 +93,24 @@ export class BookingNova implements OnInit {
     this.erro.set(null);
     this.salvando.set(true);
 
-    const [horaP, minP] = this.horaPartida.split(':').map(Number);
-    const [horaC, minC] = this.horaChegada.split(':').map(Number);
+    const agora = new Date();
+    const dataVoo = agora.toISOString().slice(0, 10);
+    const horaPartidaUtc = agora.getUTCHours();
+    const minutoPartidaUtc = agora.getUTCMinutes();
+    const chegadaEstimativa = new Date(agora.getTime() + 60 * 60 * 1000);
+    const horaChegadaUtc = chegadaEstimativa.getUTCHours();
+    const minutoChegadaUtc = chegadaEstimativa.getUTCMinutes();
 
     try {
       const booking = await this.bookingService.criar({
         flightRouteId: this.rotaIdSelecionada,
         aircraftId: this.aircraftIdSelecionado,
         callsign: this.callsign,
-        dataVoo: this.dataVoo,
-        horaPartidaUtc: horaP,
-        minutoPartidaUtc: minP,
-        horaChegadaUtc: horaC,
-        minutoChegadaUtc: minC,
+        dataVoo,
+        horaPartidaUtc,
+        minutoPartidaUtc,
+        horaChegadaUtc,
+        minutoChegadaUtc,
       });
       this.router.navigateByUrl(`/booking/${booking.id}/perfil`);
     } catch (erro: any) {

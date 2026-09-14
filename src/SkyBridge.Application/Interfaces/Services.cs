@@ -12,6 +12,10 @@ public interface IAirlineService
     Task<AirlineDto> CriarAsync(NovaAirlineDto dto);
     Task<Result<AeronaveDto>> AdicionarAeronaveAsync(int airlineId, NovaAeronaveDto dto);
     Task<Result<FlightRouteDto>> AdicionarRotaAsync(int airlineId, NovaRotaDto dto);
+    Task<Result<AirlineDto>> AtualizarAsync(int id, NovaAirlineDto dto);
+    Task<Result<string>> ExcluirAsync(int id);
+    Task<Result<FlightRouteDto>> AtualizarRotaAsync(int airlineId, int routeId, NovaRotaDto dto);
+    Task<Result<string>> ExcluirRotaAsync(int airlineId, int routeId);
 }
 
 public interface IPilotService
@@ -22,6 +26,7 @@ public interface IPilotService
     Task<Result<string>> IniciarCarreiraAsync(int pilotId, int airlineId);
     Task<Result<string>> ExcluirAsync(int id);
     Task<Result<string>> DefinirSimBriefUsernameAsync(int pilotId, string simBriefUsername);
+    Task<Result<string>> DefinirLocalizacaoAsync(int pilotId, string aeroportoIcao);
 }
 
 public interface IPirepService

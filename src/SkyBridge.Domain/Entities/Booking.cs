@@ -31,6 +31,10 @@ public class Booking
     public int? PayloadCargaKg { get; set; }
 
     public string? SimBriefOfpId { get; set; }
+    public double? OfpDistanciaMn { get; set; }
+    public double? OfpBlockFuelKg { get; set; }
+    public double? OfpTripFuelKg { get; set; }
+    public string? OfpRotaTexto { get; set; }
     public BookingStatus Status { get; set; } = BookingStatus.Rascunho;
     public DateTime CriadoEmUtc { get; set; } = DateTime.UtcNow;
 
@@ -120,8 +124,8 @@ public class Booking
         }
     }
 
-    public bool DeveSerCanceladoPorInatividade(DateTime agoraUtc, TimeSpan limite) =>
-        Status == BookingStatus.EmVoo && UltimaTelemetriaUtc.HasValue && (agoraUtc - UltimaTelemetriaUtc.Value) > limite;
+        public bool DeveExpirar(DateTime agoraUtc, TimeSpan validade) =>
+        Status != BookingStatus.Concluido && Status != BookingStatus.Cancelado && (agoraUtc - CriadoEmUtc) > validade;
 
     public double? CalcularHorasDeVoo() =>
         MomentoDecolagemUtc.HasValue && MomentoToqueUtc.HasValue

@@ -1,17 +1,5 @@
 <div class="min-h-screen bg-[var(--sb-bg)]">
-  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-xl">✈️</span>
-        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
-      </div>
-      <nav class="flex items-center gap-4 text-sm">
-        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
-        <a routerLink="/booking" class="text-cyan-400">Booking</a>
-        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
-      </nav>
-    </div>
-  </header>
+  <app-header></app-header>
 
   <div class="max-w-3xl mx-auto px-6 py-10">
     <div class="flex items-center gap-2 text-xs text-slate-500 mb-6">
@@ -38,15 +26,39 @@
       <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
     } @else {
       <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 space-y-4">
-        <div>
+        <div class="relative">
           <label class="text-xs text-slate-400">Companhia</label>
-          <select [(ngModel)]="airlineIdSelecionada" (ngModelChange)="aoSelecionarCompanhia()"
-                  class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white">
-            <option [ngValue]="null" disabled>Selecione</option>
-            @for (c of companhias(); track c.id) {
-              <option [ngValue]="c.id">{{ c.nome }} ({{ c.icao }})</option>
+          <button type="button" (click)="alternarCompanhiaDropdown()"
+            class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white flex items-center justify-between">
+            @if (companhiaSelecionada) {
+              <span>{{ companhiaSelecionada!.nome }} ({{ companhiaSelecionada!.icao }})</span>
+            } @else {
+              <span class="text-slate-500">Selecione</span>
             }
-          </select>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform"
+              [class.rotate-180]="companhiaDropdownAberto()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          @if (companhiaDropdownAberto()) {
+            <div class="fixed inset-0 z-10" (click)="alternarCompanhiaDropdown()"></div>
+            <div class="absolute z-20 mt-1 w-full rounded-lg border border-[var(--sb-border)] bg-[var(--sb-bg)] shadow-2xl max-h-64 overflow-y-auto">
+              <input type="text" placeholder="Buscar companhia..." [ngModel]="buscaCompanhia()" (ngModelChange)="buscaCompanhia.set($event)"
+                name="buscaCompanhiaInput" (click)="$event.stopPropagation()"
+                class="w-full px-3 py-2 text-sm bg-black/40 border-b border-[var(--sb-border)] text-white sticky top-0" />
+              @for (c of companhiasFiltradas(); track c.id) {
+                <button type="button" (click)="selecionarCompanhia(c)"
+                  class="w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors"
+                  [class.bg-cyan-500/10]="airlineIdSelecionada === c.id"
+                  [class.text-cyan-300]="airlineIdSelecionada === c.id"
+                  [class.text-slate-300]="airlineIdSelecionada !== c.id">
+                  <span>{{ c.nome }}</span>
+                  <span class="text-xs font-mono text-slate-500">{{ c.icao }}</span>
+                </button>
+              }
+            </div>
+          }
         </div>
 
         @if (rotasDaCompanhia().length > 0) {
@@ -81,28 +93,12 @@
                  class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white font-mono uppercase" />
         </div>
 
-        <div class="grid sm:grid-cols-3 gap-4">
-          <div>
-            <label class="text-xs text-slate-400">Data do Voo</label>
-            <input [(ngModel)]="dataVoo" type="date"
-                   class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
-          </div>
-          <div>
-            <label class="text-xs text-slate-400">Partida (UTC)</label>
-            <input [(ngModel)]="horaPartida" type="time"
-                   class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
-          </div>
-          <div>
-            <label class="text-xs text-slate-400">Chegada (UTC)</label>
-            <input [(ngModel)]="horaChegada" type="time"
-                   class="w-full mt-1 bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white" />
-          </div>
+        <div class="flex justify-center pt-2">
+          <button (click)="criar()" [disabled]="salvando()"
+                  class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-6 py-2 transition-colors">
+            {{ salvando() ? 'Criando...' : 'Continuar' }}
+          </button>
         </div>
-
-        <button (click)="criar()" [disabled]="salvando()"
-                class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black rounded-lg px-4 py-2 transition-colors">
-          {{ salvando() ? 'Criando...' : 'Continuar' }}
-        </button>
       </div>
     }
   </div>

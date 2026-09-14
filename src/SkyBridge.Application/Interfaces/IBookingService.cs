@@ -16,4 +16,5 @@ public interface IBookingService
     Task<Result<PirepResultDto>> EnviarPirepAsync(int pilotId, int bookingId);
     Task<IReadOnlyList<BookingDto>> ListarMeusAsync(int pilotId);
     Task<BookingDto?> ObterDetalheAsync(int pilotId, int bookingId);
+    Task<Result<string>> ExcluirAsync(int pilotId, int bookingId);
 }

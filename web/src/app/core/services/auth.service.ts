@@ -36,6 +36,22 @@ export class AuthService {
     return resposta;
   }
 
+  async refresh(): Promise<AuthResponse | null> {
+    const atual = this.obterAuthSalvo();
+    if (!atual?.refreshToken) return null;
+
+    try {
+      const resposta = await firstValueFrom(
+        this.http.post<AuthResponse>(`${environment.apiUrl}/Auth/refresh`, { refreshToken: atual.refreshToken })
+      );
+      this.salvarAuth(resposta);
+      return resposta;
+    } catch {
+      this.logout();
+      return null;
+    }
+  }
+
   logout(): void {
     localStorage.removeItem(CHAVE_AUTH);
     this.piloto.set(null);
@@ -49,6 +65,15 @@ export class AuthService {
 
   estaLogado(): boolean {
     return !!this.obterToken();
+  }
+
+  atualizarLocalizacaoLocal(icao: string): void {
+    const atual = this.obterAuthSalvo();
+    if (!atual) return;
+
+    atual.piloto.localizacaoAtualIcao = icao;
+    localStorage.setItem(CHAVE_AUTH, JSON.stringify(atual));
+    this.piloto.set(atual.piloto);
   }
 
   private salvarAuth(resposta: AuthResponse): void {

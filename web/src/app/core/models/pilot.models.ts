@@ -4,6 +4,7 @@ export interface PilotoResumo {
   callsign: string;
   rating: number;
   pontosTotais: number;
+  localizacaoAtualIcao: string | null;
 }
 
 export interface CarreiraPiloto {
@@ -26,6 +27,7 @@ export interface PilotoDetalhe {
   callsign: string;
   rating: number;
   pontosTotais: number;
+  localizacaoAtualIcao: string | null;
   carreiras: CarreiraPiloto[];
   awards: AwardConquistado[];
 }

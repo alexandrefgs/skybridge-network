@@ -1,7 +1,8 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { Header } from '../../shared/header/header';
 import { AuthService } from '../../core/services/auth.service';
 import { AirlineService } from '../../core/services/airline.service';
 import { PirepService } from '../../core/services/pirep.service';
@@ -11,7 +12,7 @@ import { PirepResultado } from '../../core/models/pirep.models';
 @Component({
   selector: 'app-enviar-pirep',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, Header],
   templateUrl: './enviar-pirep.html',
 })
 export class EnviarPirep implements OnInit {

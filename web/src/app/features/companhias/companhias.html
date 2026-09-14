@@ -1,59 +1,121 @@
 <div class="min-h-screen bg-[var(--sb-bg)]">
-  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-xl">✈️</span>
-        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
-      </div>
-      <nav class="flex items-center gap-4 text-sm">
-        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
-        <a routerLink="/booking" class="text-slate-400 hover:text-white transition-colors">Booking</a>
-        <a routerLink="/perfil" class="text-slate-400 hover:text-white transition-colors">Perfil</a>
-        <a routerLink="/companhias" class="text-cyan-400">Companhias</a>
-        @if (auth.ehAdmin()) {
-          <a routerLink="/admin/companhias" class="text-amber-400 hover:text-amber-300 transition-colors">Admin</a>
-        }
-        <button
-          (click)="auth.logout()"
-          class="text-xs text-slate-400 hover:text-white transition-colors border border-[var(--sb-border)] rounded-lg px-3 py-1.5">
-          Sair
-        </button>
-      </nav>
-    </div>
-  </header>
+  <app-header></app-header>
 
   <div class="max-w-6xl mx-auto px-6 py-10">
-    <h1 class="font-display text-2xl font-bold text-white mb-1">Companhias Aéreas</h1>
-    <p class="text-sm text-slate-400 mb-8">Companhias, ICAO/IATA e frota disponíveis na rede.</p>
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-display text-2xl font-bold text-white mb-1">Companhias Aéreas</h1>
+        <p class="text-sm text-slate-400">Companhias, ICAO/IATA e frota disponíveis na rede.</p>
+      </div>
+      @if (auth.ehAdmin()) {
+      <a routerLink="/admin/companhias"
+        class="text-sm font-medium bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg px-4 py-2 transition-colors whitespace-nowrap">
+        + Cadastrar Companhia
+      </a>
+      }
+    </div>
 
     @if (carregando()) {
-      <div class="text-center py-20 text-slate-500 text-sm">Carregando companhias...</div>
+    <div class="text-center py-20 text-slate-500 text-sm">Carregando companhias...</div>
     } @else {
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        @for (companhia of companhias(); track companhia.id) {
-          <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-5">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-[var(--sb-border)] flex items-center justify-center text-xs font-mono font-bold text-cyan-400 mb-4">
-              {{ companhia.icao }}
-            </div>
-
-            <div class="font-display font-semibold text-white text-base leading-tight">{{ companhia.nome }}</div>
-            <div class="text-xs text-slate-500 mt-1">{{ companhia.pais }}</div>
-
-            <div class="flex items-center gap-2 mt-3">
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-[var(--sb-border)] text-slate-400">IATA {{ companhia.iata || '—' }}</span>
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-[var(--sb-border)] text-slate-400">ICAO {{ companhia.icao }}</span>
-            </div>
-
-            <div class="flex flex-wrap gap-1.5 mt-4">
-              @for (aeronave of companhia.frota; track aeronave.codigoIcao) {
-                <span class="text-[10px] font-mono px-2 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-300">
-                  {{ aeronave.codigoIcao }}
-                </span>
-              }
-            </div>
-          </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      @for (companhia of companhias(); track companhia.id) {
+      <div
+        class="relative rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-5 transition-all hover:border-cyan-500/40 hover:bg-white/[0.04]">
+        @if (auth.ehAdmin()) {
+        <div class="absolute top-4 right-4 flex gap-1.5">
+          <button type="button" (click)="editar($event, companhia)"
+            class="text-slate-500 hover:text-cyan-400 transition-colors p-1" title="Editar companhia">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          <button type="button" (click)="pedirConfirmacao($event, companhia)" [disabled]="excluindo() === companhia.id"
+            class="text-slate-500 hover:text-red-400 disabled:opacity-50 transition-colors p-1"
+            title="Excluir companhia">
+            @if (excluindo() === companhia.id) {
+            <span class="text-xs">...</span>
+            } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6 7h12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m2 0v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12z" />
+            </svg>
+            }
+          </button>
+        </div>
         }
+
+        <div
+          class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-[var(--sb-border)] flex items-center justify-center text-xs font-mono font-bold text-cyan-400 mb-4">
+          {{ companhia.icao }}
+        </div>
+
+        <div class="font-display font-semibold text-white text-base leading-tight pr-14">{{ companhia.nome }}</div>
+        <div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+          <span class="fi {{ classeBandeiraDoPais(companhia.pais) }} rounded-sm" style="width: 16px; height: 12px;"></span>
+          {{ companhia.pais }}
+        </div>
+
+        <div class="flex items-center gap-2 mt-3">
+          <span
+            class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-[var(--sb-border)] text-slate-400">IATA
+            {{ companhia.iata || '—' }}</span>
+          <span
+            class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-[var(--sb-border)] text-slate-400">ICAO
+            {{ companhia.icao }}</span>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5 mt-4">
+          @for (aeronave of companhia.frota; track aeronave.codigoIcao) {
+          <span
+            class="text-[10px] font-mono px-2 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-300">
+            {{ aeronave.codigoIcao }}
+          </span>
+          }
+        </div>
       </div>
+      }
+    </div>
     }
   </div>
+
+  @if (companhiaParaExcluir()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+    (click)="cancelarExclusao()">
+    <div class="w-full max-w-sm rounded-2xl border border-[var(--sb-border)] bg-[var(--sb-bg)] p-6 shadow-2xl"
+      (click)="$event.stopPropagation()">
+      <div class="flex items-center gap-3 mb-4">
+        <div
+          class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M6 7h12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m2 0v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12z" />
+          </svg>
+        </div>
+        <h2 class="font-display text-lg font-semibold text-white">Excluir companhia</h2>
+      </div>
+
+      <p class="text-sm text-slate-400 mb-6">
+        Tem certeza que deseja excluir a companhia
+        <span class="text-white font-mono">{{ companhiaParaExcluir()!.nome }}</span>?
+        Essa ação não pode ser desfeita.
+      </p>
+
+      <div class="flex gap-3 justify-end">
+        <button type="button" (click)="cancelarExclusao()"
+          class="text-sm font-medium text-slate-300 hover:text-white border border-[var(--sb-border)] rounded-lg px-4 py-2 transition-colors">
+          Cancelar
+        </button>
+        <button type="button" (click)="confirmarExclusao()"
+          class="text-sm font-medium bg-red-500 hover:bg-red-400 text-white rounded-lg px-4 py-2 transition-colors">
+          Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+  }
 </div>

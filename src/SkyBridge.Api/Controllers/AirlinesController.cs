@@ -59,4 +59,36 @@ public class AirlinesController : ControllerBase
         var resultado = await _airlineService.AdicionarRotaAsync(id, dto);
         return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
     }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Atualizar(int id, NovaAirlineDto dto)
+    {
+        var resultado = await _airlineService.AtualizarAsync(id, dto);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Excluir(int id)
+    {
+        var resultado = await _airlineService.ExcluirAsync(id);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
+
+        [HttpPut("{airlineId}/rotas/{routeId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AtualizarRota(int airlineId, int routeId, NovaRotaDto dto)
+    {
+        var resultado = await _airlineService.AtualizarRotaAsync(airlineId, routeId, dto);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
+
+    [HttpDelete("{airlineId}/rotas/{routeId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ExcluirRota(int airlineId, int routeId)
+    {
+        var resultado = await _airlineService.ExcluirRotaAsync(airlineId, routeId);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
 }

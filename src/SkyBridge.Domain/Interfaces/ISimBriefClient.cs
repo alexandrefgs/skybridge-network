@@ -12,7 +12,8 @@ public record SimBriefDispatchParametros(
     string? Registro,
     string? Callsign,
     int? Passageiros,
-    string StaticId
+    string StaticId,
+    string? Alternado
 );
 
 public record SimBriefOfpResumo(

@@ -32,8 +32,8 @@ public class SimBriefClient : ISimBriefClient
         if (!string.IsNullOrWhiteSpace(p.Callsign))
             query.Add($"callsign={Uri.EscapeDataString(p.Callsign)}");
 
-        if (p.Passageiros.HasValue)
-            query.Add($"pax={p.Passageiros.Value}");
+        if (!string.IsNullOrWhiteSpace(p.Alternado))
+            query.Add($"altn={Uri.EscapeDataString(p.Alternado)}");
 
         return $"https://dispatch.simbrief.com/options/custom?{string.Join('&', query)}";
     }

@@ -8,7 +8,7 @@ namespace SkyBridge.Application.Services;
 
 public class BookingService : IBookingService
 {
-    private static readonly TimeSpan LimiteInatividade = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan ValidadeBooking = TimeSpan.FromDays(1);
 
     private readonly IUnitOfWork _uow;
     private readonly ISimBriefClient _simBrief;
@@ -23,11 +23,21 @@ public class BookingService : IBookingService
 
     public async Task<Result<BookingDto>> CriarAsync(int pilotId, NovoBookingDto dto)
     {
+        var pendente = await _uow.Bookings.GetPendentePorPilotoAsync(pilotId);
+        if (pendente is not null)
+            return Result<BookingDto>.Falha("Você já tem uma reserva em andamento. Finalize ou exclua antes de criar outra.");
+
         var pilot = await _uow.Pilots.GetByIdAsync(pilotId);
         if (pilot is null) return Result<BookingDto>.Falha("Piloto não encontrado.");
 
+        if (string.IsNullOrWhiteSpace(pilot.LocalizacaoAtualIcao))
+            return Result<BookingDto>.Falha("Defina sua base inicial antes de criar uma reserva.");
+
         var rota = await _uow.FlightRoutes.GetByIdAsync(dto.FlightRouteId);
         if (rota is null) return Result<BookingDto>.Falha("Rota não encontrada.");
+
+        if (!string.Equals(pilot.LocalizacaoAtualIcao, rota.AeroportoOrigem, StringComparison.OrdinalIgnoreCase))
+            return Result<BookingDto>.Falha($"JUMPSEAT_NECESSARIO:{rota.AeroportoOrigem}");
 
         var aeronave = await _uow.Aircrafts.GetByIdAsync(dto.AircraftId);
         if (aeronave is null) return Result<BookingDto>.Falha("Aeronave não encontrada.");
@@ -56,7 +66,7 @@ public class BookingService : IBookingService
 
         try
         {
-            booking.DefinirCallsign(dto.Callsign, airline.CallsignPadrao);
+            booking.DefinirCallsign(dto.Callsign, airline.ICAO);
         }
         catch (InvalidOperationException ex)
         {
@@ -126,7 +136,8 @@ public class BookingService : IBookingService
             Registro: booking.Aircraft.Matricula,
             Callsign: booking.Callsign,
             Passageiros: booking.PayloadPassageiros,
-            StaticId: $"SKB_{booking.Id}"
+            StaticId: $"SKB_{booking.Id}",
+            Alternado: booking.Alternado1
         );
 
         var url = _simBrief.MontarUrlDispatch(parametros);
@@ -151,6 +162,10 @@ public class BookingService : IBookingService
             return Result<BookingDto>.Falha("Nenhum plano de voo encontrado no SimBrief para esse booking. Gere o OFP primeiro.");
 
         booking.MarcarBriefingGerado($"SKB_{booking.Id}");
+        booking.OfpDistanciaMn = ofp.DistanciaMn;
+        booking.OfpBlockFuelKg = ofp.BlockFuelKg;
+        booking.OfpTripFuelKg = ofp.TripFuelKg;
+        booking.OfpRotaTexto = ofp.RotaTexto;
         _uow.Bookings.Update(booking);
         await _uow.SaveChangesAsync();
 
@@ -181,7 +196,7 @@ public class BookingService : IBookingService
         var booking = await ObterDoTitularAsync(pilotId, bookingId);
         if (booking is null) return Result<StatusVooDto>.Falha("Booking não encontrado.");
 
-        if (booking.DeveSerCanceladoPorInatividade(DateTime.UtcNow, LimiteInatividade))
+        if (booking.DeveExpirar(DateTime.UtcNow, ValidadeBooking))
         {
             booking.Cancelar();
             _uow.Bookings.Update(booking);
@@ -208,6 +223,14 @@ public class BookingService : IBookingService
 
         booking.MarcarConcluido();
         _uow.Bookings.Update(booking);
+
+        var pilot = await _uow.Pilots.GetByIdAsync(pilotId);
+        if (pilot is not null)
+        {
+            pilot.DefinirLocalizacao(booking.FlightRoute?.AeroportoDestino ?? await ObterDestinoDaRotaAsync(booking.FlightRouteId));
+            _uow.Pilots.Update(pilot);
+        }
+
         await _uow.SaveChangesAsync();
 
         return resultado;
@@ -224,6 +247,13 @@ public class BookingService : IBookingService
         var booking = await _uow.Bookings.GetComDetalhesAsync(bookingId);
         if (booking is null || booking.PilotId != pilotId) return null;
 
+        if (booking.DeveExpirar(DateTime.UtcNow, ValidadeBooking))
+        {
+            booking.Cancelar();
+            _uow.Bookings.Update(booking);
+            await _uow.SaveChangesAsync();
+        }
+
         return MapearDto(booking, booking.FlightRoute!, booking.Aircraft!);
     }
 
@@ -235,10 +265,28 @@ public class BookingService : IBookingService
     }
 
     private static BookingDto MapearDto(Booking b, FlightRoute rota, Aircraft aeronave) => new(
-    b.Id, b.Callsign, rota.AeroportoOrigem, rota.AeroportoDestino, rota.NumeroVoo,
-    aeronave.Modelo, aeronave.CodigoIcao, aeronave.Matricula, b.Status.ToString(),
-    b.DataVooUtc, b.SimBriefPerfilId, b.SimBriefOfpId,
-    b.Alternado1, b.Alternado2, b.Alternado3, b.Alternado4,
-    b.PayloadPassageiros, b.PayloadCargaKg
-);
+        b.Id, b.Callsign, rota.AeroportoOrigem, rota.AeroportoDestino, rota.NumeroVoo,
+        aeronave.Modelo, aeronave.CodigoIcao, aeronave.Matricula, b.Status.ToString(),
+        b.DataVooUtc, b.SimBriefPerfilId, b.SimBriefOfpId,
+        b.Alternado1, b.Alternado2, b.Alternado3, b.Alternado4,
+        b.PayloadPassageiros, b.PayloadCargaKg,
+        b.OfpDistanciaMn, b.OfpBlockFuelKg, b.OfpTripFuelKg, b.OfpRotaTexto
+    );
+
+    public async Task<Result<string>> ExcluirAsync(int pilotId, int bookingId)
+    {
+        var booking = await ObterDoTitularAsync(pilotId, bookingId);
+        if (booking is null) return Result<string>.Falha("Booking não encontrado.");
+
+        _uow.Bookings.Remove(booking);
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok("Reserva excluída.");
+    }
+
+        private async Task<string> ObterDestinoDaRotaAsync(int flightRouteId)
+    {
+        var rota = await _uow.FlightRoutes.GetByIdAsync(flightRouteId);
+        return rota?.AeroportoDestino ?? string.Empty;
+    }
 }

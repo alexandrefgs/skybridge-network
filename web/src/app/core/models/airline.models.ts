@@ -11,6 +11,7 @@ export interface Aeronave {
   id: number;
   modelo: string;
   codigoIcao: string;
+  tiposOperacaoSuportados: string[];
 }
 
 export interface AirlineDetalhe extends Airline {

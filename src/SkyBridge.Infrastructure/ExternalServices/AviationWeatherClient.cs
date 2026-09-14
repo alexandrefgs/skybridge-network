@@ -28,8 +28,10 @@ public class AviationWeatherClient : IWeatherClient
         double? qnh = item.TryGetProperty("altim", out var altimEl) && altimEl.ValueKind == JsonValueKind.Number ? altimEl.GetDouble() : null;
         int? ventoDir = item.TryGetProperty("wdir", out var wdirEl) && wdirEl.ValueKind == JsonValueKind.Number ? wdirEl.GetInt32() : null;
         int? ventoVel = item.TryGetProperty("wspd", out var wspdEl) && wspdEl.ValueKind == JsonValueKind.Number ? wspdEl.GetInt32() : null;
+        double? lat = item.TryGetProperty("lat", out var latEl) && latEl.ValueKind == JsonValueKind.Number ? latEl.GetDouble() : null;
+        double? lon = item.TryGetProperty("lon", out var lonEl) && lonEl.ValueKind == JsonValueKind.Number ? lonEl.GetDouble() : null;
 
-        return new MetarDto(icao.ToUpperInvariant(), raw, temp, qnh, ventoDir, ventoVel);
+        return new MetarDto(icao.ToUpperInvariant(), raw, temp, qnh, ventoDir, ventoVel, lat, lon);
     }
 
     public async Task<TafDto?> ObterTafAsync(string icao)

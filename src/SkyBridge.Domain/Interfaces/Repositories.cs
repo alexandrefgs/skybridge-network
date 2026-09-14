@@ -74,6 +74,7 @@ public interface IBookingRepository : IRepository<Booking>
     Task<Booking?> GetComDetalhesAsync(int id);
     Task<IReadOnlyList<Booking>> GetByPilotAsync(int pilotId);
     Task<Booking?> GetEmVooPorPilotoAsync(int pilotId);
+    Task<Booking?> GetPendentePorPilotoAsync(int pilotId);
 }
 
 public interface IUnitOfWork

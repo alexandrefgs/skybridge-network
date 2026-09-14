@@ -2,10 +2,11 @@
 
 # ✈️ SkyBridge Network
 
-**Plataforma de Virtual Airline (VA) multi-companhia**, conectando pilotos de simulador de voo a todas as companhias aéreas do mundo — com rotas e callsigns reais, sistema de pontos por milhas voadas, reputação (rating), patentes por companhia, tours e conquistas.
+**Plataforma de Virtual Airline (VA) multi-companhia**, conectando pilotos de simulador de voo a todas as companhias aéreas do mundo — com rotas e callsigns reais, planos de voo gerados no SimBrief, rastreamento ao vivo no mapa, sistema de pontos por milhas voadas, reputação (rating), patentes por companhia, tours e conquistas.
 
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-13-178600?style=for-the-badge&logo=csharp&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-19-DD0031?style=for-the-badge&logo=angular&logoColor=white)
 ![EF Core](https://img.shields.io/badge/EF_Core-10-68A063?style=for-the-badge&logo=nuget&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-LocalDB-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-8A2BE2?style=for-the-badge)
@@ -21,20 +22,20 @@
 
 ## 📋 Sobre o projeto
 
-O **SkyBridge Network** é uma Virtual Airline (VA) de escopo mundial: em vez de simular uma única companhia aérea, a plataforma reúne **todas as companhias do mundo** — nacionais, regionais, internacionais, executivas e cargueiras — em um único hub. O piloto escolhe em qual companhia quer voar, com rotas e callsigns reais, e evolui dentro dela através de um sistema de patentes.
+O **SkyBridge Network** é uma Virtual Airline (VA) de escopo mundial: em vez de simular uma única companhia aérea, a plataforma reúne **todas as companhias do mundo** — nacionais, regionais, internacionais, executivas e cargueiras — em um único hub. O piloto escolhe em qual companhia quer voar, reserva um voo (Booking), gera o plano de voo real no **SimBrief**, voa no simulador com telemetria sendo capturada automaticamente, e ao pousar tem o PIREP registrado sem precisar preencher nada manualmente.
 
-Feito para compatibilizar com múltiplos simuladores de voo (**MSFS 2020/2024, X-Plane 11/12 e P3D**), extraindo telemetria de voo real via um app cliente (ACARS) que se conecta à API.
+Feito para compatibilizar com múltiplos simuladores de voo (**MSFS 2020/2024, X-Plane 11/12 e P3D**), extraindo telemetria de voo real via um app cliente (ACARS) que se conecta à API via FSUIPC.
 
 ## 🏗️ Arquitetura
 
-O backend segue **Clean Architecture**, com dependências apontando sempre para dentro — o Domain não conhece nem banco de dados, nem HTTP:
+### Backend — Clean Architecture
 
 ```
 SkyBridge.Api            → controllers, Swagger, validação, autenticação
         ↓
 SkyBridge.Application     → casos de uso, DTOs, Result<T>, validadores
         ↓
-SkyBridge.Infrastructure  → EF Core, repositórios, banco de dados
+SkyBridge.Infrastructure  → EF Core, repositórios, banco de dados, clientes externos (SimBrief, clima)
         ↓
 SkyBridge.Domain          → entidades e regras de negócio puras
 ```
@@ -43,7 +44,40 @@ SkyBridge.Domain          → entidades e regras de negócio puras
 - **Result&lt;T&gt;**: erros de negócio esperados (ex: "rating insuficiente para essa rota") não usam exception — viram resposta `400` de forma previsível.
 - **Domain Service isolado**: a regra de pontuação/penalidade de pouso (`LandingEvaluator`) não depende de banco nem de API — testável isoladamente.
 - **FluentValidation**: um filtro global valida qualquer DTO automaticamente antes de chegar na regra de negócio.
-- **Suíte de testes**: 66 testes (unitários com xUnit + NSubstitute, e de integração via `WebApplicationFactory` com SQLite em memória), cobrindo Domain, Application e os fluxos HTTP reais.
+- **Suíte de testes**: testes unitários (xUnit + NSubstitute) e de integração via `WebApplicationFactory` com SQLite em memória, cobrindo Domain, Application e os fluxos HTTP reais.
+
+### Frontend — Angular (standalone components, zoneless)
+
+Aplicação Angular própria, sem framework de UI de terceiros — componentes standalone, `signal`/`computed` para estado, interceptor HTTP com **renovação automática de token** (refresh transparente em qualquer 401), e mapas interativos com Leaflet.
+
+## ✈️ Funcionalidades
+
+### Booking — reserva de voo em 5 etapas
+1. **Aeronave**: escolhe companhia, rota e aeronave da frota (com validação de compatibilidade — a aeronave precisa suportar o tipo de operação da rota)
+2. **Perfil**: define o perfil de aeronave usado no SimBrief
+3. **Alternados**: até 4 aeroportos alternados, com consulta de METAR/TAF em tempo real (API aviationweather.gov)
+4. **Configurar**: gera o plano de voo direto no SimBrief (URL de dispatch pré-preenchida) e confirma o OFP de volta via API pública do SimBrief
+5. **Briefing**: resumo completo do voo (Flight Info, Flight Plan Summary, Load Sheet, Route), mapa com origem/destino/alternado plotados, e os controles de Iniciar Voo / Enviar PIREP
+
+Um piloto só pode ter uma reserva ativa por vez, e cada reserva expira automaticamente em 24h se não for concluída.
+
+### Automação por telemetria (sem preenchimento manual de PIREP)
+O app cliente **ACARS** lê o simulador via FSUIPC e envia posição, altitude, velocidade, taxa de descida e status "no solo" a cada 5 segundos. O backend usa isso para:
+- Detectar decolagem e touchdown automaticamente, capturando a taxa de descida real no pouso
+- Detectar quando a aeronave para no gate (velocidade ~0 por 30s) e liberar o botão "Enviar PIREP"
+- Validar que o piloto está realmente no aeroporto de partida (com telemetria recente) antes de liberar "Iniciar Voo"
+- Calcular as horas de voo reais (decolagem → touchdown) para o PIREP, sem input manual
+
+### Continuidade de localização & Jumpseat
+O piloto tem uma localização atual rastreada pelo sistema (definida no primeiro login, atualizada a cada PIREP concluído). Criar uma reserva a partir de um aeroporto diferente de onde o piloto está exige um **Jumpseat** — reposicionamento gratuito e instantâneo até o aeroporto de origem da rota escolhida.
+
+### Mapa ao vivo
+Dashboard com todos os voos ativos da rede em tempo real (posição, ícone por categoria de aeronave — monomotor, bimotor, executivo, regional, narrowbody, widebody), com origem/destino plotados ao clicar em qualquer avião. O Briefing individual mostra a trilha percorrida pela própria aeronave durante o voo.
+
+### Admin — CRUD completo
+- Cadastro, edição e exclusão de companhias (com bandeira do país via `flag-icons`, dropdown de país searchável), aeronaves e rotas
+- Tabela de rotas por companhia, paginada e com busca
+- Importação em massa via CSV para companhias, aeronaves e rotas
 
 ## ✈️ Regras de negócio principais
 
@@ -59,17 +93,20 @@ SkyBridge.Domain          → entidades e regras de negócio puras
 - **Rating (0 a 5 estrelas)**: reputação do piloto, atualizada a cada voo. Rotas mais complexas exigem um rating mínimo.
 - **Patentes por companhia**: cada companhia define sua própria hierarquia (ex: *FO Nacional → Comandante Nacional → FO Internacional → Comandante Internacional*), com progressão automática ao atingir horas voadas + rating mínimos.
 - **Callsign sequencial**: gerado automaticamente no cadastro (`SKB1001`, `SKB1002`...), reaproveitando números liberados por pilotos excluídos.
+- **Callsign de voo**: livre (o piloto escolhe o número), mas precisa começar com o prefixo ICAO real da companhia.
 - **Tours e Awards**: sequências de voos definidas (podendo cruzar várias companhias), com progresso avançado automaticamente a cada PIREP aprovado. Ao completar todas as etapas, o piloto ganha um bônus de pontos e uma conquista (Award) exibida no seu perfil.
 - **Aprovação de PIREP**: pousos muito fortes ficam pendentes até um admin aprovar ou rejeitar (rejeitar desfaz os pontos/rating aplicados no envio).
 
 ## 🔐 Autenticação
 
 - **JWT** (access token de 30 min) + **refresh token** de 7 dias, com **rotação** (o token antigo é revogado a cada uso — reuso é bloqueado com `401`).
+- **Renovação automática no frontend**: um interceptor Angular detecta qualquer `401`, renova o token em segundo plano e repete a requisição original — o piloto nunca precisa relogar manualmente.
 - Todo PIREP e ação de piloto usa o **`PilotId` extraído do token**, nunca do corpo da requisição — impossível agir em nome de outro piloto.
-- Endpoints de consulta (companhias, rotas, ranking de pilotos, tours) são públicos; ações (enviar PIREP, iniciar carreira/tour, excluir a própria conta) exigem login.
+- Papéis (Admin/Piloto): ações administrativas (cadastro/edição/exclusão de companhias, aeronaves e rotas) exigem `role=Admin`.
 
 ## 🛠️ Tecnologias
 
+**Backend**
 - **.NET 10** / C# 13
 - **Entity Framework Core 10** + SQL Server (LocalDB em desenvolvimento), com Migrations
 - ASP.NET Core Web API, Clean Architecture (4 projetos + suíte de testes)
@@ -77,15 +114,25 @@ SkyBridge.Domain          → entidades e regras de negócio puras
 - **JWT Bearer** + BCrypt (hash de senha) + refresh token com rotação
 - **xUnit + FluentAssertions + NSubstitute** para testes unitários; `WebApplicationFactory` + SQLite em memória para testes de integração
 - Swashbuckle / Swagger UI para documentação e testes da API
-- *(planejado)* App cliente (ACARS) em C# usando **FSUIPCClientDLL**, compatível com FSUIPC7 (MSFS), FSUIPC6 (P3D) e XPUIPC (X-Plane)
+- Integrações externas: **SimBrief** (dispatch + fetch de OFP) e **aviationweather.gov** (METAR/TAF)
+
+**Frontend**
+- **Angular** (standalone components, zoneless change detection)
+- **Leaflet** para mapas interativos (rastreamento ao vivo, rotas, pins de aeroporto)
+- **flag-icons** para bandeiras de país
+- Tailwind CSS (utilitário, tema escuro customizado)
+
+**ACARS (app cliente de telemetria)**
+- Console app em C# usando **FSUIPCClientDLL**, compatível com FSUIPC7 (MSFS 2020/2024). Lê posição, altitude, velocidade, V/S e status "no solo", e envia para a API a cada 5 segundos.
 
 ## 🚀 Como rodar localmente
 
 ### Pré-requisitos
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [Node.js](https://nodejs.org/) + Angular CLI
 - SQL Server LocalDB (ou uma instância própria de SQL Server)
 
-### Passos
+### Backend
 
 ```bash
 git clone https://github.com/alexandrefgs/skybridge-network.git
@@ -95,7 +142,26 @@ dotnet build
 dotnet run --project src/SkyBridge.Api
 ```
 
-A API sobe com o Swagger direto na raiz (`http://localhost:5202`). O banco é criado/atualizado automaticamente via Migrations na primeira execução, já com o seed de **8 companhias reais** (LATAM, GOL, Azul, Delta, Lufthansa, Emirates, FedEx e NetJets), cobrindo os 5 tipos de operação: Nacional, Regional, Internacional, Executivo e Cargueiro.
+A API sobe com o Swagger direto na raiz (`http://localhost:5202`). O banco é criado/atualizado automaticamente via Migrations na primeira execução, já com o seed de companhias reais cobrindo os tipos de operação Nacional, Regional, Internacional, Executivo e Cargueiro.
+
+### Frontend
+
+```bash
+cd web
+npm install
+ng serve
+```
+
+Acesse em `http://localhost:4200`.
+
+### ACARS (telemetria)
+
+```bash
+cd src/SkyBridge.Acars
+dotnet run
+```
+
+Requer o FSUIPC7 instalado e conectado ao simulador, e login com uma conta de piloto já cadastrada no site.
 
 ### Rodando os testes
 
@@ -121,12 +187,19 @@ skybridge-network/
 │   │   └── Common/
 │   ├── SkyBridge.Infrastructure/
 │   │   ├── Data/
-│   │   └── Repositories/
+│   │   ├── Repositories/
+│   │   ├── ExternalServices/    # clientes SimBrief e aviationweather.gov
+│   │   └── Live/                # store em memória dos voos ativos
 │   ├── SkyBridge.Api/
 │   │   ├── Controllers/
 │   │   ├── Filters/
 │   │   └── Middleware/
-│   └── SkyBridge.Acars/          # protótipo do app de telemetria (FSUIPC)
+│   └── SkyBridge.Acars/         # app cliente de telemetria (FSUIPC)
+├── web/                         # frontend Angular
+│   └── src/app/
+│       ├── core/                # services, models, interceptors, data
+│       ├── features/            # telas (booking, admin, companhias, dashboard...)
+│       └── shared/               # componentes compartilhados (header)
 ├── tests/
 │   └── SkyBridge.Tests/
 │       ├── Domain/
@@ -138,18 +211,25 @@ skybridge-network/
 ## 🗺️ Roadmap
 
 - [x] Clean Architecture (Domain/Application/Infrastructure/Api)
-- [x] Autenticação JWT com refresh token e rotação
+- [x] Autenticação JWT com refresh token, rotação e renovação automática no frontend
 - [x] Migrations do EF Core
 - [x] Aprovação/rejeição de PIREPs pendentes
 - [x] Validação de entrada com FluentValidation
 - [x] Módulo de Tours e Awards com progresso automático
-- [ ] Papéis de usuário (Admin/Piloto), restringindo ações administrativas
-- [ ] App cliente ACARS (MSFS via FSUIPC7 → X-Plane via XPUIPC → P3D via FSUIPC6)
+- [x] Papéis de usuário (Admin/Piloto), restringindo ações administrativas
+- [x] Frontend Angular completo
+- [x] Admin: CRUD de companhias/aeronaves/rotas, com importação em massa via CSV
+- [x] Booking: reserva de voo em 5 etapas com integração real ao SimBrief
+- [x] App cliente ACARS (MSFS via FSUIPC7)
+- [x] Automação de detecção de pouso e envio de PIREP via telemetria
+- [x] Mapa ao vivo com rastreamento de todos os voos da rede
+- [x] Continuidade de localização do piloto + Jumpseat
+- [ ] Integração de verdade com VATSIM e IVAO (aguardando confirmação do schema JSON do SimBrief)
+- [ ] X-Plane (XPUIPC) e P3D (FSUIPC6) no ACARS
 - [ ] Upload real de imagem (foto de tour/award), não só URL
 - [ ] Cadastro de piloto inativo automaticamente após 90 dias sem voo, com e-mail disparado para o RH
-- [ ] Import em massa de companhias/rotas reais (dataset OpenFlights), escalando além das 8 companhias iniciais
-- [ ] App Windows com seleção de voo, sem precisar abrir o site
-- [ ] Front-end (Angular)
+- [ ] Import em massa de companhias/rotas reais (dataset OpenFlights), escalando além do seed inicial
+- [ ] Continuidade de localização aplicada também a Tours
 
 ## 📄 Licença
 

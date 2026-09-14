@@ -1,26 +1,5 @@
 <div class="min-h-screen bg-[var(--sb-bg)]">
-  <header class="border-b border-[var(--sb-border)] bg-white/[0.02] backdrop-blur-xl sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-xl">✈️</span>
-        <span class="font-display font-bold text-white">SkyBridge<span class="text-cyan-400">Network</span></span>
-      </div>
-      <nav class="flex items-center gap-4 text-sm">
-        <a routerLink="/dashboard" class="text-slate-400 hover:text-white transition-colors">Dashboard</a>
-        <a routerLink="/reportar-voo" class="text-slate-400 hover:text-white transition-colors">Reportar Voo</a>
-        <a routerLink="/perfil" class="text-cyan-400">Perfil</a>
-        <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
-        @if (auth.ehAdmin()) {
-          <a routerLink="/admin/companhias" class="text-amber-400 hover:text-amber-300 transition-colors">Admin</a>
-        }
-        <button
-          (click)="auth.logout()"
-          class="text-xs text-slate-400 hover:text-white transition-colors border border-[var(--sb-border)] rounded-lg px-3 py-1.5">
-          Sair
-        </button>
-      </nav>
-    </div>
-  </header>
+  <app-header></app-header>
 
   @if (carregando()) {
     <div class="flex items-center justify-center py-32 text-slate-500 text-sm">Carregando perfil...</div>

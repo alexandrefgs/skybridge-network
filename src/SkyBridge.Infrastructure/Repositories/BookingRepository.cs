@@ -29,4 +29,10 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
 
     public async Task<Booking?> GetEmVooPorPilotoAsync(int pilotId) =>
         await DbSet.FirstOrDefaultAsync(b => b.PilotId == pilotId && b.Status == BookingStatus.EmVoo);
+
+    public async Task<Booking?> GetPendentePorPilotoAsync(int pilotId) =>
+        await DbSet.FirstOrDefaultAsync(b =>
+            b.PilotId == pilotId &&
+            b.Status != BookingStatus.Concluido &&
+            b.Status != BookingStatus.Cancelado);
 }

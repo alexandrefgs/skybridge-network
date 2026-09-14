@@ -16,7 +16,7 @@ public class PilotService : IPilotService
         var pilots = await _uow.Pilots.GetAllAsync();
         return pilots
             .OrderByDescending(p => p.PontosTotais)
-            .Select(p => new PilotoResumoDto(p.Id, p.Nome, p.Callsign, p.Rating, p.PontosTotais))
+            .Select(p => new PilotoResumoDto(p.Id, p.Nome, p.Callsign, p.Rating, p.PontosTotais, p.LocalizacaoAtualIcao))
             .ToList();
     }
 
@@ -42,7 +42,7 @@ public class PilotService : IPilotService
                 pa.DataConquista))
             .ToList();
 
-        return new PilotoDetalheDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, carreiras, awards);
+        return new PilotoDetalheDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, pilot.LocalizacaoAtualIcao, carreiras, awards);
     }
 
     public async Task<PilotoResumoDto> CriarAsync(NovoPilotoDto dto)
@@ -59,7 +59,7 @@ public class PilotService : IPilotService
         await _uow.Pilots.AddAsync(pilot);
         await _uow.SaveChangesAsync();
 
-        return new PilotoResumoDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais);
+        return new PilotoResumoDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, pilot.LocalizacaoAtualIcao);
     }
 
     public async Task<Result<string>> IniciarCarreiraAsync(int pilotId, int airlineId)
@@ -102,6 +102,27 @@ public class PilotService : IPilotService
         await _uow.SaveChangesAsync();
 
         return Result<string>.Ok("SimBrief Username salvo.");
+    }
+
+    public async Task<Result<string>> DefinirLocalizacaoAsync(int pilotId, string aeroportoIcao)
+    {
+        var pilot = await _uow.Pilots.GetByIdAsync(pilotId);
+        if (pilot is null)
+            return Result<string>.Falha("Piloto não encontrado.");
+
+        var icao = aeroportoIcao.Trim().ToUpperInvariant();
+        if (icao.Length != 4)
+            return Result<string>.Falha("Informe um código ICAO válido (4 letras).");
+
+        var jaEmVoo = await _uow.Bookings.GetEmVooPorPilotoAsync(pilotId);
+        if (jaEmVoo is not null)
+            return Result<string>.Falha("Não é possível mudar de localização com um voo em andamento.");
+
+        pilot.DefinirLocalizacao(icao);
+        _uow.Pilots.Update(pilot);
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok($"Localização atualizada para {icao}.");
     }
 
     public async Task<Result<string>> ExcluirAsync(int id)
