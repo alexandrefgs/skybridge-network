@@ -13,6 +13,7 @@ public class Pilot
 
     public double Rating { get; set; } = 3.0;
     public long PontosTotais { get; set; } = 0;
+    public bool Ativo { get; set; } = true;
 
     public string? SimBriefUsername { get; set; }
     public string? LocalizacaoAtualIcao { get; set; }
@@ -29,4 +30,9 @@ public class Pilot
     public void DefinirSimBriefUsername(string username) => SimBriefUsername = username;
 
     public void DefinirLocalizacao(string aeroportoIcao) => LocalizacaoAtualIcao = aeroportoIcao.Trim().ToUpperInvariant();
+
+    public void Inativar() => Ativo = false;
+    public void Reativar() => Ativo = true;
+
+    public void PromoverAdmin() => Role = PilotRole.Admin;
 }

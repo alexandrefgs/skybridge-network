@@ -124,8 +124,8 @@ public class Booking
         }
     }
 
-        public bool DeveExpirar(DateTime agoraUtc, TimeSpan validade) =>
-        Status != BookingStatus.Concluido && Status != BookingStatus.Cancelado && (agoraUtc - CriadoEmUtc) > validade;
+    public bool DeveExpirar(DateTime agoraUtc, TimeSpan validade) =>
+    Status != BookingStatus.Concluido && Status != BookingStatus.Cancelado && (agoraUtc - CriadoEmUtc) > validade;
 
     public double? CalcularHorasDeVoo() =>
         MomentoDecolagemUtc.HasValue && MomentoToqueUtc.HasValue
@@ -135,4 +135,5 @@ public class Booking
     public void MarcarConcluido() => Status = BookingStatus.Concluido;
 
     public void Cancelar() => Status = BookingStatus.Cancelado;
+    public ICollection<TelemetriaLog> LogsDeTelemetria { get; set; } = new List<TelemetriaLog>();
 }

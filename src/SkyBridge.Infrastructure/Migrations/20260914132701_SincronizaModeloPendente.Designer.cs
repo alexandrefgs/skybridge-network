@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SkyBridge.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SkyBridge.Infrastructure.Data;
 namespace SkyBridge.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260914132701_SincronizaModeloPendente")]
+    partial class SincronizaModeloPendente
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -255,15 +258,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Origem")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RankId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("RankId");
 
                     b.ToTable("Awards");
                 });
@@ -981,16 +976,6 @@ namespace SkyBridge.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Airline");
-                });
-
-            modelBuilder.Entity("SkyBridge.Domain.Entities.Award", b =>
-                {
-                    b.HasOne("SkyBridge.Domain.Entities.Rank", "Rank")
-                        .WithMany()
-                        .HasForeignKey("RankId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Rank");
                 });
 
             modelBuilder.Entity("SkyBridge.Domain.Entities.Booking", b =>

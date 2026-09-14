@@ -21,4 +21,22 @@ export class PilotService {
       this.http.put(`${environment.apiUrl}/Pilots/${id}/localizacao`, { aeroportoIcao }, { responseType: 'text' })
     );
   }
+
+  inativar(id: number): Promise<string> {
+    return firstValueFrom(
+      this.http.put(`${environment.apiUrl}/Pilots/${id}/inativar`, {}, { responseType: 'text' })
+    );
+  }
+
+  reativar(id: number): Promise<string> {
+    return firstValueFrom(
+      this.http.put(`${environment.apiUrl}/Pilots/${id}/reativar`, {}, { responseType: 'text' })
+    );
+  }
+
+  excluir(id: number): Promise<string> {
+    return firstValueFrom(
+      this.http.delete(`${environment.apiUrl}/Pilots/${id}`, { responseType: 'text' })
+    );
+  }
 }

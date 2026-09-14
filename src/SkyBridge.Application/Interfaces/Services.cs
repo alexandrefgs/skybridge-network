@@ -27,6 +27,9 @@ public interface IPilotService
     Task<Result<string>> ExcluirAsync(int id);
     Task<Result<string>> DefinirSimBriefUsernameAsync(int pilotId, string simBriefUsername);
     Task<Result<string>> DefinirLocalizacaoAsync(int pilotId, string aeroportoIcao);
+    Task<Result<string>> InativarAsync(int pilotId);
+    Task<Result<string>> ReativarAsync(int pilotId);
+    Task<Result<string>> PromoverAdminAsync(int pilotId);
 }
 
 public interface IPirepService
@@ -35,7 +38,7 @@ public interface IPirepService
     Task<IReadOnlyList<PirepPendenteDto>> ListarPendentesAsync();
     Task<Result<string>> AprovarAsync(int pirepId);
     Task<Result<string>> RejeitarAsync(int pirepId, string motivo);
-    Task<IReadOnlyList<UltimoVooDto>> ListarUltimosAsync(int quantidade);
+    Task<IReadOnlyList<UltimoVooDto>> ListarUltimosAsync(int quantidade, int? pilotoId = null);
     Task<PirepDetalheDto?> ObterDetalheAsync(int id);
 }
 
@@ -64,6 +67,8 @@ public interface IAwardService
     Task<AwardDto?> ObterDetalheAsync(int id);
     Task<AwardDto> CriarAsync(NovoAwardDto dto);
     Task<Result<string>> DefinirImagemAsync(int id, string url);
+    Task<Award> ObterOuCriarPatenteAsync(int rankId, string nome);
+    Task<Award> ObterOuCriarStaffAsync();
 }
 
 public interface IVooAtivoService

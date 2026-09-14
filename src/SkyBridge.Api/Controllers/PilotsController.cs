@@ -78,4 +78,28 @@ public class PilotsController : ControllerBase
         var resultado = await _pilotService.ExcluirAsync(id);
         return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
     }
+
+    [HttpPut("{id}/inativar")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Inativar(int id)
+    {
+        var resultado = await _pilotService.InativarAsync(id);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
+
+    [HttpPut("{id}/reativar")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Reativar(int id)
+    {
+        var resultado = await _pilotService.ReativarAsync(id);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
+
+    [HttpPut("{id}/promover-admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> PromoverAdmin(int id)
+    {
+        var resultado = await _pilotService.PromoverAdminAsync(id);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
 }

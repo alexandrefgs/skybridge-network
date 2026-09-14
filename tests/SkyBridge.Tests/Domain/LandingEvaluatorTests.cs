@@ -10,14 +10,18 @@ public class LandingEvaluatorTests
     private readonly ILandingEvaluator _evaluator = new LandingEvaluator();
 
     [Theory]
-    [InlineData(-100, LandingQuality.Suave)]
-    [InlineData(-200, LandingQuality.Suave)]
-    [InlineData(-201, LandingQuality.Moderado)]
-    [InlineData(-600, LandingQuality.Moderado)]
-    [InlineData(-601, LandingQuality.Forte)]
-    [InlineData(-900, LandingQuality.Forte)]
-    [InlineData(-901, LandingQuality.MuitoForte)]
-    [InlineData(-2000, LandingQuality.MuitoForte)]
+    [InlineData(-50, LandingQuality.Raso)]
+    [InlineData(-100, LandingQuality.Raso)]
+    [InlineData(-101, LandingQuality.Perfeito)]
+    [InlineData(-150, LandingQuality.Perfeito)]
+    [InlineData(-151, LandingQuality.Bom)]
+    [InlineData(-200, LandingQuality.Bom)]
+    [InlineData(-201, LandingQuality.Firme)]
+    [InlineData(-300, LandingQuality.Firme)]
+    [InlineData(-301, LandingQuality.EmAnalise)]
+    [InlineData(-500, LandingQuality.EmAnalise)]
+    [InlineData(-501, LandingQuality.Rejeitado)]
+    [InlineData(-2000, LandingQuality.Rejeitado)]
     public void Deve_classificar_qualidade_do_pouso_pela_taxa_de_descida(int fpm, LandingQuality esperado)
     {
         var resultado = _evaluator.Avaliar(fpm);

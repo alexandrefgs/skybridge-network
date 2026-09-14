@@ -2,6 +2,7 @@ using SkyBridge.Application.Common;
 using SkyBridge.Application.DTOs;
 using SkyBridge.Application.Interfaces;
 using SkyBridge.Domain.Entities;
+using SkyBridge.Domain.Enums;
 using SkyBridge.Domain.Interfaces;
 
 namespace SkyBridge.Application.Services;
@@ -39,6 +40,30 @@ public class AwardService : IAwardService
         award.ImagemUrl = url;
         await _uow.SaveChangesAsync();
         return Result<string>.Ok("Imagem do award atualizada.");
+    }
+
+    public async Task<Award> ObterOuCriarPatenteAsync(int rankId, string nome)
+    {
+        var todas = await _uow.Awards.GetAllAsync();
+        var existente = todas.FirstOrDefault(a => a.Origem == AwardOrigem.Patente && a.RankId == rankId);
+        if (existente is not null) return existente;
+
+        var award = new Award { Nome = nome, Origem = AwardOrigem.Patente, RankId = rankId };
+        await _uow.Awards.AddAsync(award);
+        await _uow.SaveChangesAsync();
+        return award;
+    }
+
+    public async Task<Award> ObterOuCriarStaffAsync()
+    {
+        var todas = await _uow.Awards.GetAllAsync();
+        var existente = todas.FirstOrDefault(a => a.Origem == AwardOrigem.Staff);
+        if (existente is not null) return existente;
+
+        var award = new Award { Nome = "Staff", Origem = AwardOrigem.Staff };
+        await _uow.Awards.AddAsync(award);
+        await _uow.SaveChangesAsync();
+        return award;
     }
 
     private static AwardDto MapToDto(Award award) => new(award.Id, award.Nome, award.Descricao, award.ImagemUrl);

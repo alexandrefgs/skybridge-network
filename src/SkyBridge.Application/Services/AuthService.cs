@@ -51,6 +51,9 @@ public class AuthService : IAuthService
         if (pilot is null || !BCrypt.Net.BCrypt.Verify(dto.Senha, pilot.PasswordHash))
             return Result<AuthResponseDto>.Falha("E-mail ou senha inválidos.");
 
+        if (!pilot.Ativo)
+            return Result<AuthResponseDto>.Falha("Sua conta foi desativada. Entre em contato com a administração.");
+
         return await GerarRespostaAutenticacaoAsync(pilot);
     }
 
@@ -61,6 +64,9 @@ public class AuthService : IAuthService
 
         if (tokenSalvo is null || !tokenSalvo.EstaAtivo || tokenSalvo.Pilot is null)
             return Result<AuthResponseDto>.Falha("Refresh token inválido ou expirado.");
+
+        if (!tokenSalvo.Pilot.Ativo)
+            return Result<AuthResponseDto>.Falha("Sua conta foi desativada. Entre em contato com a administração.");
 
         // Rotação: o token usado é revogado e nunca mais pode ser reaproveitado
         tokenSalvo.Revogar();
@@ -95,7 +101,7 @@ public class AuthService : IAuthService
         await _uow.RefreshTokens.AddAsync(refreshToken);
         await _uow.SaveChangesAsync();
 
-                var pilotoDto = new PilotoResumoDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, pilot.LocalizacaoAtualIcao);
+        var pilotoDto = new PilotoResumoDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, pilot.LocalizacaoAtualIcao, pilot.Ativo, pilot.Email);
 
         return Result<AuthResponseDto>.Ok(new AuthResponseDto(accessToken, expiraEm, refreshTokenTexto, pilotoDto));
     }

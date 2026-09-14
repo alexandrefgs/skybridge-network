@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SkyBridge.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SkyBridge.Infrastructure.Data;
 namespace SkyBridge.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260914115351_AddPilotAtivo")]
+    partial class AddPilotAtivo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -255,15 +258,7 @@ namespace SkyBridge.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Origem")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RankId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("RankId");
 
                     b.ToTable("Awards");
                 });
@@ -841,48 +836,6 @@ namespace SkyBridge.Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
-            modelBuilder.Entity("SkyBridge.Domain.Entities.TelemetriaLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("AltitudePes")
-                        .HasColumnType("float");
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("EstaNoSolo")
-                        .HasColumnType("bit");
-
-                    b.Property<double>("Heading")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Longitude")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime>("RegistradoEmUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double>("VelocidadeNos")
-                        .HasColumnType("float");
-
-                    b.Property<double>("VelocidadeVerticalFpm")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId");
-
-                    b.ToTable("TelemetriaLog");
-                });
-
             modelBuilder.Entity("SkyBridge.Domain.Entities.Tour", b =>
                 {
                     b.Property<int>("Id")
@@ -981,16 +934,6 @@ namespace SkyBridge.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Airline");
-                });
-
-            modelBuilder.Entity("SkyBridge.Domain.Entities.Award", b =>
-                {
-                    b.HasOne("SkyBridge.Domain.Entities.Rank", "Rank")
-                        .WithMany()
-                        .HasForeignKey("RankId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Rank");
                 });
 
             modelBuilder.Entity("SkyBridge.Domain.Entities.Booking", b =>
@@ -1126,17 +1069,6 @@ namespace SkyBridge.Infrastructure.Migrations
                     b.Navigation("Pilot");
                 });
 
-            modelBuilder.Entity("SkyBridge.Domain.Entities.TelemetriaLog", b =>
-                {
-                    b.HasOne("SkyBridge.Domain.Entities.Booking", "Booking")
-                        .WithMany("LogsDeTelemetria")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-                });
-
             modelBuilder.Entity("SkyBridge.Domain.Entities.Tour", b =>
                 {
                     b.HasOne("SkyBridge.Domain.Entities.Award", "Award")
@@ -1199,11 +1131,6 @@ namespace SkyBridge.Infrastructure.Migrations
                     b.Navigation("Ranks");
 
                     b.Navigation("Rotas");
-                });
-
-            modelBuilder.Entity("SkyBridge.Domain.Entities.Booking", b =>
-                {
-                    b.Navigation("LogsDeTelemetria");
                 });
 
             modelBuilder.Entity("SkyBridge.Domain.Entities.FlightRoute", b =>

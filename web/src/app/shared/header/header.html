@@ -15,6 +15,7 @@
       <a routerLink="/companhias" class="text-slate-400 hover:text-white transition-colors">Companhias</a>
       @if (auth.ehAdmin()) {
         <a routerLink="/admin/companhias" class="text-amber-400 hover:text-amber-300 transition-colors">Admin</a>
+        <a routerLink="/admin/pilotos" class="text-amber-400 hover:text-amber-300 transition-colors">Pilotos</a>
       }
       <button
         (click)="auth.logout()"

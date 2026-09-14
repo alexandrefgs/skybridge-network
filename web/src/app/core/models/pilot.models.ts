@@ -5,6 +5,8 @@ export interface PilotoResumo {
   rating: number;
   pontosTotais: number;
   localizacaoAtualIcao: string | null;
+  ativo: boolean;
+  email: string;
 }
 
 export interface CarreiraPiloto {
@@ -19,6 +21,7 @@ export interface AwardConquistado {
   descricao: string | null;
   imagemUrl: string | null;
   dataConquista: string;
+  origem: string;
 }
 
 export interface PilotoDetalhe {

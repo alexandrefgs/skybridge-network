@@ -20,10 +20,12 @@ public class LandingEvaluator : ILandingEvaluator
 
         return fpm switch
         {
-            <= 200 => new ResultadoAvaliacaoPouso(LandingQuality.Suave, 1.05, +0.02),
-            <= 600 => new ResultadoAvaliacaoPouso(LandingQuality.Moderado, 0.90, 0.0),
-            <= 900 => new ResultadoAvaliacaoPouso(LandingQuality.Forte, 0.70, -0.10),
-            _ => new ResultadoAvaliacaoPouso(LandingQuality.MuitoForte, 0.0, -0.30)
+            <= 100 => new ResultadoAvaliacaoPouso(LandingQuality.Raso, 1.0, -0.05),
+            <= 150 => new ResultadoAvaliacaoPouso(LandingQuality.Perfeito, 1.05, +0.02),
+            <= 200 => new ResultadoAvaliacaoPouso(LandingQuality.Bom, 0.95, -0.03),
+            <= 300 => new ResultadoAvaliacaoPouso(LandingQuality.Firme, 0.80, -0.10),
+            <= 500 => new ResultadoAvaliacaoPouso(LandingQuality.EmAnalise, 0.0, 0.0),
+            _ => new ResultadoAvaliacaoPouso(LandingQuality.Rejeitado, 0.0, -0.30)
         };
     }
 }

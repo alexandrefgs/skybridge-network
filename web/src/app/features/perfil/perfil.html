@@ -25,6 +25,10 @@
                 }
                 <span class="text-xs text-slate-500 ml-1">{{ p.rating.toFixed(2) }}</span>
               </div>
+              @if (p.localizacaoAtualIcao) {
+                <span class="text-slate-600">·</span>
+                <span class="text-xs text-slate-400 font-mono">{{ p.localizacaoAtualIcao }}</span>
+              }
             </div>
           </div>
 
@@ -35,7 +39,29 @@
         </div>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-8">
+      <div class="grid lg:grid-cols-3 gap-8 mb-8">
+        <section>
+          <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Informações</h2>
+          <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] p-4 space-y-3">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Localização atual</span>
+              <span class="text-white font-mono">{{ p.localizacaoAtualIcao || '—' }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Rating</span>
+              <span class="text-white">{{ p.rating.toFixed(2) }} ★</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Companhias ativas</span>
+              <span class="text-white">{{ p.carreiras.length }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Conquistas</span>
+              <span class="text-white">{{ p.awards.length }}</span>
+            </div>
+          </div>
+        </section>
+
         <section>
           <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Carreiras</h2>
           @if (p.carreiras.length === 0) {
@@ -60,24 +86,106 @@
           }
         </section>
 
-        <section>
-          <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Conquistas</h2>
-          @if (p.awards.length === 0) {
-            <div class="rounded-xl border border-dashed border-[var(--sb-border)] p-6 text-center text-sm text-slate-500">
-              Nenhuma conquista ainda. Complete um Tour para ganhar sua primeira!
-            </div>
-          } @else {
-            <div class="grid grid-cols-2 gap-3">
-              @for (award of p.awards; track award.nome) {
-                <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] p-4 text-center">
-                  <div class="text-2xl mb-2">🏆</div>
-                  <div class="text-xs font-medium text-white">{{ award.nome }}</div>
+        <section class="space-y-6">
+          @if (awardsPorOrigem('Staff'); as staffAwards) {
+            @if (staffAwards.length > 0) {
+              <div>
+                <h2 class="font-display text-sm font-semibold text-amber-400 uppercase tracking-wide mb-3">Staff</h2>
+                <div class="grid grid-cols-2 gap-3">
+                  @for (award of staffAwards; track award.nome) {
+                    <div class="rounded-xl border border-amber-400/30 bg-amber-400/5 p-4 text-center">
+                      <div class="text-2xl mb-2">🛡️</div>
+                      <div class="text-xs font-medium text-white">{{ award.nome }}</div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <div>
+            <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Patentes</h2>
+            @if (awardsPorOrigem('Patente'); as patenteAwards) {
+              @if (patenteAwards.length === 0) {
+                <div class="rounded-xl border border-dashed border-[var(--sb-border)] p-6 text-center text-sm text-slate-500">
+                  Nenhuma patente conquistada ainda.
+                </div>
+              } @else {
+                <div class="grid grid-cols-2 gap-3">
+                  @for (award of patenteAwards; track award.nome) {
+                    <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] p-4 text-center">
+                      <div class="text-2xl mb-2">🎖️</div>
+                      <div class="text-xs font-medium text-white">{{ award.nome }}</div>
+                    </div>
+                  }
                 </div>
               }
-            </div>
-          }
+            }
+          </div>
+
+          <div>
+            <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Conquistas de Tour</h2>
+            @if (awardsPorOrigem('Tour'); as tourAwards) {
+              @if (tourAwards.length === 0) {
+                <div class="rounded-xl border border-dashed border-[var(--sb-border)] p-6 text-center text-sm text-slate-500">
+                  Nenhuma conquista ainda. Complete um Tour para ganhar sua primeira!
+                </div>
+              } @else {
+                <div class="grid grid-cols-2 gap-3">
+                  @for (award of tourAwards; track award.nome) {
+                    <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] p-4 text-center">
+                      <div class="text-2xl mb-2">🏆</div>
+                      <div class="text-xs font-medium text-white">{{ award.nome }}</div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
         </section>
       </div>
+
+      <section>
+        <h2 class="font-display text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Histórico de voos</h2>
+        @if (historico().length === 0) {
+          <div class="rounded-xl border border-dashed border-[var(--sb-border)] p-6 text-center text-sm text-slate-500">
+            Nenhum voo registrado ainda.
+          </div>
+        } @else {
+          <div class="rounded-xl border border-[var(--sb-border)] bg-white/[0.02] overflow-hidden">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-[var(--sb-border)] text-left text-xs text-slate-500 uppercase tracking-wide">
+                  <th class="px-4 py-3 font-medium">Voo</th>
+                  <th class="px-4 py-3 font-medium">Companhia</th>
+                  <th class="px-4 py-3 font-medium">Rota</th>
+                  <th class="px-4 py-3 font-medium">Aeronave</th>
+                  <th class="px-4 py-3 font-medium">Horas</th>
+                  <th class="px-4 py-3 font-medium">Data</th>
+                  <th class="px-4 py-3 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (voo of historico(); track voo.pirepId) {
+                  <tr class="border-b border-[var(--sb-border)] last:border-0">
+                    <td class="px-4 py-3 font-mono text-cyan-400">{{ voo.vooCallsign }}</td>
+                    <td class="px-4 py-3 text-slate-300">{{ voo.companhiaNome }}</td>
+                    <td class="px-4 py-3 text-slate-300 font-mono text-xs">{{ voo.aeroportoOrigem }} → {{ voo.aeroportoDestino }}</td>
+                    <td class="px-4 py-3 text-slate-400">{{ voo.aeronaveModelo }}</td>
+                    <td class="px-4 py-3 font-mono text-white">{{ voo.horasDeVoo.toFixed(1) }}h</td>
+                    <td class="px-4 py-3 text-slate-400">{{ voo.dataVoo | date: 'dd/MM/yyyy' }}</td>
+                    <td class="px-4 py-3">
+                      <span class="text-xs px-2 py-1 rounded-full border" [class]="corStatus(voo.status)">
+                        {{ rotuloStatus(voo.status) }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
     </div>
   }
 </div>

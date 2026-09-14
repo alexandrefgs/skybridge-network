@@ -12,11 +12,13 @@ public class PirepService : IPirepService
 {
     private readonly IUnitOfWork _uow;
     private readonly ILandingEvaluator _landingEvaluator;
+    private readonly IAwardService _awardService;
 
-    public PirepService(IUnitOfWork uow, ILandingEvaluator landingEvaluator)
+    public PirepService(IUnitOfWork uow, ILandingEvaluator landingEvaluator, IAwardService awardService)
     {
         _uow = uow;
         _landingEvaluator = landingEvaluator;
+        _awardService = awardService;
     }
 
     public async Task<Result<PirepResultDto>> EnviarAsync(int pilotId, NovoPirepDto dto)
@@ -52,12 +54,21 @@ public class PirepService : IPirepService
             {
                 carreira.RankAtualId = proximoRank.Id;
                 novaPatente = proximoRank.Nome;
+
+                var airline = await _uow.Airlines.GetByIdAsync(rota.AirlineId);
+                var nomeAward = airline is not null ? $"{proximoRank.Nome} — {airline.Nome}" : proximoRank.Nome;
+                var awardPatente = await _awardService.ObterOuCriarPatenteAsync(proximoRank.Id, nomeAward);
+
+                if (!await _uow.PilotAwards.PilotJaTemAwardAsync(pilotId, awardPatente.Id))
+                    await _uow.PilotAwards.AddAsync(new PilotAward { PilotId = pilotId, AwardId = awardPatente.Id });
             }
         }
 
-        var status = avaliacao.Qualidade == LandingQuality.MuitoForte
+        var status = avaliacao.Qualidade == LandingQuality.EmAnalise
             ? PirepStatus.PendenteAprovacao
-            : PirepStatus.Aprovado;
+            : avaliacao.Qualidade == LandingQuality.Rejeitado
+                ? PirepStatus.Rejeitado
+                : PirepStatus.Aprovado;
 
         Enum.TryParse<RedeOnline>(dto.Rede, out var rede);
 
@@ -147,9 +158,9 @@ public class PirepService : IPirepService
         return Result<string>.Ok("PIREP rejeitado.");
     }
 
-    public async Task<IReadOnlyList<UltimoVooDto>> ListarUltimosAsync(int quantidade)
+    public async Task<IReadOnlyList<UltimoVooDto>> ListarUltimosAsync(int quantidade, int? pilotoId = null)
     {
-        var pireps = await _uow.Pireps.GetUltimosAsync(quantidade);
+        var pireps = await _uow.Pireps.GetUltimosAsync(quantidade, pilotoId);
         return pireps.Select(MapParaUltimoVoo).ToList();
     }
 
@@ -186,7 +197,10 @@ public class PirepService : IPirepService
         p.FlightRoute?.AeroportoDestino ?? string.Empty,
         p.HorasDeVoo,
         p.Aircraft?.Modelo ?? string.Empty,
-        p.Rede.ToString());
+        p.Rede.ToString(),
+        p.Status.ToString(),
+        p.DataVoo,
+        p.FlightRoute?.Airline?.Nome ?? string.Empty);
 
     private async Task AvancarToursAsync(int pilotId, int flightRouteId)
     {

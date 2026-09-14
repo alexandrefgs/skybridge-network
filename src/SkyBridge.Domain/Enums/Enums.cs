@@ -11,10 +11,12 @@ public enum OperationType
 
 public enum LandingQuality
 {
-    Suave = 1,
-    Moderado = 2,
-    Forte = 3,
-    MuitoForte = 4
+    Raso = 1,
+    Perfeito = 2,
+    Bom = 3,
+    Firme = 4,
+    EmAnalise = 5,
+    Rejeitado = 6
 }
 
 public enum PirepStatus
@@ -35,4 +37,11 @@ public enum RedeOnline
     Nenhuma = 1,
     IVAO = 2,
     VATSIM = 3
+}
+
+public enum AwardOrigem
+{
+    Tour = 1,
+    Patente = 2,
+    Staff = 3
 }

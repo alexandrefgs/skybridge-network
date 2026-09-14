@@ -28,7 +28,10 @@ public record UltimoVooDto(
     string AeroportoDestino,
     double HorasDeVoo,
     string AeronaveModelo,
-    string Rede);
+    string Rede,
+    string Status,
+    DateTime DataVoo,
+    string CompanhiaNome);
 
 public record PirepDetalheDto(
     int Id,

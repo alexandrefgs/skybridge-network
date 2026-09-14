@@ -9,14 +9,20 @@ namespace SkyBridge.Application.Services;
 public class PilotService : IPilotService
 {
     private readonly IUnitOfWork _uow;
-    public PilotService(IUnitOfWork uow) => _uow = uow;
+    private readonly IAwardService _awardService;
+
+    public PilotService(IUnitOfWork uow, IAwardService awardService)
+    {
+        _uow = uow;
+        _awardService = awardService;
+    }
 
     public async Task<IReadOnlyList<PilotoResumoDto>> ListarAsync()
     {
         var pilots = await _uow.Pilots.GetAllAsync();
         return pilots
             .OrderByDescending(p => p.PontosTotais)
-            .Select(p => new PilotoResumoDto(p.Id, p.Nome, p.Callsign, p.Rating, p.PontosTotais, p.LocalizacaoAtualIcao))
+            .Select(p => new PilotoResumoDto(p.Id, p.Nome, p.Callsign, p.Rating, p.PontosTotais, p.LocalizacaoAtualIcao, p.Ativo, p.Email))
             .ToList();
     }
 
@@ -39,7 +45,8 @@ public class PilotService : IPilotService
                 pa.Award?.Nome ?? string.Empty,
                 pa.Award?.Descricao,
                 pa.Award?.ImagemUrl,
-                pa.DataConquista))
+                pa.DataConquista,
+                pa.Award?.Origem.ToString() ?? "Tour"))
             .ToList();
 
         return new PilotoDetalheDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, pilot.LocalizacaoAtualIcao, carreiras, awards);
@@ -59,7 +66,7 @@ public class PilotService : IPilotService
         await _uow.Pilots.AddAsync(pilot);
         await _uow.SaveChangesAsync();
 
-        return new PilotoResumoDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, pilot.LocalizacaoAtualIcao);
+        return new PilotoResumoDto(pilot.Id, pilot.Nome, pilot.Callsign, pilot.Rating, pilot.PontosTotais, pilot.LocalizacaoAtualIcao, pilot.Ativo, pilot.Email);
     }
 
     public async Task<Result<string>> IniciarCarreiraAsync(int pilotId, int airlineId)
@@ -123,6 +130,56 @@ public class PilotService : IPilotService
         await _uow.SaveChangesAsync();
 
         return Result<string>.Ok($"Localização atualizada para {icao}.");
+    }
+
+    public async Task<Result<string>> InativarAsync(int pilotId)
+    {
+        var pilot = await _uow.Pilots.GetByIdAsync(pilotId);
+        if (pilot is null)
+            return Result<string>.Falha("Piloto não encontrado.");
+
+        if (pilot.Role == Domain.Enums.PilotRole.Admin)
+            return Result<string>.Falha("Não é possível inativar uma conta de administrador.");
+
+        pilot.Inativar();
+        _uow.Pilots.Update(pilot);
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok($"Piloto {pilot.Callsign} inativado.");
+    }
+
+    public async Task<Result<string>> ReativarAsync(int pilotId)
+    {
+        var pilot = await _uow.Pilots.GetByIdAsync(pilotId);
+        if (pilot is null)
+            return Result<string>.Falha("Piloto não encontrado.");
+
+        pilot.Reativar();
+        _uow.Pilots.Update(pilot);
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok($"Piloto {pilot.Callsign} reativado.");
+    }
+
+    public async Task<Result<string>> PromoverAdminAsync(int pilotId)
+    {
+        var pilot = await _uow.Pilots.GetByIdAsync(pilotId);
+        if (pilot is null)
+            return Result<string>.Falha("Piloto não encontrado.");
+
+        if (pilot.Role == Domain.Enums.PilotRole.Admin)
+            return Result<string>.Falha("Esse piloto já é Admin.");
+
+        pilot.PromoverAdmin();
+        _uow.Pilots.Update(pilot);
+
+        var awardStaff = await _awardService.ObterOuCriarStaffAsync();
+        if (!await _uow.PilotAwards.PilotJaTemAwardAsync(pilotId, awardStaff.Id))
+            await _uow.PilotAwards.AddAsync(new PilotAward { PilotId = pilotId, AwardId = awardStaff.Id });
+
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok($"Piloto {pilot.Callsign} promovido a Admin.");
     }
 
     public async Task<Result<string>> ExcluirAsync(int id)

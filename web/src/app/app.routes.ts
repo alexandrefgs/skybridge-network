@@ -10,6 +10,7 @@ export const routes: Routes = [
   { path: 'booking/:id/perfil', loadComponent: () => import('./features/booking/perfil/perfil').then(m => m.BookingPerfil) },
   { path: 'booking/:id/alternados', loadComponent: () => import('./features/booking/alternados/alternados').then(m => m.BookingAlternados) },
   { path: 'admin/companhias', loadComponent: () => import('./features/admin/companhias/companhias').then(m => m.AdminCompanhias) },
+  { path: 'admin/pilotos', loadComponent: () => import('./features/admin/pilotos/pilotos').then(m => m.AdminPilotos) },
   { path: 'booking/:id/configurar', loadComponent: () => import('./features/booking/configurar/configurar').then(m => m.BookingConfigurar) },
   { path: 'booking/:id/briefing', loadComponent: () => import('./features/booking/briefing/briefing').then(m => m.BookingBriefing) },
   { path: 'booking', loadComponent: () => import('./features/booking/lista/lista').then(m => m.BookingLista) },

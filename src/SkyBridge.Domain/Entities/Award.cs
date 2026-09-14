@@ -1,3 +1,5 @@
+using SkyBridge.Domain.Enums;
+
 namespace SkyBridge.Domain.Entities;
 
 public class Award
@@ -6,6 +8,9 @@ public class Award
     public string Nome { get; set; } = string.Empty;
     public string? Descricao { get; set; }
     public string? ImagemUrl { get; set; }
+    public AwardOrigem Origem { get; set; } = AwardOrigem.Tour;
+    public int? RankId { get; set; }
+    public Rank? Rank { get; set; }
 }
 
 public class PilotAward

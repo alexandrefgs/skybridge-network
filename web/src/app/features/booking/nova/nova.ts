@@ -6,6 +6,7 @@ import { Header } from '../../../shared/header/header';
 import { AuthService } from '../../../core/services/auth.service';
 import { AirlineService } from '../../../core/services/airline.service';
 import { BookingService } from '../../../core/services/booking.service';
+import { PilotService } from '../../../core/services/pilot.service';
 import { Airline, AirlineDetalhe, FlightRoute } from '../../../core/models/airline.models';
 
 @Component({
@@ -19,6 +20,9 @@ export class BookingNova implements OnInit {
   carregando = signal(true);
   salvando = signal(false);
   erro = signal<string | null>(null);
+
+  jumpseatIcaoNecessario = signal<string | null>(null);
+  fazendoJumpseat = signal(false);
 
   airlineIdSelecionada: number | null = null;
   rotaIdSelecionada: number | null = null;
@@ -40,6 +44,7 @@ export class BookingNova implements OnInit {
     private auth: AuthService,
     private airlineService: AirlineService,
     private bookingService: BookingService,
+    private pilotService: PilotService,
     private router: Router
   ) {}
 
@@ -76,6 +81,8 @@ export class BookingNova implements OnInit {
   async aoSelecionarCompanhia(): Promise<void> {
     this.rotaIdSelecionada = null;
     this.aircraftIdSelecionado = null;
+    this.jumpseatIcaoNecessario.set(null);
+    this.erro.set(null);
     if (!this.airlineIdSelecionada) {
       this.rotasDaCompanhia.set([]);
       return;
@@ -91,6 +98,7 @@ export class BookingNova implements OnInit {
     }
 
     this.erro.set(null);
+    this.jumpseatIcaoNecessario.set(null);
     this.salvando.set(true);
 
     const agora = new Date();
@@ -114,9 +122,32 @@ export class BookingNova implements OnInit {
       });
       this.router.navigateByUrl(`/booking/${booking.id}/perfil`);
     } catch (erro: any) {
-      this.erro.set(erro?.error ?? 'Não foi possível criar a reserva.');
+      const mensagem: string = erro?.error ?? '';
+      if (mensagem.startsWith('JUMPSEAT_NECESSARIO:')) {
+        this.jumpseatIcaoNecessario.set(mensagem.split(':')[1]);
+      } else {
+        this.erro.set(mensagem || 'Não foi possível criar a reserva.');
+      }
     } finally {
       this.salvando.set(false);
+    }
+  }
+
+  async fazerJumpseat(): Promise<void> {
+    const icao = this.jumpseatIcaoNecessario();
+    const piloto = this.auth.piloto();
+    if (!icao || !piloto) return;
+
+    this.fazendoJumpseat.set(true);
+    try {
+      await this.pilotService.definirLocalizacao(piloto.id, icao);
+      this.auth.atualizarLocalizacaoLocal(icao);
+      this.jumpseatIcaoNecessario.set(null);
+      await this.criar();
+    } catch (erro: any) {
+      this.erro.set(erro?.error ?? 'Não foi possível fazer o Jumpseat.');
+    } finally {
+      this.fazendoJumpseat.set(false);
     }
   }
 }
