@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NSubstitute;
 using SkyBridge.Application.DTOs;
+using SkyBridge.Application.Interfaces;
 using SkyBridge.Application.Services;
 using SkyBridge.Domain.Entities;
 using SkyBridge.Domain.Enums;
@@ -24,8 +25,14 @@ public class PirepServiceTests
         _uow.PilotCareers.Returns(Substitute.For<IPilotCareerRepository>());
         _uow.Ranks.Returns(Substitute.For<IRankRepository>());
         _uow.Pireps.Returns(Substitute.For<IPirepRepository>());
+        _uow.Airlines.Returns(Substitute.For<IAirlineRepository>());
+        _uow.PilotAwards.Returns(Substitute.For<IPilotAwardRepository>());
 
-        _service = new PirepService(_uow, new LandingEvaluator());
+        var awardService = Substitute.For<IAwardService>();
+        awardService.ObterOuCriarPatenteAsync(Arg.Any<int>(), Arg.Any<string>())
+            .Returns(callInfo => Task.FromResult(new Award { Id = 1, Nome = callInfo.ArgAt<string>(1) }));
+
+        _service = new PirepService(_uow, new LandingEvaluator(), awardService);
     }
 
     [Fact]

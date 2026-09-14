@@ -60,6 +60,10 @@ export class BookingService {
     return firstValueFrom(this.http.post(`${environment.apiUrl}/Bookings/${id}/enviar-pirep`, {}));
   }
 
+  cancelarVoo(id: number): Promise<string> {
+    return firstValueFrom(this.http.post(`${environment.apiUrl}/Bookings/${id}/cancelar-voo`, {}, { responseType: 'text' }));
+  }
+
   excluir(id: number): Promise<string> {
     return firstValueFrom(this.http.delete(`${environment.apiUrl}/Bookings/${id}`, { responseType: 'text' }));
   }

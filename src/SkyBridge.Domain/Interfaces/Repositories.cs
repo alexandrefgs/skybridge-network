@@ -77,6 +77,11 @@ public interface IBookingRepository : IRepository<Booking>
     Task<Booking?> GetPendentePorPilotoAsync(int pilotId);
 }
 
+public interface ITelemetriaLogRepository : IRepository<TelemetriaLog>
+{
+    Task<IReadOnlyList<TelemetriaLog>> GetByBookingAsync(int bookingId);
+}
+
 public interface IUnitOfWork
 {
     IAirlineRepository Airlines { get; }
@@ -92,6 +97,7 @@ public interface IUnitOfWork
     IAwardRepository Awards { get; }
     IPilotAwardRepository PilotAwards { get; }
     IBookingRepository Bookings { get; }
+    ITelemetriaLogRepository TelemetriaLogs { get; }
 
     Task<int> SaveChangesAsync();
 }

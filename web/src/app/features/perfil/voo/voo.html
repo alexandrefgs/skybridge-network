@@ -1,0 +1,111 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <app-header></app-header>
+
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <button type="button" (click)="voltar()" class="text-xs text-slate-400 hover:text-white mb-4 transition-colors">
+      ← Voltar para o Perfil
+    </button>
+
+    @if (erro()) {
+      <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300 mb-4">
+        {{ erro() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else if (pirep(); as p) {
+      <div class="space-y-6">
+
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.03] p-6">
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div>
+              <h1 class="font-display text-2xl font-bold text-white">Voo {{ p.vooCallsign }}</h1>
+              <p class="text-sm text-slate-400 mt-1">PIREP #{{ p.id }}</p>
+            </div>
+            <span class="text-xs font-mono px-3 py-1.5 rounded-lg border"
+                  [class.bg-emerald-500/10]="p.status === 'Aprovado'"
+                  [class.border-emerald-500/30]="p.status === 'Aprovado'"
+                  [class.text-emerald-300]="p.status === 'Aprovado'"
+                  [class.bg-amber-500/10]="p.status === 'PendenteAprovacao'"
+                  [class.border-amber-500/30]="p.status === 'PendenteAprovacao'"
+                  [class.text-amber-300]="p.status === 'PendenteAprovacao'"
+                  [class.bg-red-500/10]="p.status === 'Rejeitado'"
+                  [class.border-red-500/30]="p.status === 'Rejeitado'"
+                  [class.text-red-300]="p.status === 'Rejeitado'">
+              {{ p.status }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div>
+              <div class="text-xs text-slate-500">Rota</div>
+              <div class="text-white font-mono">{{ p.aeroportoOrigem }} → {{ p.aeroportoDestino }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Aeronave</div>
+              <div class="text-white">{{ p.aeronaveModelo }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Tempo de voo</div>
+              <div class="text-white">{{ p.horasDeVoo.toFixed(1) }}h</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Touchdown</div>
+              <div class="text-white font-mono">{{ p.taxaDescidaTouchdownFpm }} fpm</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Qualidade do pouso</div>
+              <div class="text-white">{{ p.qualidadePouso }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Pontos ganhos</div>
+              <div class="text-white">{{ p.pontosGanhos }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Rede</div>
+              <div class="text-white">{{ p.rede }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Data</div>
+              <div class="text-white">{{ p.dataVoo | date: 'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+          </div>
+        </div>
+
+        @if (p.status === 'Rejeitado' && p.observacoes) {
+          <div class="rounded-2xl border border-red-500/30 bg-red-500/5 p-6">
+            <h2 class="font-display text-sm font-semibold text-red-300 uppercase tracking-wide mb-2">Motivo da Rejeição</h2>
+            <p class="text-sm text-red-200">{{ p.observacoes }}</p>
+          </div>
+        }
+
+        @if (logs().length > 0) {
+          <div id="mapa-perfil-voo" class="mapa-escuro rounded-2xl border border-[var(--sb-border)] overflow-hidden"
+            style="height: 360px; position: relative; z-index: 0;"></div>
+        } @else {
+          <div class="rounded-2xl border border-dashed border-[var(--sb-border)] p-6 text-center text-sm text-slate-500">
+            Nenhum log de telemetria encontrado para este voo.
+          </div>
+        }
+
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+          <h2 class="font-display text-lg font-semibold text-white mb-4">Log Information</h2>
+          @if (eventos().length === 0) {
+            <p class="text-sm text-slate-500">Nenhum evento detectado.</p>
+          } @else {
+            <div class="bg-black/30 rounded-lg border border-[var(--sb-border)] p-4 max-h-96 overflow-y-auto">
+              <div class="space-y-1 font-mono text-xs">
+                @for (evento of eventos(); track $index) {
+                  <div class="text-slate-300">
+                    <span class="text-slate-500">{{ evento.timestamp }}</span> - {{ evento.texto }}
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

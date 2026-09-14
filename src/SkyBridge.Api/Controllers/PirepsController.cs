@@ -62,4 +62,14 @@ public class PirepsController : ControllerBase
         var resultado = await _pirepService.RejeitarAsync(id, dto.Motivo);
         return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
     }
+
+    [HttpGet("{id}/telemetria")]
+    [Authorize]
+    public async Task<IActionResult> ObterTelemetria(int id)
+    {
+        var solicitanteId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var ehAdmin = User.IsInRole("Admin");
+        var logs = await _pirepService.ObterTelemetriaAsync(id, solicitanteId, ehAdmin);
+        return logs is null ? NotFound() : Ok(logs);
+    }
 }

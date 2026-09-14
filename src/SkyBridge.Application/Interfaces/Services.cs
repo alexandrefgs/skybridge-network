@@ -40,6 +40,7 @@ public interface IPirepService
     Task<Result<string>> RejeitarAsync(int pirepId, string motivo);
     Task<IReadOnlyList<UltimoVooDto>> ListarUltimosAsync(int quantidade, int? pilotoId = null);
     Task<PirepDetalheDto?> ObterDetalheAsync(int id);
+    Task<IReadOnlyList<TelemetriaLogDto>?> ObterTelemetriaAsync(int pirepId, int solicitanteId, bool ehAdmin);
 }
 
 public interface IAuthService

@@ -99,4 +99,11 @@ public class BookingsController : ControllerBase
         var resultado = await _bookingService.ExcluirAsync(PilotIdLogado, id);
         return resultado.Sucesso ? Ok(resultado.Valor) : NotFound(resultado.Erro);
     }
+
+        [HttpPost("{id}/cancelar-voo")]
+    public async Task<IActionResult> CancelarVoo(int id)
+    {
+        var resultado = await _bookingService.CancelarVooAsync(PilotIdLogado, id);
+        return resultado.Sucesso ? Ok(resultado.Valor) : BadRequest(resultado.Erro);
+    }
 }

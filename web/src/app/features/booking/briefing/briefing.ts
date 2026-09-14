@@ -30,6 +30,9 @@ export class BookingBriefing implements OnInit, OnDestroy {
   excluindo = signal(false);
   modalExclusaoAberto = signal(false);
 
+  cancelando = signal(false);
+  modalCancelamentoAberto = signal(false);
+
   podeIniciarVoo = signal(false);
   motivoBloqueio = signal<string | null>(null);
 
@@ -374,6 +377,34 @@ export class BookingBriefing implements OnInit, OnDestroy {
     } catch {
       this.erro.set('Não foi possível excluir a reserva.');
       this.excluindo.set(false);
+    }
+  }
+
+  pedirConfirmacaoCancelamento(): void {
+    this.modalCancelamentoAberto.set(true);
+  }
+
+  fecharModalCancelamento(): void {
+    this.modalCancelamentoAberto.set(false);
+  }
+
+  async confirmarCancelamento(): Promise<void> {
+    this.modalCancelamentoAberto.set(false);
+    this.erro.set(null);
+    this.cancelando.set(true);
+    try {
+      await this.bookingService.cancelarVoo(this.bookingId);
+      const booking = await this.bookingService.obterDetalhe(this.bookingId);
+      this.booking.set(booking);
+      this.pararPolling();
+      if (this.intervaloMapa !== null) {
+        clearInterval(this.intervaloMapa);
+        this.intervaloMapa = null;
+      }
+    } catch (erro: any) {
+      this.erro.set(erro?.error ?? 'Não foi possível cancelar o voo.');
+    } finally {
+      this.cancelando.set(false);
     }
   }
 

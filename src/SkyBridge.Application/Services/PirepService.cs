@@ -83,7 +83,8 @@ public class PirepService : IPirepService
             Rede = rede,
             PontosGanhos = pontosGanhos,
             ImpactoNoRating = avaliacao.ImpactoNoRating,
-            Status = status
+            Status = status,
+            BookingId = dto.BookingId
         };
 
         await _uow.Pireps.AddAsync(pirep);
@@ -112,7 +113,11 @@ public class PirepService : IPirepService
                 p.Id,
                 p.Pilot?.Callsign ?? string.Empty,
                 p.Pilot?.Nome ?? string.Empty,
-                p.FlightRoute is not null ? $"{p.FlightRoute.AeroportoOrigem} → {p.FlightRoute.AeroportoDestino}" : string.Empty,
+                p.FlightRoute is not null ? $"{p.FlightRoute.Airline?.CallsignPadrao}{p.FlightRoute.NumeroVoo}" : string.Empty,
+                p.FlightRoute?.AeroportoOrigem ?? string.Empty,
+                p.FlightRoute?.AeroportoDestino ?? string.Empty,
+                p.Aircraft?.Modelo ?? string.Empty,
+                p.FlightRoute?.DistanciaMilhas ?? 0,
                 p.TaxaDescidaTouchdownFpm,
                 p.DataVoo))
             .ToList();
@@ -170,22 +175,23 @@ public class PirepService : IPirepService
         if (pirep is null) return null;
 
         return new PirepDetalheDto(
-            pirep.Id,
-            pirep.Pilot?.Callsign ?? string.Empty,
-            pirep.Pilot?.Nome ?? string.Empty,
-            pirep.FlightRoute is not null ? $"{pirep.FlightRoute.Airline?.CallsignPadrao}{pirep.FlightRoute.NumeroVoo}" : string.Empty,
-            pirep.FlightRoute?.AeroportoOrigem ?? string.Empty,
-            pirep.FlightRoute?.AeroportoDestino ?? string.Empty,
-            pirep.Aircraft?.Modelo ?? string.Empty,
-            pirep.HorasDeVoo,
-            pirep.TaxaDescidaTouchdownFpm,
-            pirep.QualidadePouso.ToString(),
-            pirep.PontosGanhos,
-            pirep.ImpactoNoRating,
-            pirep.Status.ToString(),
-            pirep.Rede.ToString(),
-            pirep.DataVoo,
-            pirep.Observacoes);
+        pirep.Id,
+        pirep.Pilot?.Callsign ?? string.Empty,
+        pirep.Pilot?.Nome ?? string.Empty,
+        pirep.FlightRoute is not null ? $"{pirep.FlightRoute.Airline?.CallsignPadrao}{pirep.FlightRoute.NumeroVoo}" : string.Empty,
+        pirep.FlightRoute?.AeroportoOrigem ?? string.Empty,
+        pirep.FlightRoute?.AeroportoDestino ?? string.Empty,
+        pirep.Aircraft?.Modelo ?? string.Empty,
+        pirep.Aircraft?.CodigoIcao ?? string.Empty,
+        pirep.HorasDeVoo,
+        pirep.TaxaDescidaTouchdownFpm,
+        pirep.QualidadePouso.ToString(),
+        pirep.PontosGanhos,
+        pirep.ImpactoNoRating,
+        pirep.Status.ToString(),
+        pirep.Rede.ToString(),
+        pirep.DataVoo,
+        pirep.Observacoes);
     }
 
     private static UltimoVooDto MapParaUltimoVoo(Pirep p) => new(
@@ -226,5 +232,19 @@ public class PirepService : IPirepService
         }
 
         await _uow.SaveChangesAsync();
+    }
+
+    public async Task<IReadOnlyList<TelemetriaLogDto>?> ObterTelemetriaAsync(int pirepId, int solicitanteId, bool ehAdmin)
+    {
+        var pirep = await _uow.Pireps.GetByIdAsync(pirepId);
+        if (pirep is null || pirep.BookingId is null) return null;
+        if (!ehAdmin && pirep.PilotId != solicitanteId) return null;
+
+        var logs = await _uow.TelemetriaLogs.GetByBookingAsync(pirep.BookingId.Value);
+        return logs.Select(t => new TelemetriaLogDto(
+            t.Latitude, t.Longitude, t.AltitudePes, t.VelocidadeNos, t.Heading, t.EstaNoSolo, t.VelocidadeVerticalFpm,
+            t.Pitch, t.Bank, t.FlapsPercentual, t.SpoilersArmado, t.SpoilersPercentual, t.TrainPousoPercentual,
+            t.Squawk, t.FrequenciaComAtiva, t.AeronaveNome, t.RegistradoEmUtc))
+            .ToList();
     }
 }

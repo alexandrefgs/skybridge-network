@@ -1,7 +1,8 @@
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
 import { PilotService } from '../../core/services/pilot.service';
@@ -9,11 +10,12 @@ import { PilotService } from '../../core/services/pilot.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './header.html',
 })
 export class Header implements OnInit, OnDestroy {
   bookingAtivoId = signal<number | null>(null);
+  urlAtual = signal('');
 
   modalBaseAberto = signal(false);
   baseIcao = '';
@@ -21,11 +23,13 @@ export class Header implements OnInit, OnDestroy {
   erroBase = signal<string | null>(null);
 
   private intervalId: ReturnType<typeof setInterval> | null = null;
+  private routerSub: { unsubscribe(): void } | null = null;
 
   constructor(
     public auth: AuthService,
     private bookingService: BookingService,
-    private pilotService: PilotService
+    private pilotService: PilotService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -36,12 +40,22 @@ export class Header implements OnInit, OnDestroy {
       this.modalBaseAberto.set(true);
     }
 
+    this.urlAtual.set(this.router.url);
+    this.routerSub = this.router.events
+      .pipe(filter(evento => evento instanceof NavigationEnd))
+      .subscribe(() => this.urlAtual.set(this.router.url));
+
     this.verificarBookingAtivo();
     this.intervalId = setInterval(() => this.verificarBookingAtivo(), 15000);
   }
 
   ngOnDestroy(): void {
     if (this.intervalId !== null) clearInterval(this.intervalId);
+    this.routerSub?.unsubscribe();
+  }
+
+  get adminAtivo(): boolean {
+    return this.urlAtual().startsWith('/admin');
   }
 
   private async verificarBookingAtivo(): Promise<void> {

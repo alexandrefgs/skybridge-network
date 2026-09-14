@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Header } from '../../shared/header/header';
 import { AuthService } from '../../core/services/auth.service';
 import { PilotService } from '../../core/services/pilot.service';
@@ -11,7 +11,7 @@ import { UltimoVoo } from '../../core/models/pirep.models';
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, Header],
+  imports: [CommonModule, Header, RouterLink],
   templateUrl: './perfil.html',
 })
 export class Perfil implements OnInit {

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using SkyBridge.Application.Interfaces;
 using SkyBridge.Application.Services;
 using SkyBridge.Domain.Entities;
 using SkyBridge.Domain.Interfaces;
@@ -19,8 +20,11 @@ public class PilotServiceTests
         _uow.Airlines.Returns(Substitute.For<IAirlineRepository>());
         _uow.PilotCareers.Returns(Substitute.For<IPilotCareerRepository>());
         _uow.Ranks.Returns(Substitute.For<IRankRepository>());
+        _uow.PilotAwards.Returns(Substitute.For<IPilotAwardRepository>());
 
-        _service = new PilotService(_uow);
+        var awardService = Substitute.For<IAwardService>();
+
+        _service = new PilotService(_uow, awardService);
     }
 
     [Fact]

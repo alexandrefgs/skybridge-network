@@ -17,4 +17,5 @@ public interface IBookingService
     Task<IReadOnlyList<BookingDto>> ListarMeusAsync(int pilotId);
     Task<BookingDto?> ObterDetalheAsync(int pilotId, int bookingId);
     Task<Result<string>> ExcluirAsync(int pilotId, int bookingId);
+    Task<Result<string>> CancelarVooAsync(int pilotId, int bookingId);
 }

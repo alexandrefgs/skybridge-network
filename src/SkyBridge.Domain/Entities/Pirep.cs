@@ -27,4 +27,6 @@ public class Pirep
 
     public PirepStatus Status { get; set; } = PirepStatus.PendenteAprovacao;
     public string? Observacoes { get; set; }
+    public int? BookingId { get; set; }
+    public Booking? Booking { get; set; }
 }

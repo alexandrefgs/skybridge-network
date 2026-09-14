@@ -216,7 +216,7 @@ public class BookingService : IBookingService
             return Result<PirepResultDto>.Falha("O voo ainda não foi detectado como concluído.");
 
         var horasDeVoo = booking.CalcularHorasDeVoo() ?? 0;
-        var dto = new NovoPirepDto(booking.FlightRouteId, booking.AircraftId, horasDeVoo, booking.TaxaDescidaTouchdownFpm ?? 0);
+        var dto = new NovoPirepDto(booking.FlightRouteId, booking.AircraftId, horasDeVoo, booking.TaxaDescidaTouchdownFpm ?? 0, BookingId: booking.Id);
 
         var resultado = await _pirepService.EnviarAsync(pilotId, dto);
         if (!resultado.Sucesso) return resultado;
@@ -278,6 +278,10 @@ public class BookingService : IBookingService
         var booking = await ObterDoTitularAsync(pilotId, bookingId);
         if (booking is null) return Result<string>.Falha("Booking não encontrado.");
 
+        var logs = await _uow.TelemetriaLogs.GetByBookingAsync(bookingId);
+        foreach (var log in logs)
+            _uow.TelemetriaLogs.Remove(log);
+
         _uow.Bookings.Remove(booking);
         await _uow.SaveChangesAsync();
 
@@ -288,5 +292,20 @@ public class BookingService : IBookingService
     {
         var rota = await _uow.FlightRoutes.GetByIdAsync(flightRouteId);
         return rota?.AeroportoDestino ?? string.Empty;
+    }
+
+        public async Task<Result<string>> CancelarVooAsync(int pilotId, int bookingId)
+    {
+        var booking = await ObterDoTitularAsync(pilotId, bookingId);
+        if (booking is null) return Result<string>.Falha("Booking não encontrado.");
+
+        if (booking.Status != Domain.Enums.BookingStatus.EmVoo)
+            return Result<string>.Falha("Esse booking não está em voo.");
+
+        booking.Cancelar();
+        _uow.Bookings.Update(booking);
+        await _uow.SaveChangesAsync();
+
+        return Result<string>.Ok("Voo cancelado.");
     }
 }

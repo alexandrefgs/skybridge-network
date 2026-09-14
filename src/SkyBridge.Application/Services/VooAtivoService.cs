@@ -36,10 +36,35 @@ public class VooAtivoService : IVooAtivoService
         });
 
         var booking = await _uow.Bookings.GetEmVooPorPilotoAsync(pilotId);
-        if (booking is not null && !booking.ProntoParaPirep)
+        if (booking is not null)
         {
-            booking.RegistrarTelemetria(dto.EstaNoSolo, dto.VelocidadeNos, dto.VelocidadeVerticalFpm, DateTime.UtcNow, TempoParadoNecessario);
-            _uow.Bookings.Update(booking);
+            await _uow.TelemetriaLogs.AddAsync(new TelemetriaLog
+            {
+                BookingId = booking.Id,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude,
+                AltitudePes = dto.AltitudePes,
+                VelocidadeNos = dto.VelocidadeNos,
+                Heading = dto.Heading,
+                EstaNoSolo = dto.EstaNoSolo,
+                VelocidadeVerticalFpm = dto.VelocidadeVerticalFpm,
+                Pitch = dto.Pitch,
+                Bank = dto.Bank,
+                FlapsPercentual = dto.FlapsPercentual,
+                SpoilersArmado = dto.SpoilersArmado,
+                SpoilersPercentual = dto.SpoilersPercentual,
+                TrainPousoPercentual = dto.TrainPousoPercentual,
+                Squawk = dto.Squawk,
+                FrequenciaComAtiva = dto.FrequenciaComAtiva,
+                AeronaveNome = dto.AeronaveNome
+            });
+
+            if (!booking.ProntoParaPirep)
+            {
+                booking.RegistrarTelemetria(dto.EstaNoSolo, dto.VelocidadeNos, dto.VelocidadeVerticalFpm, DateTime.UtcNow, TempoParadoNecessario);
+                _uow.Bookings.Update(booking);
+            }
+
             await _uow.SaveChangesAsync();
         }
     }

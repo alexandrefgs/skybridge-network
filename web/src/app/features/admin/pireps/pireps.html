@@ -1,0 +1,111 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <app-header></app-header>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div>
+      <h1 class="font-display text-2xl font-bold text-white mb-1">PIREPs Aguardando Aprovação</h1>
+      <p class="text-sm text-slate-400">Pousos com FPM em análise. Revise os logs de voo antes de decidir.</p>
+    </div>
+
+    @if (mensagem()) {
+      <div class="mt-6 rounded-lg px-4 py-2 text-sm border"
+           [class.bg-cyan-500/10]="mensagem()!.tipo === 'ok'"
+           [class.border-cyan-500/30]="mensagem()!.tipo === 'ok'"
+           [class.text-cyan-300]="mensagem()!.tipo === 'ok'"
+           [class.bg-red-500/10]="mensagem()!.tipo === 'erro'"
+           [class.border-red-500/30]="mensagem()!.tipo === 'erro'"
+           [class.text-red-300]="mensagem()!.tipo === 'erro'">
+        {{ mensagem()!.texto }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else if (pendentes().length === 0) {
+      <div class="text-center py-20 text-slate-500 text-sm">Nenhum PIREP aguardando aprovação.</div>
+    } @else {
+      <div class="mt-6 overflow-x-auto rounded-lg border border-[var(--sb-border)]">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-black/30 text-slate-400 text-left">
+              <th class="px-4 py-3 font-medium">Callsign</th>
+              <th class="px-4 py-3 font-medium">Piloto</th>
+              <th class="px-4 py-3 font-medium">Rota</th>
+              <th class="px-4 py-3 font-medium">Aeronave</th>
+              <th class="px-4 py-3 font-medium">Milhas</th>
+              <th class="px-4 py-3 font-medium">Touchdown</th>
+              <th class="px-4 py-3 font-medium">Data</th>
+              <th class="px-4 py-3 font-medium text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (pirep of pendentes(); track pirep.id) {
+              <tr class="border-t border-[var(--sb-border)] text-slate-300">
+                <td class="px-4 py-3 font-mono text-cyan-300">{{ pirep.vooCallsign }}</td>
+                <td class="px-4 py-3">
+                  <div>{{ pirep.pilotNome }}</div>
+                  <div class="text-xs text-slate-500 font-mono">{{ pirep.pilotCallsign }}</div>
+                </td>
+                <td class="px-4 py-3 font-mono text-xs">{{ pirep.aeroportoOrigem }} → {{ pirep.aeroportoDestino }}</td>
+                <td class="px-4 py-3 text-slate-400">{{ pirep.aeronaveModelo }}</td>
+                <td class="px-4 py-3">{{ pirep.distanciaMilhas | number: '1.0-0' }}</td>
+                <td class="px-4 py-3 font-mono text-amber-400">{{ pirep.taxaDescidaTouchdownFpm }} fpm</td>
+                <td class="px-4 py-3 text-slate-400">{{ pirep.dataVoo | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center justify-end gap-3">
+                    <button type="button" (click)="abrirDetalhe(pirep)"
+                      class="text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors">
+                      Ver Booking Completo
+                    </button>
+                    <button type="button" (click)="aprovar(pirep)" [disabled]="processando() === pirep.id"
+                      class="text-xs font-medium text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors">
+                      Aprovar
+                    </button>
+                    <button type="button" (click)="pedirRejeicao(pirep)" [disabled]="processando() === pirep.id"
+                      class="text-xs font-medium text-red-400 hover:text-red-300 disabled:opacity-50 transition-colors">
+                      Rejeitar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  @if (pirepParaRejeitar()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" (click)="cancelarRejeicao()">
+      <div class="w-full max-w-sm rounded-2xl border border-[var(--sb-border)] bg-[var(--sb-bg)] p-6 shadow-2xl" (click)="$event.stopPropagation()">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h2 class="font-display text-lg font-semibold text-white">Rejeitar PIREP</h2>
+        </div>
+
+        <p class="text-sm text-slate-400 mb-3">
+          PIREP #{{ pirepParaRejeitar()!.id }} — {{ pirepParaRejeitar()!.vooCallsign }} ({{ pirepParaRejeitar()!.pilotCallsign }})
+        </p>
+
+        <textarea [ngModel]="motivoRejeicao()" (ngModelChange)="motivoRejeicao.set($event)"
+          placeholder="Motivo da rejeição..." rows="3"
+          class="w-full bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white mb-6"></textarea>
+
+        <div class="flex gap-3 justify-end">
+          <button type="button" (click)="cancelarRejeicao()"
+            class="text-sm font-medium text-slate-300 hover:text-white border border-[var(--sb-border)] rounded-lg px-4 py-2 transition-colors">
+            Cancelar
+          </button>
+          <button type="button" (click)="confirmarRejeicao()" [disabled]="!motivoRejeicao().trim()"
+            class="text-sm font-medium bg-red-500 hover:bg-red-400 disabled:opacity-40 text-white rounded-lg px-4 py-2 transition-colors">
+            Rejeitar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

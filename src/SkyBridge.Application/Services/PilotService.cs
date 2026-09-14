@@ -167,19 +167,24 @@ public class PilotService : IPilotService
         if (pilot is null)
             return Result<string>.Falha("Piloto não encontrado.");
 
-        if (pilot.Role == Domain.Enums.PilotRole.Admin)
-            return Result<string>.Falha("Esse piloto já é Admin.");
-
-        pilot.PromoverAdmin();
-        _uow.Pilots.Update(pilot);
+        var jaEraAdmin = pilot.Role == Domain.Enums.PilotRole.Admin;
+        if (!jaEraAdmin)
+        {
+            pilot.PromoverAdmin();
+            _uow.Pilots.Update(pilot);
+        }
 
         var awardStaff = await _awardService.ObterOuCriarStaffAsync();
-        if (!await _uow.PilotAwards.PilotJaTemAwardAsync(pilotId, awardStaff.Id))
+        var jaTemAward = await _uow.PilotAwards.PilotJaTemAwardAsync(pilotId, awardStaff.Id);
+        if (!jaTemAward)
             await _uow.PilotAwards.AddAsync(new PilotAward { PilotId = pilotId, AwardId = awardStaff.Id });
 
         await _uow.SaveChangesAsync();
 
-        return Result<string>.Ok($"Piloto {pilot.Callsign} promovido a Admin.");
+        if (jaEraAdmin && jaTemAward)
+            return Result<string>.Falha("Esse piloto já é Admin e já tem a award de Staff.");
+
+        return Result<string>.Ok($"Piloto {pilot.Callsign} processado — award de Staff garantida.");
     }
 
     public async Task<Result<string>> ExcluirAsync(int id)

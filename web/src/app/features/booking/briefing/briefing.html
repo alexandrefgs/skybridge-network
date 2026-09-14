@@ -54,6 +54,10 @@
           }
 
           @if (booking()!.status === 'EmVoo') {
+          <button type="button" (click)="pedirConfirmacaoCancelamento()" [disabled]="cancelando()"
+            class="text-xs font-medium text-red-400 hover:text-red-300 disabled:opacity-50 border border-red-500/30 rounded-lg px-3 py-1.5 transition-colors">
+            {{ cancelando() ? 'Cancelando...' : 'Cancelar Voo' }}
+          </button>
           <button type="button" (click)="enviarPirep()" [disabled]="!statusVoo()?.prontoParaPirep || enviandoPirep()"
             class="text-xs font-medium bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-black rounded-lg px-3 py-1.5 transition-colors">
             {{ enviandoPirep() ? 'Enviando...' : 'Enviar PIREP' }}
@@ -250,7 +254,7 @@
         }
 
         @if (booking()!.status === 'Cancelado') {
-        <p class="text-sm text-red-400">Esta reserva expirou (validade de 24 horas).</p>
+        <p class="text-sm text-red-400">Esta reserva expirou ou foi cancelada.</p>
         }
       </div>
     </div>
@@ -288,6 +292,30 @@
         <button type="button" (click)="confirmarExclusao()"
           class="text-sm font-medium bg-red-500 hover:bg-red-400 text-white rounded-lg px-4 py-2 transition-colors">
           Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (modalCancelamentoAberto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+    (click)="fecharModalCancelamento()">
+    <div class="w-full max-w-sm rounded-2xl border border-[var(--sb-border)] bg-[var(--sb-bg)] p-6 shadow-2xl"
+      (click)="$event.stopPropagation()">
+      <h2 class="font-display text-lg font-semibold text-white mb-4">Cancelar voo</h2>
+      <p class="text-sm text-slate-400 mb-6">
+        Isso vai cancelar o voo em andamento (útil se o simulador travou ou você precisa reiniciar).
+        O booking ficará marcado como Cancelado e você poderá criar uma nova reserva.
+      </p>
+      <div class="flex gap-3 justify-end">
+        <button type="button" (click)="fecharModalCancelamento()"
+          class="text-sm font-medium text-slate-300 hover:text-white border border-[var(--sb-border)] rounded-lg px-4 py-2 transition-colors">
+          Voltar
+        </button>
+        <button type="button" (click)="confirmarCancelamento()"
+          class="text-sm font-medium bg-red-500 hover:bg-red-400 text-white rounded-lg px-4 py-2 transition-colors">
+          Cancelar Voo
         </button>
       </div>
     </div>

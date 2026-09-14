@@ -1,0 +1,129 @@
+<div class="min-h-screen bg-[var(--sb-bg)]">
+  <app-header></app-header>
+
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <button type="button" (click)="voltar()" class="text-xs text-slate-400 hover:text-white mb-4 transition-colors">
+      ← Voltar para PIREPs pendentes
+    </button>
+
+    @if (erro()) {
+      <div class="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-red-300 mb-4">
+        {{ erro() }}
+      </div>
+    }
+
+    @if (carregando()) {
+      <div class="text-center py-20 text-slate-500 text-sm">Carregando...</div>
+    } @else if (pirep(); as p) {
+      <div class="space-y-6">
+
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.03] p-6">
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div>
+              <h1 class="font-display text-2xl font-bold text-white">PIREP #{{ p.id }}</h1>
+              <p class="text-sm text-slate-400 mt-1">{{ p.pilotCallsign }} · {{ p.pilotNome }}</p>
+            </div>
+            <span class="text-xs font-mono px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300">
+              {{ p.status }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div>
+              <div class="text-xs text-slate-500">Voo</div>
+              <div class="text-white font-mono">{{ p.vooCallsign }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Rota</div>
+              <div class="text-white font-mono">{{ p.aeroportoOrigem }} → {{ p.aeroportoDestino }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Aeronave</div>
+              <div class="text-white">{{ p.aeronaveModelo }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Tempo de voo</div>
+              <div class="text-white">{{ p.horasDeVoo.toFixed(1) }}h</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Touchdown</div>
+              <div class="text-amber-400 font-mono">{{ p.taxaDescidaTouchdownFpm }} fpm</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Qualidade do pouso</div>
+              <div class="text-white">{{ p.qualidadePouso }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Rede</div>
+              <div class="text-white">{{ p.rede }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500">Data</div>
+              <div class="text-white">{{ p.dataVoo | date: 'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+          </div>
+        </div>
+
+        @if (logs().length > 0) {
+          <div id="mapa-pirep-detalhe" class="mapa-escuro rounded-2xl border border-[var(--sb-border)] overflow-hidden"
+            style="height: 360px; position: relative; z-index: 0;"></div>
+        } @else {
+          <div class="rounded-2xl border border-dashed border-[var(--sb-border)] p-6 text-center text-sm text-slate-500">
+            Nenhum log de telemetria encontrado para este voo.
+          </div>
+        }
+
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6">
+          <h2 class="font-display text-lg font-semibold text-white mb-4">Log Information</h2>
+          @if (eventos().length === 0) {
+            <p class="text-sm text-slate-500">Nenhum evento detectado.</p>
+          } @else {
+            <div class="bg-black/30 rounded-lg border border-[var(--sb-border)] p-4 max-h-96 overflow-y-auto">
+              <div class="space-y-1 font-mono text-xs">
+                @for (evento of eventos(); track $index) {
+                  <div class="text-slate-300">
+                    <span class="text-slate-500">{{ evento.timestamp }}</span> - {{ evento.texto }}
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="rounded-2xl border border-[var(--sb-border)] bg-white/[0.02] p-6 flex items-center justify-end gap-3">
+          <button type="button" (click)="pedirRejeicao()" [disabled]="processando()"
+            class="text-sm font-medium text-red-400 hover:text-red-300 disabled:opacity-50 border border-red-500/30 rounded-lg px-4 py-2 transition-colors">
+            Rejeitar
+          </button>
+          <button type="button" (click)="aprovar()" [disabled]="processando()"
+            class="text-sm font-medium bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black rounded-lg px-4 py-2 transition-colors">
+            {{ processando() ? 'Processando...' : 'Aprovar' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (modalRejeicaoAberto()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" (click)="cancelarRejeicao()">
+      <div class="w-full max-w-sm rounded-2xl border border-[var(--sb-border)] bg-[var(--sb-bg)] p-6 shadow-2xl" (click)="$event.stopPropagation()">
+        <h2 class="font-display text-lg font-semibold text-white mb-4">Rejeitar PIREP</h2>
+
+        <textarea [ngModel]="motivoRejeicao()" (ngModelChange)="motivoRejeicao.set($event)"
+          placeholder="Motivo da rejeição..." rows="3"
+          class="w-full bg-black/30 border border-[var(--sb-border)] rounded-lg px-3 py-2 text-sm text-white mb-6"></textarea>
+
+        <div class="flex gap-3 justify-end">
+          <button type="button" (click)="cancelarRejeicao()"
+            class="text-sm font-medium text-slate-300 hover:text-white border border-[var(--sb-border)] rounded-lg px-4 py-2 transition-colors">
+            Cancelar
+          </button>
+          <button type="button" (click)="confirmarRejeicao()" [disabled]="!motivoRejeicao().trim()"
+            class="text-sm font-medium bg-red-500 hover:bg-red-400 disabled:opacity-40 text-white rounded-lg px-4 py-2 transition-colors">
+            Rejeitar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

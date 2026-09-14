@@ -24,7 +24,8 @@ public class PirepRepository : Repository<Pirep>, IPirepRepository
         await DbSet
             .Where(p => p.Status == PirepStatus.PendenteAprovacao)
             .Include(p => p.Pilot)
-            .Include(p => p.FlightRoute)
+            .Include(p => p.FlightRoute).ThenInclude(f => f!.Airline)
+            .Include(p => p.Aircraft)
             .ToListAsync();
 
     public async Task<IReadOnlyList<Pirep>> GetUltimosAsync(int quantidade, int? pilotoId = null)

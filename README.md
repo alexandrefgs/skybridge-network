@@ -71,6 +71,20 @@ O app cliente **ACARS** lê o simulador via FSUIPC e envia posição, altitude, 
 ### Continuidade de localização & Jumpseat
 O piloto tem uma localização atual rastreada pelo sistema (definida no primeiro login, atualizada a cada PIREP concluído). Criar uma reserva a partir de um aeroporto diferente de onde o piloto está exige um **Jumpseat** — reposicionamento gratuito e instantâneo até o aeroporto de origem da rota escolhida.
 
+### Perfil do piloto
+Página de perfil com histórico completo de voos (rota, companhia, aeronave, status, clicável para ver o detalhe completo com mapa da trilha e log de eventos do voo), e conquistas organizadas em três blocos por origem — **Staff** (concedida automaticamente ao virar Admin), **Patentes** (concedida automaticamente a cada promoção de rank em qualquer companhia) e **Tours** (concedida ao completar um Tour).
+
+### Flight Recorder
+Cada ponto de telemetria recebido durante um voo em andamento é persistido (não só mantido em memória), incluindo posição, altitude, velocidade, atitude (pitch/bank), flaps, spoilers, trem de pouso, squawk, frequência de rádio ativa e nome da aeronave carregada no simulador. Esses logs alimentam:
+- A tela de aprovação de PIREPs no Admin, com mapa da trilha completa do voo e um log de eventos discretos gerado automaticamente a partir dos pontos brutos (decolagem, mudanças de flap/gear, touchdown, cruzeiro, aproximação, pouso)
+- A mesma visão, disponível para o próprio piloto ver seus voos passados no Perfil
+
+### Aprovação de PIREPs (Admin)
+Tela dedicada (`/admin/pireps`) com todos os PIREPs pendentes de aprovação — pousos fora do padrão operacional ficam retidos até um Admin revisar. Cada PIREP pode ser aberto numa tela de detalhe com o mapa da trilha voada e o log de eventos do voo antes de aprovar ou rejeitar (rejeição exige motivo, exibido depois para o piloto no seu histórico).
+
+### Cancelamento de voo em andamento
+Além de excluir uma reserva, o piloto pode cancelar um voo já em `EmVoo` sem precisar excluir o Booking — útil quando o simulador trava ou o ACARS perde conexão no meio do voo. O booking cancelado libera a regra de "1 reserva ativa por vez" sem apagar o histórico de telemetria já registrado.
+
 ### Mapa ao vivo
 Dashboard com todos os voos ativos da rede em tempo real (posição, ícone por categoria de aeronave — monomotor, bimotor, executivo, regional, narrowbody, widebody), com origem/destino plotados ao clicar em qualquer avião. O Briefing individual mostra a trilha percorrida pela própria aeronave durante o voo.
 
@@ -213,23 +227,31 @@ skybridge-network/
 - [x] Clean Architecture (Domain/Application/Infrastructure/Api)
 - [x] Autenticação JWT com refresh token, rotação e renovação automática no frontend
 - [x] Migrations do EF Core
-- [x] Aprovação/rejeição de PIREPs pendentes
+- [x] Aprovação/rejeição de PIREPs pendentes, com tela dedicada no Admin (mapa da trilha + log de eventos do voo)
 - [x] Validação de entrada com FluentValidation
 - [x] Módulo de Tours e Awards com progresso automático
+- [x] Awards automáticas por Patente (a cada promoção de rank) e por Staff (ao virar Admin)
 - [x] Papéis de usuário (Admin/Piloto), restringindo ações administrativas
 - [x] Frontend Angular completo
 - [x] Admin: CRUD de companhias/aeronaves/rotas, com importação em massa via CSV
 - [x] Booking: reserva de voo em 5 etapas com integração real ao SimBrief
-- [x] App cliente ACARS (MSFS via FSUIPC7)
+- [x] App cliente ACARS (MSFS via FSUIPC7), com telemetria estendida (atitude, flaps, spoilers, trem, squawk, frequência de rádio, nome da aeronave)
 - [x] Automação de detecção de pouso e envio de PIREP via telemetria
+- [x] Flight Recorder — persistência de cada ponto de telemetria do voo (não só em memória)
 - [x] Mapa ao vivo com rastreamento de todos os voos da rede
 - [x] Continuidade de localização do piloto + Jumpseat
+- [x] Cancelamento de voo em andamento (sem precisar excluir a reserva)
+- [x] Perfil do piloto com histórico de voos e conquistas por categoria
 - [ ] Integração de verdade com VATSIM e IVAO (aguardando confirmação do schema JSON do SimBrief)
+- [ ] Preencher campos de Flight Plan Summary / Load Sheet do Briefing com dados reais do SimBrief (aguardando o mesmo schema)
+- [ ] Mapa de rotas interativo na tela de Nova Reserva
+- [ ] Base de aeroportos própria (dataset OurAirports), substituindo a dependência do METAR para coordenadas
 - [ ] X-Plane (XPUIPC) e P3D (FSUIPC6) no ACARS
 - [ ] Upload real de imagem (foto de tour/award), não só URL
 - [ ] Cadastro de piloto inativo automaticamente após 90 dias sem voo, com e-mail disparado para o RH
 - [ ] Import em massa de companhias/rotas reais (dataset OpenFlights), escalando além do seed inicial
 - [ ] Continuidade de localização aplicada também a Tours
+- [ ] Tela de criação de Tours no Admin
 
 ## 📄 Licença
 

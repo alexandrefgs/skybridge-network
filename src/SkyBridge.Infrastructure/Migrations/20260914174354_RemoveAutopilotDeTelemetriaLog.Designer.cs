@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SkyBridge.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using SkyBridge.Infrastructure.Data;
 namespace SkyBridge.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260914174354_RemoveAutopilotDeTelemetriaLog")]
+    partial class RemoveAutopilotDeTelemetriaLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -680,9 +683,6 @@ namespace SkyBridge.Infrastructure.Migrations
                     b.Property<int>("AircraftId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("BookingId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("DataVoo")
                         .HasColumnType("datetime2");
 
@@ -719,8 +719,6 @@ namespace SkyBridge.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AircraftId");
-
-                    b.HasIndex("BookingId");
 
                     b.HasIndex("FlightRouteId");
 
@@ -1117,11 +1115,6 @@ namespace SkyBridge.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SkyBridge.Domain.Entities.Booking", "Booking")
-                        .WithMany()
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("SkyBridge.Domain.Entities.FlightRoute", "FlightRoute")
                         .WithMany("Pireps")
                         .HasForeignKey("FlightRouteId")
@@ -1135,8 +1128,6 @@ namespace SkyBridge.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Aircraft");
-
-                    b.Navigation("Booking");
 
                     b.Navigation("FlightRoute");
 

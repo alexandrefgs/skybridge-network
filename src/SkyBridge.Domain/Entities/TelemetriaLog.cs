@@ -15,5 +15,15 @@ public class TelemetriaLog
     public bool EstaNoSolo { get; set; }
     public double VelocidadeVerticalFpm { get; set; }
 
+    public double Pitch { get; set; }
+    public double Bank { get; set; }
+    public double FlapsPercentual { get; set; }
+    public bool SpoilersArmado { get; set; }
+    public double SpoilersPercentual { get; set; }
+    public double TrainPousoPercentual { get; set; }
+    public string? Squawk { get; set; }
+    public string? FrequenciaComAtiva { get; set; }
+    public string? AeronaveNome { get; set; }
+
     public DateTime RegistradoEmUtc { get; set; } = DateTime.UtcNow;
 }
