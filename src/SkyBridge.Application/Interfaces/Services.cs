@@ -86,3 +86,10 @@ public interface IEstatisticasService
 {
     Task<EstatisticasRedeDto> ObterAsync(bool ehAdmin);
 }
+
+public interface IAirportService
+{
+    Task<IReadOnlyList<AirportDto>> ListarAsync();
+    Task<AirportDto?> ObterPorIcaoAsync(string icao);
+    Task<Result<AirportDto>> CriarAsync(NovoAirportDto dto);
+}

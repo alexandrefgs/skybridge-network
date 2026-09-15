@@ -63,13 +63,19 @@ Um piloto só pode ter uma reserva ativa por vez, e cada reserva expira automati
 
 ### Automação por telemetria (sem preenchimento manual de PIREP)
 O app cliente **ACARS** lê o simulador via FSUIPC e envia posição, altitude, velocidade, taxa de descida e status "no solo" a cada 5 segundos. O backend usa isso para:
-- Detectar decolagem e touchdown automaticamente, capturando a taxa de descida real no pouso
+- Detectar decolagem e touchdown automaticamente, capturando a taxa de descida real no pouso — a transição de estado (no ar/no solo) só é confirmada após um período mínimo de leituras consecutivas, evitando falsos positivos por ruído momentâneo de telemetria
 - Detectar quando a aeronave para no gate (velocidade ~0 por 30s) e liberar o botão "Enviar PIREP"
 - Validar que o piloto está realmente no aeroporto de partida (com telemetria recente) antes de liberar "Iniciar Voo"
 - Calcular as horas de voo reais (decolagem → touchdown) para o PIREP, sem input manual
 
 ### Continuidade de localização & Jumpseat
 O piloto tem uma localização atual rastreada pelo sistema (definida no primeiro login, atualizada a cada PIREP concluído). Criar uma reserva a partir de um aeroporto diferente de onde o piloto está exige um **Jumpseat** — reposicionamento gratuito e instantâneo até o aeroporto de origem da rota escolhida.
+
+### Base de dados real (OpenFlights)
+O mundo do SkyBridge é povoado com dados reais importados do dataset público [OpenFlights](https://github.com/jpatokal/openflights): **1.083 companhias aéreas ativas**, **7.692 aeroportos** com coordenadas próprias, **63.758 rotas diretas** (com distância calculada via haversine e tipo de operação classificado automaticamente) e **2.354 aeronaves** distribuídas pela frota histórica de 453 companhias. Todo import é feito via CSV pela tela de Admin, com feedback linha a linha (sucesso/erro) — o mesmo mecanismo funciona tanto para pequenos lotes de teste quanto para os arquivos completos.
+
+### Base de aeroportos própria
+Nova entidade `Airport`, populada via o import acima, com ICAO, IATA, nome, cidade, país e coordenadas. Suas coordenadas alimentam o mapa ao vivo (Dashboard) e os pins de origem/destino/alternado do Briefing — a consulta ao METAR deixou de ser a fonte de coordenadas (usada só para dados reais de clima) e virou apenas um fallback para o raro aeroporto ainda não cadastrado na base própria.
 
 ### Perfil do piloto
 Página de perfil com histórico completo de voos (rota, companhia, aeronave, status, clicável para ver o detalhe completo com mapa da trilha e log de eventos do voo), e conquistas organizadas em três blocos por origem — **Staff** (concedida automaticamente ao virar Admin), **Patentes** (concedida automaticamente a cada promoção de rank em qualquer companhia) e **Tours** (concedida ao completar um Tour).
@@ -103,7 +109,7 @@ Dashboard com todos os voos ativos da rede em tempo real (posição, ícone por 
 ### Admin — CRUD completo
 - Cadastro, edição e exclusão de companhias (com bandeira do país via `flag-icons`, dropdown de país searchável), aeronaves e rotas
 - Tabela de rotas por companhia, paginada e com busca
-- Importação em massa via CSV para companhias, aeronaves e rotas
+- Importação em massa via CSV para companhias, aeronaves, rotas e aeroportos
 
 ## ✈️ Regras de negócio principais
 
@@ -122,14 +128,14 @@ Dashboard com todos os voos ativos da rede em tempo real (posição, ícone por 
 - **Callsign de voo**: livre (o piloto escolhe o número), mas precisa começar com o prefixo ICAO real da companhia.
 - **Tours e Awards**: sequências de voos definidas (podendo cruzar várias companhias), com progresso avançado automaticamente a cada PIREP aprovado. Ao completar todas as etapas, o piloto ganha um bônus de pontos e uma conquista (Award) exibida no seu perfil.
 - **Aprovação de PIREP**: pousos muito fortes ficam pendentes até um admin aprovar ou rejeitar (rejeitar desfaz os pontos/rating aplicados no envio).
-- **Detecção de decolagem/pouso resiliente a ruído**: em vez de confiar na primeira leitura de telemetria que indica a mudança de estado, o sistema exige que o novo estado (no ar / no solo) se mantenha por um período mínimo de confirmação antes de registrar o evento — evita falsos positivos por oscilação momentânea de dados do simulador.
+- **Detecção de decolagem/pouso resiliente a ruído**: em vez de confiar na primeira leitura de telemetria que indica a mudança de estado, o sistema exige que o novo estado (no ar / no solo) se mantenha por um período mínimo de confirmação antes de registrar o evento.
 
 ## 🔐 Autenticação
 
 - **JWT** (access token de 30 min) + **refresh token** de 7 dias, com **rotação** (o token antigo é revogado a cada uso — reuso é bloqueado com `401`).
 - **Renovação automática no frontend**: um interceptor Angular detecta qualquer `401`, renova o token em segundo plano e repete a requisição original — o piloto nunca precisa relogar manualmente.
 - Todo PIREP e ação de piloto usa o **`PilotId` extraído do token**, nunca do corpo da requisição — impossível agir em nome de outro piloto.
-- Papéis (Admin/Piloto): ações administrativas (cadastro/edição/exclusão de companhias, aeronaves, rotas, Tours, Awards e upload de imagens) exigem `role=Admin`.
+- Papéis (Admin/Piloto): ações administrativas (cadastro/edição/exclusão de companhias, aeronaves, rotas, aeroportos, Tours, Awards e upload de imagens) exigem `role=Admin`.
 
 ## 🛠️ Tecnologias
 
@@ -151,6 +157,9 @@ Dashboard com todos os voos ativos da rede em tempo real (posição, ícone por 
 
 **ACARS (app cliente de telemetria)**
 - Console app em C# usando **FSUIPCClientDLL**, compatível com FSUIPC7 (MSFS 2020/2024). Lê posição, altitude, velocidade, V/S, atitude (pitch/bank), flaps, spoilers, trem de pouso, squawk, frequência de rádio ativa e nome da aeronave, e envia para a API a cada 5 segundos.
+
+**Dados**
+- [OpenFlights](https://github.com/jpatokal/openflights) — dataset público usado como base para o seed de companhias, aeroportos, rotas e frotas reais.
 
 ## 🚀 Como rodar localmente
 
@@ -262,14 +271,16 @@ skybridge-network/
 - [x] Upload real de imagem (foto de tour/award) via endpoint próprio
 - [x] Detecção de decolagem/pouso exigindo confirmação por tempo mínimo (evita falso positivo por ruído de telemetria)
 - [x] Voos da rede públicos para qualquer piloto (mapa da trilha + log completo)
+- [x] Base de aeroportos própria (dataset OpenFlights), substituindo a dependência do METAR para coordenadas
+- [x] Import em massa de companhias, rotas e aeronaves reais (dataset OpenFlights), escalando além do seed inicial
 - [ ] Integração de verdade com VATSIM e IVAO (aguardando confirmação do schema JSON do SimBrief)
 - [ ] Preencher campos de Flight Plan Summary / Load Sheet do Briefing com dados reais do SimBrief (aguardando o mesmo schema)
 - [ ] Mapa de rotas interativo na tela de Nova Reserva
-- [ ] Base de aeroportos própria (dataset OurAirports), substituindo a dependência do METAR para coordenadas
 - [ ] X-Plane (XPUIPC) e P3D (FSUIPC6) no ACARS
 - [ ] Cadastro de piloto inativo automaticamente após 90 dias sem voo, com e-mail disparado para o RH
-- [ ] Import em massa de companhias/rotas reais (dataset OpenFlights), escalando além do seed inicial
 - [ ] Continuidade de localização aplicada também a Tours
+- [ ] Curadoria manual da frota importada (marcar aeronaves que a companhia não opera mais como "Retro")
+- [ ] Tela de edição/exclusão de aeronaves no Admin (hoje só é possível criar)
 
 ## 📄 Licença
 

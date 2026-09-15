@@ -23,5 +23,6 @@ export const routes: Routes = [
   { path: 'admin/awards', loadComponent: () => import('./features/admin/awards/awards').then(m => m.AdminAwards) },
   { path: 'admin/awards/nova', loadComponent: () => import('./features/admin/awards/nova/nova').then(m => m.AdminAwardNova) },
   { path: 'admin/awards/:id/editar', loadComponent: () => import('./features/admin/awards/nova/nova').then(m => m.AdminAwardNova) },
+  { path: 'admin/aeroportos', loadComponent: () => import('./features/admin/aeroportos/aeroportos').then(m => m.AdminAeroportos) },
   { path: '**', redirectTo: '' },
 ];

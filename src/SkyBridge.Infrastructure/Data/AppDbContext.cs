@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<Award> Awards => Set<Award>();
     public DbSet<PilotAward> PilotAwards => Set<PilotAward>();
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<Airport> Airports => Set<Airport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

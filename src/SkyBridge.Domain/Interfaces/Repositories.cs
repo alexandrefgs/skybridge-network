@@ -105,6 +105,12 @@ public interface IUnitOfWork
     IPilotAwardRepository PilotAwards { get; }
     IBookingRepository Bookings { get; }
     ITelemetriaLogRepository TelemetriaLogs { get; }
+    IAirportRepository Airports { get; }
 
     Task<int> SaveChangesAsync();
+}
+
+public interface IAirportRepository : IRepository<Airport>
+{
+    Task<Airport?> GetByIcaoAsync(string icao);
 }

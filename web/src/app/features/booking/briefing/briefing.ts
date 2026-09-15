@@ -9,6 +9,7 @@ import { WeatherService } from '../../../core/services/weather.service';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { Booking, StatusVoo } from '../../../core/models/booking.models';
 import { categorizarAeronave, tamanhoIconePorCategoria, svgAeronavePorCategoria } from '../../../core/data/categoria-aeronave';
+import { AirportService } from '../../../core/services/airport.service';
 
 @Component({
   selector: 'app-booking-briefing',
@@ -51,7 +52,8 @@ export class BookingBriefing implements OnInit, OnDestroy {
     private auth: AuthService,
     private bookingService: BookingService,
     private weatherService: WeatherService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private airportService: AirportService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -109,14 +111,14 @@ export class BookingBriefing implements OnInit, OnDestroy {
         return;
       }
 
-      const metar = await this.weatherService.obterMetar(booking.aeroportoOrigem);
-      if (metar.latitude == null || metar.longitude == null) {
+      const coordenadasOrigem = await this.obterCoordenadas(booking.aeroportoOrigem);
+      if (!coordenadasOrigem) {
         this.podeIniciarVoo.set(false);
         this.motivoBloqueio.set('Não foi possível verificar a posição do aeroporto de partida.');
         return;
       }
 
-      const distanciaNm = this.calcularDistanciaNm(meuVoo.latitude, meuVoo.longitude, metar.latitude, metar.longitude);
+      const distanciaNm = this.calcularDistanciaNm(meuVoo.latitude, meuVoo.longitude, coordenadasOrigem.latitude, coordenadasOrigem.longitude);
       if (distanciaNm > 5) {
         this.podeIniciarVoo.set(false);
         this.motivoBloqueio.set(`Aeronave a ${distanciaNm.toFixed(1)} nm de ${booking.aeroportoOrigem}. Posicione-se no aeroporto de partida.`);
@@ -208,10 +210,25 @@ export class BookingBriefing implements OnInit, OnDestroy {
     }
   }
 
+  private async obterCoordenadas(icao: string): Promise<{ latitude: number; longitude: number } | null> {
+    try {
+      const aeroporto = await this.airportService.obterPorIcao(icao);
+      return { latitude: aeroporto.latitude, longitude: aeroporto.longitude };
+    } catch {
+      try {
+        const metar = await this.weatherService.obterMetar(icao);
+        if (metar.latitude == null || metar.longitude == null) return null;
+        return { latitude: metar.latitude, longitude: metar.longitude };
+      } catch {
+        return null;
+      }
+    }
+  }
+
   private async plotarPin(icao: string, rotulo: string, cor: string): Promise<L.LatLngExpression | null> {
     try {
-      const metar = await this.weatherService.obterMetar(icao);
-      if (metar.latitude == null || metar.longitude == null) return null;
+      const coordenadas = await this.obterCoordenadas(icao);
+      if (!coordenadas) return null;
 
       const icone = L.divIcon({
         className: '',
@@ -227,7 +244,7 @@ export class BookingBriefing implements OnInit, OnDestroy {
         iconAnchor: [11, 30],
       });
 
-      const posicao: L.LatLngExpression = [metar.latitude, metar.longitude];
+      const posicao: L.LatLngExpression = [coordenadas.latitude, coordenadas.longitude];
 
       L.marker(posicao, { icon: icone })
         .bindPopup(`<strong>${rotulo}</strong><br/>${icao}`)

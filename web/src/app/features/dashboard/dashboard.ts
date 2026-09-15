@@ -14,6 +14,7 @@ import { PilotoDetalhe } from '../../core/models/pilot.models';
 import { Tour, TourProgresso } from '../../core/models/tour.models';
 import { EstatisticasRede } from '../../core/models/estatisticas.models';
 import { categorizarAeronave, tamanhoIconePorCategoria, svgAeronavePorCategoria } from '../../core/data/categoria-aeronave';
+import { AirportService } from '../../core/services/airport.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -46,6 +47,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     private pilotService: PilotService,
     private tourService: TourService,
     private estatisticasService: EstatisticasService,
+    private airportService: AirportService,
     private router: Router
   ) { }
 
@@ -173,16 +175,31 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private async obterCoordenadas(icao: string): Promise<{ latitude: number; longitude: number } | null> {
+    try {
+      const aeroporto = await this.airportService.obterPorIcao(icao);
+      return { latitude: aeroporto.latitude, longitude: aeroporto.longitude };
+    } catch {
+      try {
+        const metar = await this.weatherService.obterMetar(icao);
+        if (metar.latitude == null || metar.longitude == null) return null;
+        return { latitude: metar.latitude, longitude: metar.longitude };
+      } catch {
+        return null;
+      }
+    }
+  }
+
   private async plotarRota(voo: VooAtivo): Promise<void> {
     if (!this.mapa || !voo.aeroportoOrigem || !voo.aeroportoDestino) return;
 
     this.limparRotaAtiva();
 
     try {
-      const origem = await this.weatherService.obterMetar(voo.aeroportoOrigem);
-      const destino = await this.weatherService.obterMetar(voo.aeroportoDestino);
+      const origem = await this.obterCoordenadas(voo.aeroportoOrigem);
+      const destino = await this.obterCoordenadas(voo.aeroportoDestino);
 
-      if (origem.latitude == null || origem.longitude == null || destino.latitude == null || destino.longitude == null) return;
+      if (!origem || !destino) return;
 
       const pontoOrigem: L.LatLngExpression = [origem.latitude, origem.longitude];
       const pontoDestino: L.LatLngExpression = [destino.latitude, destino.longitude];

@@ -25,6 +25,7 @@ public class UnitOfWork : IUnitOfWork
         PilotAwards = new PilotAwardRepository(db);
         Bookings = new BookingRepository(db);
         TelemetriaLogs = new TelemetriaLogRepository(db);
+        Airports = new AirportRepository(db);
     }
 
     public IAirlineRepository Airlines { get; }
@@ -42,6 +43,7 @@ public class UnitOfWork : IUnitOfWork
     public IPilotAwardRepository PilotAwards { get; }
     public IBookingRepository Bookings { get; }
     public ITelemetriaLogRepository TelemetriaLogs { get; }
+    public IAirportRepository Airports { get; }
 
     public Task<int> SaveChangesAsync() => _db.SaveChangesAsync();
 }
