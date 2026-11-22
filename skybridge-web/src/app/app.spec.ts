@@ -17,6 +17,13 @@ describe('App', () => {
     expect(fixture.nativeElement.textContent).toContain('SkyBridge');
   });
 
+  it('renders the logo icon in the brand link', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const icon: HTMLImageElement = fixture.nativeElement.querySelector('[data-testid="brand"] img');
+    expect(icon.getAttribute('src')).toBe('favicon.svg');
+  });
+
   it('toggles the theme from the header', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();

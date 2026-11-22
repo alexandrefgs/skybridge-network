@@ -8,8 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "api": "dotnet watch --project src/SkyBridge.Api",
-    "web": "npm --prefix skybridge-web start",
+    "api": "dotnet watch --project src/SkyBridge.Api --launch-profile https",
+    "web": "npm --prefix skybridge-web start -- --open",
     "dev": "concurrently -n api,web -c red,white \"npm run api\" \"npm run web\"",
     "test": "dotnet test && npm --prefix skybridge-web test -- --watch=false"
   },
