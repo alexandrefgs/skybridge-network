@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SkyBridge.Api/SkyBridge.Api.csproj" />
+    <Project Path="src/SkyBridge.Application/SkyBridge.Application.csproj" />
+    <Project Path="src/SkyBridge.Domain/SkyBridge.Domain.csproj" />
+    <Project Path="src/SkyBridge.Infrastructure/SkyBridge.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SkyBridge.IntegrationTests/SkyBridge.IntegrationTests.csproj" />
+    <Project Path="tests/SkyBridge.UnitTests/SkyBridge.UnitTests.csproj" />
+  </Folder>
+</Solution>

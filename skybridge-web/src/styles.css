@@ -1,0 +1,51 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/jetbrains-mono";
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --sb-background: #fafafa;
+  --sb-surface: #ffffff;
+  --sb-surface-2: #f4f4f5;
+  --sb-line: #e4e4e7;
+  --sb-foreground: #0a0a0b;
+  --sb-muted: #52525b;
+  --sb-primary: #d90429;
+  --sb-primary-hover: #b00320;
+  --sb-primary-foreground: #ffffff;
+}
+
+.dark {
+  --sb-background: #0a0a0b;
+  --sb-surface: #141416;
+  --sb-surface-2: #1c1c1f;
+  --sb-line: #2a2a2e;
+  --sb-foreground: #f4f4f5;
+  --sb-muted: #a1a1aa;
+  --sb-primary: #ef233c;
+  --sb-primary-hover: #ff4d5e;
+  --sb-primary-foreground: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--sb-background);
+  --color-surface: var(--sb-surface);
+  --color-surface-2: var(--sb-surface-2);
+  --color-line: var(--sb-line);
+  --color-foreground: var(--sb-foreground);
+  --color-muted: var(--sb-muted);
+  --color-primary: var(--sb-primary);
+  --color-primary-hover: var(--sb-primary-hover);
+  --color-primary-foreground: var(--sb-primary-foreground);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk Variable", "Inter Variable", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+html {
+  background-color: var(--sb-background);
+  color: var(--sb-foreground);
+  font-family: var(--font-sans);
+}
