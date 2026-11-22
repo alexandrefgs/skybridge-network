@@ -6,6 +6,7 @@
     </a>
 
     <nav class="flex items-center gap-2 text-sm">
+      <a routerLink="/airports" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground">Airports</a>
       @if (auth.currentUser(); as user) {
         <a routerLink="/account/security" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground">Security</a>
         <span class="hidden px-2 text-muted sm:inline" data-testid="user-name">{{ user.firstName }} {{ user.lastName }}</span>

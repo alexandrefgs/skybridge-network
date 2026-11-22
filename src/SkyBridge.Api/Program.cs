@@ -1,4 +1,5 @@
 using SkyBridge.Api.OpenApi;
+using SkyBridge.Api.Options;
 using SkyBridge.Infrastructure;
 using SkyBridge.Infrastructure.Persistence;
 
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.Configure<MapOptions>(builder.Configuration.GetSection(MapOptions.SectionName));
 
 var app = builder.Build();
 

@@ -29,6 +29,7 @@ public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseSetting("Seed:ImportAirports", "false");
         builder.UseSetting("Seed:AdminEmail", AdminEmail);
         builder.UseSetting("Seed:AdminPassword", AdminPassword);
+        builder.UseSetting("Maps:CartoApiKey", "test-carto-key");
 
         builder.ConfigureTestServices(services =>
         {
