@@ -30,7 +30,8 @@ public static class DependencyInjection
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             })
             .AddRoles<IdentityRole<Guid>>()
-            .AddEntityFrameworkStores<SkyBridgeDbContext>();
+            .AddEntityFrameworkStores<SkyBridgeDbContext>()
+            .AddDefaultTokenProviders();
 
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
@@ -59,6 +60,9 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ITwoFactorService, TwoFactorService>();
+        services.AddDataProtection();
+        services.AddSingleton<TwoFactorLoginTokens>();
 
         services.AddHealthChecks().AddDbContextCheck<SkyBridgeDbContext>();
 

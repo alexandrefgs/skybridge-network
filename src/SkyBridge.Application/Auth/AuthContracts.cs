@@ -12,15 +12,38 @@ public sealed record LoginRequest(
     [Required, EmailAddress] string Email,
     [Required] string Password);
 
+public sealed record TwoFactorLoginRequest(
+    [Required] string TwoFactorToken,
+    [Required, MaxLength(20)] string Code);
+
+public sealed record TwoFactorCodeRequest([Required, MaxLength(20)] string Code);
+
 public sealed record AuthResponse(string AccessToken, DateTime ExpiresAtUtc);
 
-public sealed record CurrentUserResponse(Guid Id, string Email, string FirstName, string LastName, IReadOnlyList<string> Roles);
-
-public sealed record AuthResult(bool Succeeded, AuthResponse? Response, Dictionary<string, string[]> Errors)
+public sealed record LoginResponse(bool RequiresTwoFactor, string? AccessToken, DateTime? ExpiresAtUtc, string? TwoFactorToken)
 {
-    public static AuthResult Success(AuthResponse response) => new(true, response, []);
+    public static LoginResponse Authenticated(AuthResponse token) => new(false, token.AccessToken, token.ExpiresAtUtc, null);
 
-    public static AuthResult Failure(string code, string message) => new(false, null, new() { [code] = [message] });
+    public static LoginResponse TwoFactorRequired(string twoFactorToken) => new(true, null, null, twoFactorToken);
+}
 
-    public static AuthResult Failure(Dictionary<string, string[]> errors) => new(false, null, errors);
+public sealed record TwoFactorSetupResponse(string SharedKey, string AuthenticatorUri);
+
+public sealed record RecoveryCodesResponse(IReadOnlyList<string> RecoveryCodes);
+
+public sealed record CurrentUserResponse(
+    Guid Id,
+    string Email,
+    string FirstName,
+    string LastName,
+    bool TwoFactorEnabled,
+    IReadOnlyList<string> Roles);
+
+public sealed record AuthResult<T>(bool Succeeded, T? Value, Dictionary<string, string[]> Errors)
+{
+    public static AuthResult<T> Success(T value) => new(true, value, []);
+
+    public static AuthResult<T> Failure(string code, string message) => new(false, default, new() { [code] = [message] });
+
+    public static AuthResult<T> Failure(Dictionary<string, string[]> errors) => new(false, default, errors);
 }
