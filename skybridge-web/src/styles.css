@@ -49,3 +49,50 @@ html {
   color: var(--sb-foreground);
   font-family: var(--font-sans);
 }
+
+
+@layer components {
+  .sb-card {
+    @apply rounded-xl border border-line bg-surface p-8;
+  }
+
+  .sb-label {
+    @apply mb-1.5 block text-sm font-medium text-foreground;
+  }
+
+  .sb-input {
+    @apply w-full rounded-md border border-line bg-surface-2 px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-1 focus:ring-primary;
+  }
+
+  .sb-btn-primary {
+    @apply inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .sb-btn-secondary {
+    @apply inline-flex w-full items-center justify-center rounded-md border border-line px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60;
+  }
+
+  .sb-btn-ghost {
+    @apply inline-flex w-full items-center justify-center rounded-md px-4 py-2 text-sm text-muted transition-colors hover:text-foreground;
+  }
+
+  .sb-btn-danger {
+    @apply inline-flex items-center justify-center rounded-md border border-primary px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-60;
+  }
+
+  .sb-error {
+    @apply rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary;
+  }
+
+  .sb-field-error {
+    @apply mt-1.5 text-xs text-primary;
+  }
+
+  .sb-badge-on {
+    @apply rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-500;
+  }
+
+  .sb-badge-off {
+    @apply rounded-full border border-line bg-surface-2 px-3 py-1 text-xs font-semibold text-muted;
+  }
+}
