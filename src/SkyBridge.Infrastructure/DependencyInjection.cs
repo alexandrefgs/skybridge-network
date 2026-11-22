@@ -6,7 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using SkyBridge.Application.Airports;
 using SkyBridge.Application.Auth;
+using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Auth;
 using SkyBridge.Infrastructure.Identity;
 using SkyBridge.Infrastructure.Persistence;
@@ -63,6 +65,16 @@ public static class DependencyInjection
         services.AddScoped<ITwoFactorService, TwoFactorService>();
         services.AddDataProtection();
         services.AddSingleton<TwoFactorLoginTokens>();
+
+        services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.SectionName));
+
+        services.AddScoped<IAirportQueries, AirportQueries>();
+        services.AddScoped<IAirportImporter, AirportImporter>();
+        services.AddHttpClient<IAirportSource, OurAirportsSource>(client =>
+        {
+            client.BaseAddress = new Uri("https://davidmegginson.github.io/ourairports-data/");
+            client.Timeout = TimeSpan.FromMinutes(2);
+        });
 
         services.AddHealthChecks().AddDbContextCheck<SkyBridgeDbContext>();
 

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SkyBridge.IntegrationTests.Infrastructure;
 
@@ -38,5 +39,17 @@ public class HealthTests(SkyBridgeApiFactory factory)
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Equal("/swagger", response.Headers.Location?.OriginalString);
+    }
+
+    
+    [Fact]
+    public async Task OpenApi_DeclaresBearerSecurityScheme()
+    {
+        var client = factory.CreateClient();
+
+        using var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
+
+        var scheme = document.RootElement.GetProperty("components").GetProperty("securitySchemes").GetProperty("Bearer");
+        Assert.Equal("bearer", scheme.GetProperty("scheme").GetString());
     }
 }
