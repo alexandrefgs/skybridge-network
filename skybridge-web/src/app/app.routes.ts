@@ -10,7 +10,14 @@ export const routes: Routes = [
   {
     path: 'airports',
     title: 'Airports · SkyBridge',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/airports/airports.page').then(m => m.AirportsPage)
+  },
+  {
+    path: 'aircraft',
+    title: 'Aircraft · SkyBridge',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/aircraft/aircraft.page').then(m => m.AircraftPage)
   },
   {
     path: 'login',

@@ -26,10 +26,11 @@ describe('App', () => {
     expect(icon.getAttribute('src')).toBe('favicon.svg');
   });
 
-  it('shows sign in links for guests', async () => {
+  it('shows sign in links and hides the catalog for guests', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('Create account');
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-airports"]')).toBeNull();
   });
 
   it('loads the pilot profile when signed in', async () => {
@@ -44,6 +45,7 @@ describe('App', () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('[data-testid="user-name"]').textContent).toContain('Ana Silva');
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-aircraft"]')).not.toBeNull();
   });
 
   it('toggles the theme from the header', async () => {

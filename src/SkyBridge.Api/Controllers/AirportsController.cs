@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkyBridge.Application.Airports;
 using SkyBridge.Application.Common;
@@ -5,6 +6,7 @@ using SkyBridge.Application.Common;
 namespace SkyBridge.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/airports")]
 public class AirportsController(IAirportQueries airports) : ControllerBase
 {

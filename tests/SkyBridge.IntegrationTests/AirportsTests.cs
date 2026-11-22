@@ -1,8 +1,6 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using SkyBridge.Application.Airports;
-using SkyBridge.Application.Auth;
 using SkyBridge.Application.Common;
 using SkyBridge.IntegrationTests.Infrastructure;
 
@@ -25,11 +23,9 @@ public class AirportsTests(SkyBridgeApiFactory factory)
     [Fact]
     public async Task Import_Returns403_ForPilots()
     {
-        var email = $"{Guid.NewGuid():N}@skybridge.test";
-        var register = await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest("Ana", "Silva", email, "Sky!Bridge2026"));
-        var token = (await register.Content.ReadFromJsonAsync<LoginResponse>())!.AccessToken!;
+        var token = await _client.RegisterPilotAsync();
 
-        var response = await PostAuthorizedAsync(ImportUrl, token);
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Post, ImportUrl, token);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -37,10 +33,10 @@ public class AirportsTests(SkyBridgeApiFactory factory)
     [Fact]
     public async Task Import_ImportsOnlyAirports_AndIsIdempotent()
     {
-        var token = await AdminTokenAsync();
-        await PostAuthorizedAsync(ImportUrl, token);
+        var token = await _client.LoginAsAdminAsync();
+        await _client.SendAuthorizedAsync(HttpMethod.Post, ImportUrl, token);
 
-        var response = await PostAuthorizedAsync(ImportUrl, token);
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Post, ImportUrl, token);
 
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<AirportImportResult>();
@@ -48,13 +44,21 @@ public class AirportsTests(SkyBridgeApiFactory factory)
     }
 
     [Fact]
+    public async Task Search_Returns401_WhenAnonymous()
+    {
+        var response = await _client.GetAsync("/api/airports");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Search_FindsAirportByIataCode()
     {
         await EnsureImportedAsync();
 
-        var result = await _client.GetFromJsonAsync<PagedResult<AirportResponse>>("/api/airports?q=FLN");
+        var result = await GetAsPilotAsync<PagedResult<AirportResponse>>("/api/airports?q=FLN");
 
-        var airport = result!.Items[0];
+        var airport = result.Items[0];
         Assert.Equal("SBFL", airport.Ident);
         Assert.Equal("Large", airport.Type);
         Assert.Equal("Florianópolis", airport.Municipality);
@@ -65,9 +69,9 @@ public class AirportsTests(SkyBridgeApiFactory factory)
     {
         await EnsureImportedAsync();
 
-        var result = await _client.GetFromJsonAsync<PagedResult<AirportResponse>>("/api/airports?country=br&pageSize=2");
+        var result = await GetAsPilotAsync<PagedResult<AirportResponse>>("/api/airports?country=br&pageSize=2");
 
-        Assert.Equal(4, result!.TotalCount);
+        Assert.Equal(4, result.TotalCount);
         Assert.Equal(2, result.Items.Count);
         Assert.All(result.Items, airport => Assert.Equal("Large", airport.Type));
     }
@@ -77,38 +81,32 @@ public class AirportsTests(SkyBridgeApiFactory factory)
     {
         await EnsureImportedAsync();
 
-        var airport = await _client.GetFromJsonAsync<AirportResponse>("/api/airports/SSKT");
+        var airport = await GetAsPilotAsync<AirportResponse>("/api/airports/SSKT");
 
-        Assert.Equal("Small", airport!.Type);
+        Assert.Equal("Small", airport.Type);
         Assert.Null(airport.ElevationFt);
     }
 
     [Fact]
     public async Task Get_Returns404_ForUnknownIdent()
     {
-        var response = await _client.GetAsync("/api/airports/ZZZZ");
+        var token = await _client.RegisterPilotAsync();
+
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/airports/ZZZZ", token);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     private async Task EnsureImportedAsync()
     {
-        var response = await PostAuthorizedAsync(ImportUrl, await AdminTokenAsync());
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Post, ImportUrl, await _client.LoginAsAdminAsync());
         response.EnsureSuccessStatusCode();
     }
 
-    private async Task<string> AdminTokenAsync()
+    private async Task<T> GetAsPilotAsync<T>(string url)
     {
-        var response = await _client.PostAsJsonAsync("/api/auth/login",
-            new LoginRequest(SkyBridgeApiFactory.AdminEmail, SkyBridgeApiFactory.AdminPassword));
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Get, url, await _client.RegisterPilotAsync());
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<LoginResponse>())!.AccessToken!;
-    }
-
-    private async Task<HttpResponseMessage> PostAuthorizedAsync(string url, string token)
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Post, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        return await _client.SendAsync(request);
+        return (await response.Content.ReadFromJsonAsync<T>())!;
     }
 }

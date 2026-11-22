@@ -11,9 +11,17 @@ public class AircraftTests(SkyBridgeApiFactory factory)
     private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
+    public async Task GetCategories_Returns401_WhenAnonymous()
+    {
+        var response = await _client.GetAsync("/api/aircraft-categories");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetCategories_ReturnsNineInProgressionOrder()
     {
-        var categories = (await _client.GetFromJsonAsync<List<AircraftCategoryResponse>>("/api/aircraft-categories"))!;
+        var categories = await GetAsPilotAsync<List<AircraftCategoryResponse>>("/api/aircraft-categories");
 
         Assert.Equal(
             new[] { "SinglePiston", "TwinPiston", "Turboprop", "Regional", "LightJet", "MidSizeJet", "LargeBusinessJet", "Medium", "Heavy" },
@@ -41,8 +49,8 @@ public class AircraftTests(SkyBridgeApiFactory factory)
             new UpdateAircraftCategoryRequest("Mid-size jet", 160));
 
         response.EnsureSuccessStatusCode();
-        var categories = await _client.GetFromJsonAsync<List<AircraftCategoryResponse>>("/api/aircraft-categories");
-        Assert.Equal(160, categories!.Single(c => c.Code == "MidSizeJet").RequiredHours);
+        var categories = await GetAsPilotAsync<List<AircraftCategoryResponse>>("/api/aircraft-categories");
+        Assert.Equal(160, categories.Single(c => c.Code == "MidSizeJet").RequiredHours);
 
         await _client.SendAuthorizedAsync(HttpMethod.Put, "/api/admin/aircraft-categories/MidSizeJet", token,
             new UpdateAircraftCategoryRequest("Mid-size jet", 150));
@@ -51,33 +59,33 @@ public class AircraftTests(SkyBridgeApiFactory factory)
     [Fact]
     public async Task GetTypes_ReturnsTheSeededCatalog()
     {
-        var types = await _client.GetFromJsonAsync<List<AircraftTypeResponse>>("/api/aircraft-types");
+        var types = await GetAsPilotAsync<List<AircraftTypeResponse>>("/api/aircraft-types");
 
-        Assert.True(types!.Count >= 47);
+        Assert.True(types.Count >= 47);
     }
 
     [Fact]
     public async Task GetTypes_FiltersByCategory()
     {
-        var types = await _client.GetFromJsonAsync<List<AircraftTypeResponse>>("/api/aircraft-types?category=Heavy");
+        var types = await GetAsPilotAsync<List<AircraftTypeResponse>>("/api/aircraft-types?category=Heavy");
 
-        Assert.All(types!, t => Assert.Equal("Heavy", t.Category));
-        Assert.Contains(types!, t => t.IcaoCode == "B77W");
+        Assert.All(types, t => Assert.Equal("Heavy", t.Category));
+        Assert.Contains(types, t => t.IcaoCode == "B77W");
     }
 
     [Fact]
     public async Task GetTypes_SearchesByManufacturer()
     {
-        var types = await _client.GetFromJsonAsync<List<AircraftTypeResponse>>("/api/aircraft-types?q=Embraer");
+        var types = await GetAsPilotAsync<List<AircraftTypeResponse>>("/api/aircraft-types?q=Embraer");
 
-        Assert.NotEmpty(types!);
-        Assert.All(types!, t => Assert.Equal("Embraer", t.Manufacturer));
+        Assert.NotEmpty(types);
+        Assert.All(types, t => Assert.Equal("Embraer", t.Manufacturer));
     }
 
     [Fact]
     public async Task GetType_Returns404_ForUnknownCode()
     {
-        var response = await _client.GetAsync("/api/aircraft-types/ZZZZ");
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/aircraft-types/ZZZZ", await _client.RegisterPilotAsync());
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -125,11 +133,18 @@ public class AircraftTests(SkyBridgeApiFactory factory)
 
         var updated = await _client.SendAuthorizedAsync(HttpMethod.Put, $"/api/admin/aircraft-types/{code}", token, NewType(code) with { Seats = 99 });
         var deleted = await _client.SendAuthorizedAsync(HttpMethod.Delete, $"/api/admin/aircraft-types/{code}", token);
-        var afterDelete = await _client.GetAsync($"/api/aircraft-types/{code}");
+        var afterDelete = await _client.SendAuthorizedAsync(HttpMethod.Get, $"/api/aircraft-types/{code}", token);
 
         Assert.Equal(99, (await updated.Content.ReadFromJsonAsync<AircraftTypeResponse>())!.Seats);
         Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, afterDelete.StatusCode);
+    }
+
+    private async Task<T> GetAsPilotAsync<T>(string url)
+    {
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Get, url, await _client.RegisterPilotAsync());
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<T>())!;
     }
 
     private static string NewCode() => $"Z{Guid.NewGuid():N}"[..4].ToUpperInvariant();

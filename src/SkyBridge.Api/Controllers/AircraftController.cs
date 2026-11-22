@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkyBridge.Application.Aircraft;
 using SkyBridge.Domain.Aircraft;
@@ -5,6 +6,7 @@ using SkyBridge.Domain.Aircraft;
 namespace SkyBridge.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api")]
 public class AircraftController(IAircraftCatalog catalog) : ControllerBase
 {
