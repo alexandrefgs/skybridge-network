@@ -29,3 +29,10 @@ export interface AircraftType {
   seats: number;
   maxCargoKg: number;
 }
+
+export interface AircraftTypeQuery {
+  category: AircraftCategoryCode | null;
+  search: string;
+  page: number;
+  pageSize: number;
+}

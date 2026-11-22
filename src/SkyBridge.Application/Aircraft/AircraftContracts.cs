@@ -30,6 +30,8 @@ public sealed record AircraftTypeResponse(
             type.EngineCount, type.RangeNm, type.CruiseSpeedKts, type.Seats, type.MaxCargoKg);
 }
 
+public sealed record AircraftTypeSearch(AircraftCategoryCode? Category, string? Query, int Page = 1, int PageSize = 20);
+
 public sealed record AircraftTypeRequest(
     [Required, RegularExpression("^[A-Za-z0-9]{2,4}$")] string IcaoCode,
     [Required, MaxLength(60)] string Manufacturer,

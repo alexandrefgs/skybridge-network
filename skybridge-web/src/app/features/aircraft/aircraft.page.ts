@@ -2,9 +2,10 @@ import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { catchError, combineLatest, debounceTime, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
-import { AircraftCategory, AircraftCategoryCode, AircraftType } from '../../core/aircraft/aircraft.models';
-import { AircraftService } from '../../core/aircraft/aircraft.service';
+import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
+import { AircraftCategory, AircraftCategoryCode, AircraftType, AircraftTypeQuery } from '../../core/aircraft/aircraft.models';
+import { AIRCRAFT_PAGE_SIZES, AircraftService, DEFAULT_AIRCRAFT_PAGE_SIZE } from '../../core/aircraft/aircraft.service';
+import { PagedResult } from '../../core/http/paged-result';
 import { problemMessages } from '../../core/http/problem';
 
 @Component({
@@ -22,11 +23,11 @@ import { problemMessages } from '../../core/http/problem';
           <li>
             <button type="button" (click)="toggleCategory(category.code)"
               class="flex h-full w-full flex-col rounded-xl border p-3 text-left transition-colors"
-              [class.border-primary]="selectedCategory() === category.code"
-              [class.bg-surface-2]="selectedCategory() === category.code"
-              [class.border-line]="selectedCategory() !== category.code"
-              [class.bg-surface]="selectedCategory() !== category.code">
-              <span class="font-mono text-lg font-semibold" [class.text-primary]="selectedCategory() === category.code">{{ category.requiredHours }} h</span>
+              [class.border-primary]="query().category === category.code"
+              [class.bg-surface-2]="query().category === category.code"
+              [class.border-line]="query().category !== category.code"
+              [class.bg-surface]="query().category !== category.code">
+              <span class="font-mono text-lg font-semibold" [class.text-primary]="query().category === category.code">{{ category.requiredHours }} h</span>
               <span class="mt-1 text-xs leading-snug text-muted">{{ category.name }}</span>
             </button>
           </li>
@@ -37,11 +38,11 @@ import { problemMessages } from '../../core/http/problem';
     <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
       <h2 class="text-lg font-semibold">
         {{ selectedCategoryName() ?? 'All aircraft' }}
-        <span class="ml-1 text-sm font-normal text-muted" data-testid="count">· {{ types().length }} {{ types().length === 1 ? 'type' : 'types' }}</span>
+        <span class="ml-1 text-sm font-normal text-muted" data-testid="count">· {{ totalCount() }} {{ totalCount() === 1 ? 'type' : 'types' }}</span>
       </h2>
       <div class="flex items-center gap-3">
-        @if (selectedCategory()) {
-          <button type="button" class="text-sm text-muted transition-colors hover:text-primary" (click)="selectedCategory.set(null)">Show all</button>
+        @if (query().category) {
+          <button type="button" class="text-sm text-muted transition-colors hover:text-primary" (click)="setCategory(null)">Show all</button>
         }
         <input class="sb-input w-72" type="search" placeholder="Search ICAO, manufacturer or model" [formControl]="searchControl" data-testid="search">
       </div>
@@ -66,7 +67,7 @@ import { problemMessages } from '../../core/http/problem';
           </tr>
         </thead>
         <tbody class="divide-y divide-line">
-          @for (type of types(); track type.icaoCode) {
+          @for (type of result()?.items ?? []; track type.icaoCode) {
             <tr class="transition-colors hover:bg-surface-2">
               <td class="px-4 py-3 font-mono font-semibold">{{ type.icaoCode }}</td>
               <td class="px-4 py-3">
@@ -88,6 +89,30 @@ import { problemMessages } from '../../core/http/problem';
           }
         </tbody>
       </table>
+
+      @if (totalCount() > 0) {
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3 text-sm">
+          <div class="flex items-center gap-4 text-muted">
+            <label class="flex items-center gap-2">
+              Per page
+              <select class="rounded-md border border-line bg-surface-2 px-2 py-1 text-foreground outline-none focus:border-primary"
+                [value]="query().pageSize" (change)="setPageSize($any($event.target).value)" data-testid="page-size">
+                @for (size of pageSizes; track size) {
+                  <option [value]="size">{{ size }}</option>
+                }
+              </select>
+            </label>
+            <span data-testid="range">Showing {{ firstItem() }}–{{ lastItem() }} of {{ totalCount() }}</span>
+          </div>
+          @if (totalPages() > 1) {
+            <div class="flex items-center gap-4">
+              <button type="button" class="text-muted transition-colors hover:text-primary disabled:opacity-40" [disabled]="query().page <= 1 || loading()" (click)="goToPage(query().page - 1)" data-testid="previous">← Previous</button>
+              <span class="text-muted" data-testid="page">Page {{ query().page }} of {{ totalPages() }}</span>
+              <button type="button" class="text-muted transition-colors hover:text-primary disabled:opacity-40" [disabled]="query().page >= totalPages() || loading()" (click)="goToPage(query().page + 1)" data-testid="next">Next →</button>
+            </div>
+          }
+        </div>
+      }
     </div>
   `
 })
@@ -96,13 +121,18 @@ export class AircraftPage {
 
   protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected readonly categories = signal<AircraftCategory[]>([]);
-  protected readonly types = signal<AircraftType[]>([]);
-  protected readonly selectedCategory = signal<AircraftCategoryCode | null>(null);
+  protected readonly pageSizes = AIRCRAFT_PAGE_SIZES;
+  protected readonly query = signal<AircraftTypeQuery>({ category: null, search: '', page: 1, pageSize: DEFAULT_AIRCRAFT_PAGE_SIZE });
+  protected readonly result = signal<PagedResult<AircraftType> | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  protected readonly totalCount = computed(() => this.result()?.totalCount ?? 0);
+  protected readonly totalPages = computed(() => Math.ceil(this.totalCount() / this.query().pageSize));
+  protected readonly firstItem = computed(() => (this.query().page - 1) * this.query().pageSize + 1);
+  protected readonly lastItem = computed(() => Math.min(this.query().page * this.query().pageSize, this.totalCount()));
   protected readonly selectedCategoryName = computed(() => {
-    const code = this.selectedCategory();
+    const code = this.query().category;
     return code ? this.categoryName(code) : null;
   });
 
@@ -115,35 +145,46 @@ export class AircraftPage {
         error: error => this.error.set(problemMessages(error)[0])
       });
 
-    const search$ = this.searchControl.valueChanges.pipe(
-      startWith(''),
-      debounceTime(300),
-      map(value => value.trim()),
-      distinctUntilChanged()
-    );
+    this.searchControl.valueChanges
+      .pipe(debounceTime(300), map(value => value.trim()), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe(search => this.query.update(q => ({ ...q, search, page: 1 })));
 
-    combineLatest([toObservable(this.selectedCategory), search$])
+    toObservable(this.query)
       .pipe(
-        switchMap(([category, search]) => {
+        tap(() => {
           this.loading.set(true);
           this.error.set(null);
-          return this.aircraft.types(category, search).pipe(
+        }),
+        switchMap(query =>
+          this.aircraft.types(query).pipe(
             catchError(error => {
               this.error.set(problemMessages(error)[0]);
-              return of([] as AircraftType[]);
+              return of(null);
             })
-          );
-        }),
+          )
+        ),
         takeUntilDestroyed()
       )
-      .subscribe(types => {
+      .subscribe(result => {
         this.loading.set(false);
-        this.types.set(types);
+        if (result) this.result.set(result);
       });
   }
 
   protected toggleCategory(code: AircraftCategoryCode): void {
-    this.selectedCategory.update(current => (current === code ? null : code));
+    this.setCategory(this.query().category === code ? null : code);
+  }
+
+  protected setCategory(category: AircraftCategoryCode | null): void {
+    this.query.update(q => ({ ...q, category, page: 1 }));
+  }
+
+  protected setPageSize(value: string): void {
+    this.query.update(q => ({ ...q, pageSize: Number(value), page: 1 }));
+  }
+
+  protected goToPage(page: number): void {
+    this.query.update(q => ({ ...q, page }));
   }
 
   protected categoryName(code: AircraftCategoryCode): string {

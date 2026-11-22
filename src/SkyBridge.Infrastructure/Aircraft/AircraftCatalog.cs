@@ -8,6 +8,7 @@ namespace SkyBridge.Infrastructure.Aircraft;
 
 internal sealed class AircraftCatalog(SkyBridgeDbContext db) : IAircraftCatalog
 {
+    private const int MaxPageSize = 100;
     public async Task<IReadOnlyList<AircraftCategoryResponse>> GetCategoriesAsync(CancellationToken cancellationToken)
     {
         var categories = await db.AircraftCategories.AsNoTracking().OrderBy(c => c.Code).ToListAsync(cancellationToken);
@@ -25,26 +26,33 @@ internal sealed class AircraftCatalog(SkyBridgeDbContext db) : IAircraftCatalog
         return Result<AircraftCategoryResponse>.Ok(AircraftCategoryResponse.From(category));
     }
 
-    public async Task<IReadOnlyList<AircraftTypeResponse>> GetTypesAsync(AircraftCategoryCode? category, string? search, CancellationToken cancellationToken)
+    public async Task<PagedResult<AircraftTypeResponse>> GetTypesAsync(AircraftTypeSearch search, CancellationToken cancellationToken)
     {
+        var page = Math.Max(search.Page, 1);
+        var pageSize = Math.Clamp(search.PageSize, 1, MaxPageSize);
         var query = db.AircraftTypes.AsNoTracking();
 
-        if (category is not null)
-            query = query.Where(t => t.Category == category.Value);
+        if (search.Category is not null)
+            query = query.Where(t => t.Category == search.Category.Value);
 
-        if (!string.IsNullOrWhiteSpace(search))
+        if (!string.IsNullOrWhiteSpace(search.Query))
         {
-            var term = search.Trim();
+            var term = search.Query.Trim();
             query = query.Where(t => t.IcaoCode.Contains(term) || t.Manufacturer.Contains(term) || t.Model.Contains(term));
         }
+
+        var total = await query.CountAsync(cancellationToken);
 
         var types = await query
             .OrderBy(t => t.Category)
             .ThenBy(t => t.Manufacturer)
             .ThenBy(t => t.Model)
+            .ThenBy(t => t.IcaoCode)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return types.Select(AircraftTypeResponse.From).ToList();
+        return new PagedResult<AircraftTypeResponse>(types.Select(AircraftTypeResponse.From).ToList(), page, pageSize, total);
     }
 
     public async Task<AircraftTypeResponse?> GetTypeAsync(string icaoCode, CancellationToken cancellationToken)

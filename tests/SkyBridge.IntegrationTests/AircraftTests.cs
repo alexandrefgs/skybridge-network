@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using SkyBridge.Application.Aircraft;
+using SkyBridge.Application.Common;
 using SkyBridge.IntegrationTests.Infrastructure;
 
 namespace SkyBridge.IntegrationTests;
@@ -59,15 +60,27 @@ public class AircraftTests(SkyBridgeApiFactory factory)
     [Fact]
     public async Task GetTypes_ReturnsTheSeededCatalog()
     {
-        var types = await GetAsPilotAsync<List<AircraftTypeResponse>>("/api/aircraft-types");
+        var result = await GetAsPilotAsync<PagedResult<AircraftTypeResponse>>("/api/aircraft-types");
 
-        Assert.True(types.Count >= 47);
+        Assert.True(result.TotalCount >= 47);
+        Assert.Equal(20, result.Items.Count);
+    }
+
+    [Fact]
+    public async Task GetTypes_PagesWithinTheFilteredResults()
+    {
+        var result = await GetAsPilotAsync<PagedResult<AircraftTypeResponse>>("/api/aircraft-types?category=Heavy&page=2&pageSize=5");
+
+        Assert.Equal(9, result.TotalCount);
+        Assert.Equal(2, result.Page);
+        Assert.Equal(4, result.Items.Count);
+        Assert.All(result.Items, t => Assert.Equal("Heavy", t.Category));
     }
 
     [Fact]
     public async Task GetTypes_FiltersByCategory()
     {
-        var types = await GetAsPilotAsync<List<AircraftTypeResponse>>("/api/aircraft-types?category=Heavy");
+        var types = (await GetAsPilotAsync<PagedResult<AircraftTypeResponse>>("/api/aircraft-types?category=Heavy")).Items;
 
         Assert.All(types, t => Assert.Equal("Heavy", t.Category));
         Assert.Contains(types, t => t.IcaoCode == "B77W");
@@ -76,7 +89,7 @@ public class AircraftTests(SkyBridgeApiFactory factory)
     [Fact]
     public async Task GetTypes_SearchesByManufacturer()
     {
-        var types = await GetAsPilotAsync<List<AircraftTypeResponse>>("/api/aircraft-types?q=Embraer");
+        var types = (await GetAsPilotAsync<PagedResult<AircraftTypeResponse>>("/api/aircraft-types?q=Embraer")).Items;
 
         Assert.NotEmpty(types);
         Assert.All(types, t => Assert.Equal("Embraer", t.Manufacturer));

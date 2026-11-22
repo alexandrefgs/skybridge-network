@@ -1,7 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AircraftCategory, AircraftCategoryCode, AircraftType } from './aircraft.models';
+import { PagedResult } from '../http/paged-result';
+import { AircraftCategory, AircraftType, AircraftTypeQuery } from './aircraft.models';
+
+export const AIRCRAFT_PAGE_SIZES = [5, 10, 20, 50, 100] as const;
+export const DEFAULT_AIRCRAFT_PAGE_SIZE = 10;
 
 @Injectable({ providedIn: 'root' })
 export class AircraftService {
@@ -11,10 +15,10 @@ export class AircraftService {
     return this.http.get<AircraftCategory[]>('/api/aircraft-categories');
   }
 
-  types(category: AircraftCategoryCode | null, search: string): Observable<AircraftType[]> {
-    let params = new HttpParams();
-    if (category) params = params.set('category', category);
-    if (search) params = params.set('q', search);
-    return this.http.get<AircraftType[]>('/api/aircraft-types', { params });
+  types(query: AircraftTypeQuery): Observable<PagedResult<AircraftType>> {
+    let params = new HttpParams().set('page', query.page).set('pageSize', query.pageSize);
+    if (query.category) params = params.set('category', query.category);
+    if (query.search) params = params.set('q', query.search);
+    return this.http.get<PagedResult<AircraftType>>('/api/aircraft-types', { params });
   }
 }

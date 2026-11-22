@@ -31,12 +31,11 @@ describe('AircraftPage', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  const render = async () => {
+  const render = async (totalCount = 2) => {
     const fixture = TestBed.createComponent(AircraftPage);
     await fixture.whenStable();
     http.expectOne('/api/aircraft-categories').flush(categories);
-    await new Promise(resolve => setTimeout(resolve, 350));
-    http.expectOne(r => r.url === '/api/aircraft-types').flush([c172, b77w]);
+    http.expectOne(r => r.url === '/api/aircraft-types').flush({ items: [c172, b77w], page: 1, pageSize: 10, totalCount });
     await fixture.whenStable();
     return fixture;
   };
@@ -58,9 +57,45 @@ describe('AircraftPage', () => {
 
     const request = http.expectOne(r => r.url === '/api/aircraft-types');
     expect(request.request.params.get('category')).toBe('Heavy');
-    request.flush([b77w]);
+    expect(request.request.params.get('page')).toBe('1');
+    request.flush({ items: [b77w], page: 1, pageSize: 10, totalCount: 1 });
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('[data-testid="count"]').textContent).toContain('1 type');
+  });
+
+  it('pages through the list', async () => {
+    const fixture = await render(47);
+
+    expect(fixture.nativeElement.querySelector('[data-testid="page"]').textContent).toContain('Page 1 of 5');
+    fixture.nativeElement.querySelector('[data-testid="next"]').click();
+    await fixture.whenStable();
+
+    const request = http.expectOne(r => r.url === '/api/aircraft-types');
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('pageSize')).toBe('10');
+    request.flush({ items: [c172], page: 2, pageSize: 10, totalCount: 47 });
+  });
+
+  it('changes the page size and goes back to the first page', async () => {
+    const fixture = await render(47);
+    fixture.nativeElement.querySelector('[data-testid="next"]').click();
+    await fixture.whenStable();
+    http.expectOne(r => r.url === '/api/aircraft-types').flush({ items: [c172], page: 2, pageSize: 10, totalCount: 47 });
+    await fixture.whenStable();
+
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector('[data-testid="page-size"]');
+    select.value = '50';
+    select.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+
+    const request = http.expectOne(r => r.url === '/api/aircraft-types');
+    expect(request.request.params.get('pageSize')).toBe('50');
+    expect(request.request.params.get('page')).toBe('1');
+    request.flush({ items: [c172, b77w], page: 1, pageSize: 50, totalCount: 47 });
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="range"]').textContent).toContain('Showing 1–47 of 47');
+    expect(fixture.nativeElement.querySelector('[data-testid="page"]')).toBeNull();
   });
 });

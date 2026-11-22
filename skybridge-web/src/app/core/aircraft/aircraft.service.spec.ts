@@ -15,20 +15,23 @@ describe('AircraftService', () => {
 
   afterEach(() => http.verify());
 
-  it('filters types by category and search', () => {
-    service.types('Heavy', 'Boeing').subscribe();
+  it('sends category, search and paging parameters', () => {
+    service.types({ category: 'Heavy', search: 'Boeing', page: 2, pageSize: 50 }).subscribe();
 
     const request = http.expectOne(r => r.url === '/api/aircraft-types');
     expect(request.request.params.get('category')).toBe('Heavy');
     expect(request.request.params.get('q')).toBe('Boeing');
-    request.flush([]);
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('pageSize')).toBe('50');
+    request.flush({ items: [], page: 2, pageSize: 50, totalCount: 0 });
   });
 
   it('omits empty filters', () => {
-    service.types(null, '').subscribe();
+    service.types({ category: null, search: '', page: 1, pageSize: 10 }).subscribe();
 
     const request = http.expectOne(r => r.url === '/api/aircraft-types');
-    expect(request.request.params.keys()).toEqual([]);
-    request.flush([]);
+    expect(request.request.params.has('category')).toBe(false);
+    expect(request.request.params.has('q')).toBe(false);
+    request.flush({ items: [], page: 1, pageSize: 20, totalCount: 0 });
   });
 });
