@@ -1,7 +1,13 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using SkyBridge.Application.Auth;
+using SkyBridge.Infrastructure.Auth;
 using SkyBridge.Infrastructure.Identity;
 using SkyBridge.Infrastructure.Persistence;
 
@@ -16,9 +22,43 @@ public static class DependencyInjection
 
         services.AddDbContext<SkyBridgeDbContext>(options => options.UseSqlServer(connectionString));
 
-        services.AddIdentityCore<ApplicationUser>()
+        services.AddIdentityCore<ApplicationUser>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 8;
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<SkyBridgeDbContext>();
+
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+        services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<JwtOptions>>((options, jwtOptions) =>
+            {
+                var jwt = jwtOptions.Value;
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidIssuer = jwt.Issuer,
+                    ValidAudience = jwt.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
+                    ValidateIssuerSigningKey = true,
+                    NameClaimType = "name",
+                    RoleClaimType = "role",
+                    ClockSkew = TimeSpan.FromSeconds(30)
+                };
+            });
+        services.AddAuthorization();
+
+        services.AddSingleton(TimeProvider.System);
+        services.AddScoped<JwtTokenService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         services.AddHealthChecks().AddDbContextCheck<SkyBridgeDbContext>();
 

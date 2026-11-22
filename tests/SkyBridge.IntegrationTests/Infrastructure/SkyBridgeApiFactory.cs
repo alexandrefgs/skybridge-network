@@ -7,8 +7,7 @@ namespace SkyBridge.IntegrationTests.Infrastructure;
 
 public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly MsSqlContainer _sql = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+    private readonly MsSqlContainer _sql = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
         .Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
