@@ -37,7 +37,7 @@ public static class OurAirportsCsvReader
 
             var ident = Field(fields, columns, "ident");
             var name = Field(fields, columns, "name");
-            if (ident.Length == 0 || name.Length == 0)
+            if (ident.Length == 0 || name.Length == 0 || name.StartsWith("(Duplicate)", StringComparison.OrdinalIgnoreCase))
                 continue;
 
             yield return new AirportData(
