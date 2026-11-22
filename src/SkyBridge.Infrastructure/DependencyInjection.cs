@@ -6,7 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using SkyBridge.Application.Aircraft;
 using SkyBridge.Application.Airports;
+using SkyBridge.Infrastructure.Aircraft;
 using SkyBridge.Application.Auth;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Auth;
@@ -69,6 +71,7 @@ public static class DependencyInjection
         services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.SectionName));
 
         services.AddScoped<IAirportQueries, AirportQueries>();
+        services.AddScoped<IAircraftCatalog, AircraftCatalog>();
         services.AddScoped<IAirportImporter, AirportImporter>();
         services.AddHttpClient<IAirportSource, OurAirportsSource>(client =>
         {

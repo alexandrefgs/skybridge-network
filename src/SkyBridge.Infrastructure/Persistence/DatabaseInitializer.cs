@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SkyBridge.Application.Airports;
+using SkyBridge.Domain.Aircraft;
+using SkyBridge.Infrastructure.Persistence.Seed;
 using SkyBridge.Domain.Users;
 using SkyBridge.Infrastructure.Identity;
 
@@ -22,6 +24,7 @@ public static class DatabaseInitializer
         await db.Database.MigrateAsync(cancellationToken);
 
         await SeedRolesAsync(provider.GetRequiredService<RoleManager<IdentityRole<Guid>>>());
+        await SeedAircraftTypesAsync(db, cancellationToken);
         await SeedAdminAsync(provider.GetRequiredService<UserManager<ApplicationUser>>(), seed, logger);
 
         if (seed.ImportAirports && !await db.Airports.AnyAsync(cancellationToken))
@@ -35,6 +38,15 @@ public static class DatabaseInitializer
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole<Guid>(role));
         }
+    }
+
+    private static async Task SeedAircraftTypesAsync(SkyBridgeDbContext db, CancellationToken cancellationToken)
+    {
+        if (await db.AircraftTypes.AnyAsync(cancellationToken))
+            return;
+
+        db.AircraftTypes.AddRange(AircraftCatalogSeed.Types.Select(AircraftType.Create));
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private static async Task SeedAdminAsync(UserManager<ApplicationUser> userManager, SeedOptions seed, ILogger logger)

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SkyBridge.Domain.Aircraft;
 using SkyBridge.Domain.Airports;
 using SkyBridge.Infrastructure.Identity;
 
@@ -10,6 +11,8 @@ public class SkyBridgeDbContext(DbContextOptions<SkyBridgeDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     public DbSet<Airport> Airports => Set<Airport>();
+    public DbSet<AircraftCategory> AircraftCategories => Set<AircraftCategory>();
+    public DbSet<AircraftType> AircraftTypes => Set<AircraftType>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

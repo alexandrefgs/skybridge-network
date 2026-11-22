@@ -153,6 +153,134 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SkyBridge.Domain.Aircraft.AircraftCategory", b =>
+                {
+                    b.Property<int>("Code")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("RequiredHours")
+                        .HasColumnType("int");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("AircraftCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            Code = 1,
+                            Name = "Single piston",
+                            RequiredHours = 0
+                        },
+                        new
+                        {
+                            Code = 2,
+                            Name = "Twin piston",
+                            RequiredHours = 0
+                        },
+                        new
+                        {
+                            Code = 3,
+                            Name = "Turboprop",
+                            RequiredHours = 25
+                        },
+                        new
+                        {
+                            Code = 4,
+                            Name = "Regional",
+                            RequiredHours = 75
+                        },
+                        new
+                        {
+                            Code = 5,
+                            Name = "Light jet",
+                            RequiredHours = 75
+                        },
+                        new
+                        {
+                            Code = 6,
+                            Name = "Mid-size jet",
+                            RequiredHours = 150
+                        },
+                        new
+                        {
+                            Code = 7,
+                            Name = "Large business jet",
+                            RequiredHours = 300
+                        },
+                        new
+                        {
+                            Code = 8,
+                            Name = "Medium (narrow-body)",
+                            RequiredHours = 300
+                        },
+                        new
+                        {
+                            Code = 9,
+                            Name = "Heavy (wide-body)",
+                            RequiredHours = 600
+                        });
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Aircraft.AircraftType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CruiseSpeedKts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EngineCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EngineType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("IcaoCode")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<string>("Manufacturer")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int>("MaxCargoKg")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int>("RangeNm")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Seats")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("IcaoCode")
+                        .IsUnique();
+
+                    b.ToTable("AircraftTypes");
+                });
+
             modelBuilder.Entity("SkyBridge.Domain.Airports.Airport", b =>
                 {
                     b.Property<int>("Id")
@@ -349,6 +477,15 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Aircraft.AircraftType", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Aircraft.AircraftCategory", null)
+                        .WithMany()
+                        .HasForeignKey("Category")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

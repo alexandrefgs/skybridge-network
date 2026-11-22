@@ -10,7 +10,7 @@
   "scripts": {
     "api": "dotnet watch --project src/SkyBridge.Api --launch-profile https",
     "web": "npm --prefix skybridge-web start -- --open",
-    "dev": "concurrently -n api,web -c red,white \"npm run api\" \"npm run web\"",
+    "dev": "concurrently -n api,web -c red,white \"npm run api\" \"wait-on --timeout 180000 tcp:localhost:5079 && npm run web\"",
     "test": "dotnet test && npm --prefix skybridge-web test -- --watch=false"
   },
   "keywords": [],
@@ -18,7 +18,8 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "concurrently": "^10.0.7"
+    "concurrently": "^10.0.7",
+    "wait-on": "^9.5.1"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
