@@ -56,11 +56,16 @@ import { AirportMap } from '../../shared/map/airport-map';
           }
         </ul>
 
-        @if (totalPages() > 1) {
-          <div class="flex items-center justify-between border-t border-line px-4 py-3 text-sm">
-            <button type="button" class="text-muted transition-colors hover:text-primary disabled:opacity-40" [disabled]="query().page <= 1 || loading()" (click)="goToPage(query().page - 1)">← Previous</button>
-            <span class="text-muted" data-testid="page">Page {{ query().page }} of {{ totalPages() | number }}</span>
-            <button type="button" class="text-muted transition-colors hover:text-primary disabled:opacity-40" [disabled]="query().page >= totalPages() || loading()" (click)="goToPage(query().page + 1)" data-testid="next">Next →</button>
+        @if (totalCount() > 0) {
+          <div class="border-t border-line px-4 py-3 text-sm">
+            <p class="text-muted" data-testid="range">Showing {{ firstItem() | number }}–{{ lastItem() | number }} of {{ totalCount() | number }}</p>
+            @if (totalPages() > 1) {
+              <div class="mt-2 flex items-center justify-between">
+                <button type="button" class="text-muted transition-colors hover:text-primary disabled:opacity-40" [disabled]="query().page <= 1 || loading()" (click)="goToPage(query().page - 1)" data-testid="previous">← Previous</button>
+                <span class="text-muted" data-testid="page">Page {{ query().page | number }} of {{ totalPages() | number }}</span>
+                <button type="button" class="text-muted transition-colors hover:text-primary disabled:opacity-40" [disabled]="query().page >= totalPages() || loading()" (click)="goToPage(query().page + 1)" data-testid="next">Next →</button>
+              </div>
+            }
           </div>
         }
       </section>
@@ -115,7 +120,10 @@ export class AirportsPage {
   protected readonly selected = signal<Airport | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly totalPages = computed(() => Math.ceil((this.result()?.totalCount ?? 0) / AIRPORTS_PAGE_SIZE));
+  protected readonly totalCount = computed(() => this.result()?.totalCount ?? 0);
+  protected readonly totalPages = computed(() => Math.ceil(this.totalCount() / AIRPORTS_PAGE_SIZE));
+  protected readonly firstItem = computed(() => (this.query().page - 1) * AIRPORTS_PAGE_SIZE + 1);
+  protected readonly lastItem = computed(() => Math.min(this.query().page * AIRPORTS_PAGE_SIZE, this.totalCount()));
 
   constructor() {
     this.searchControl.valueChanges

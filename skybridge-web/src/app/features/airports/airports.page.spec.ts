@@ -66,6 +66,13 @@ describe('AirportsPage', () => {
     expect(details.textContent).toContain('16 ft');
   });
 
+  it('shows the range with seven airports per page', async () => {
+    const fixture = await render(45);
+
+    expect(fixture.nativeElement.querySelector('[data-testid="range"]').textContent).toContain('Showing 1–7 of 45');
+    expect(fixture.nativeElement.querySelector('[data-testid="page"]').textContent).toContain('Page 1 of 7');
+  });
+
   it('requests the next page', async () => {
     const fixture = await render(45);
 
@@ -74,7 +81,7 @@ describe('AirportsPage', () => {
 
     const request = http.expectOne(r => r.url === '/api/airports');
     expect(request.request.params.get('page')).toBe('2');
-    request.flush({ items: [], page: 2, pageSize: 20, totalCount: 45 });
+    request.flush({ items: [], page: 2, pageSize: 7, totalCount: 45 });
   });
 
   it('shows an empty state when nothing matches', async () => {

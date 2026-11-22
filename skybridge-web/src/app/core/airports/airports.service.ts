@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Airport, AirportQuery, PagedResult } from './airport.models';
 
-export const AIRPORTS_PAGE_SIZE = 20;
+export const AIRPORTS_PAGE_SIZE = 7;
 
 @Injectable({ providedIn: 'root' })
 export class AirportsService {
