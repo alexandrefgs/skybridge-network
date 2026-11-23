@@ -20,4 +20,38 @@ public class RouteTests
     {
         Assert.Throws<ArgumentException>(() => Route.Create(1, 10, 0, 0, 10, 0, 0));
     }
+
+    [Fact]
+    public void SetDetails_NormalizesTheRoute_AndReportsChanges()
+    {
+        var route = Route.Create(1, 10, 0, 0, 20, 1, 1);
+
+        Assert.True(route.SetDetails("  nibru   uz171 kevun ", 370));
+        Assert.Equal("NIBRU UZ171 KEVUN", route.AtsRoute);
+        Assert.Equal(370, route.FlightLevel);
+        Assert.False(route.SetDetails("NIBRU UZ171 KEVUN", 370));
+        Assert.True(route.SetDetails(" ", null));
+        Assert.Null(route.AtsRoute);
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(610)]
+    public void SetDetails_RejectsFlightLevelsOutOfRange(int level)
+    {
+        var route = Route.Create(1, 10, 0, 0, 20, 1, 1);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => route.SetDetails(null, level));
+    }
+
+    [Fact]
+    public void SetAircraft_ReportsChanges()
+    {
+        var route = Route.Create(1, 10, 0, 0, 20, 1, 1);
+
+        Assert.True(route.SetAircraft([1, 2]));
+        Assert.False(route.SetAircraft([2, 1]));
+        Assert.True(route.SetAircraft([2]));
+        Assert.Equal(new[] { 2 }, route.Aircraft.Select(a => a.AircraftTypeId));
+    }
 }

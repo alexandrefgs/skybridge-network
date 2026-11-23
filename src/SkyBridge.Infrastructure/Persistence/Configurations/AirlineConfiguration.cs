@@ -14,6 +14,7 @@ internal sealed class AirlineConfiguration : IEntityTypeConfiguration<Airline>
         builder.Property(a => a.IcaoCode).HasMaxLength(3);
         builder.Property(a => a.Callsign).HasMaxLength(60);
         builder.Property(a => a.Country).HasMaxLength(60);
+        builder.Property(a => a.RoutesSource).HasMaxLength(20);
 
         builder.HasIndex(a => a.SourceId).IsUnique().HasFilter("[SourceId] IS NOT NULL");
         builder.HasIndex(a => a.IcaoCode);

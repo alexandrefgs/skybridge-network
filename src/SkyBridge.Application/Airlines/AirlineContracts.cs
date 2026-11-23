@@ -24,7 +24,10 @@ public sealed record AirlineDetailResponse(
     string? Country,
     bool IsActive,
     int RouteCount,
-    IReadOnlyList<FleetTypeResponse> Fleet);
+    IReadOnlyList<FleetTypeResponse> Fleet,
+    DateTimeOffset? RoutesUpdatedAtUtc,
+    string? RoutesSource,
+    DateOnly? RoutesEdition);
 
 public sealed record AirlineSearch(string? Query, bool? Active, int Page = 1, int PageSize = 20);
 
@@ -49,10 +52,35 @@ public sealed record RouteResponse(
     string Destination,
     string? DestinationIata,
     string DestinationName,
-    int DistanceNm);
+    int DistanceNm,
+    IReadOnlyList<string> Aircraft,
+    string? AtsRoute,
+    int? FlightLevel);
 
 public sealed record RouteSearch(string? Query, int Page = 1, int PageSize = 20);
 
-public sealed record RouteRequest([Required, MaxLength(16)] string Origin, [Required, MaxLength(16)] string Destination);
+public sealed record RouteRequest(
+    [Required, MaxLength(16)] string Origin,
+    [Required, MaxLength(16)] string Destination,
+    IReadOnlyList<string>? Aircraft = null,
+    [MaxLength(500)] string? AtsRoute = null,
+    [Range(10, 600)] int? FlightLevel = null);
+
+public sealed record RouteDetailsRequest(
+    IReadOnlyList<string>? Aircraft,
+    [MaxLength(500)] string? AtsRoute,
+    [Range(10, 600)] int? FlightLevel);
+
+public sealed record RouteImportIssue(int Line, string Message);
+
+public sealed record RouteImportResult(
+    string Format,
+    DateOnly? Edition,
+    int Added,
+    int Updated,
+    int Unchanged,
+    int Skipped,
+    IReadOnlyList<string> FleetAdded,
+    IReadOnlyList<RouteImportIssue> Issues);
 
 public sealed record AirlineImportResult(int AirlinesAdded, int AirlinesUpdated, int RoutesAdded, int RoutesSkipped);

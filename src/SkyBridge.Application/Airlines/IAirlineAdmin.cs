@@ -9,5 +9,9 @@ public interface IAirlineAdmin
     Task<Result<bool>> DeleteAsync(int id, CancellationToken cancellationToken);
     Task<Result<AirlineDetailResponse>> SetFleetAsync(int id, FleetRequest request, CancellationToken cancellationToken);
     Task<Result<RouteResponse>> AddRouteAsync(int airlineId, RouteRequest request, CancellationToken cancellationToken);
+    Task<Result<RouteResponse>> UpdateRouteAsync(int airlineId, int routeId, RouteDetailsRequest request, CancellationToken cancellationToken);
     Task<Result<bool>> DeleteRouteAsync(int airlineId, int routeId, CancellationToken cancellationToken);
+    Task<Result<int>> DeleteAllRoutesAsync(int airlineId, CancellationToken cancellationToken);
+    Task<Result<RouteImportResult>> ImportRoutesAsync(int airlineId, Stream file, CancellationToken cancellationToken);
+    Task<Result<RouteImportResult>> SyncRoutesFromCgnaAsync(int airlineId, CancellationToken cancellationToken);
 }

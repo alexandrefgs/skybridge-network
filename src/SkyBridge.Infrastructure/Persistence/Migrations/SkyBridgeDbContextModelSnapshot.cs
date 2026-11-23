@@ -316,6 +316,16 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateOnly?>("RoutesEdition")
+                        .HasColumnType("date");
+
+                    b.Property<string>("RoutesSource")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset?>("RoutesUpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int?>("SourceId")
                         .HasColumnType("int");
 
@@ -429,10 +439,17 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<int>("AirlineId")
                         .HasColumnType("int");
 
+                    b.Property<string>("AtsRoute")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("DestinationAirportId")
                         .HasColumnType("int");
 
                     b.Property<int>("DistanceNm")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FlightLevel")
                         .HasColumnType("int");
 
                     b.Property<int>("OriginAirportId")
@@ -448,6 +465,21 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Routes");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Routes.RouteAircraft", b =>
+                {
+                    b.Property<int>("RouteId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AircraftTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RouteId", "AircraftTypeId");
+
+                    b.HasIndex("AircraftTypeId");
+
+                    b.ToTable("RouteAircraft");
                 });
 
             modelBuilder.Entity("SkyBridge.Infrastructure.Identity.ApplicationUser", b =>
@@ -625,9 +657,29 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SkyBridge.Domain.Routes.RouteAircraft", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Aircraft.AircraftType", null)
+                        .WithMany()
+                        .HasForeignKey("AircraftTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Routes.Route", null)
+                        .WithMany("Aircraft")
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SkyBridge.Domain.Airlines.Airline", b =>
                 {
                     b.Navigation("Fleet");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Routes.Route", b =>
+                {
+                    b.Navigation("Aircraft");
                 });
 #pragma warning restore 612, 618
         }

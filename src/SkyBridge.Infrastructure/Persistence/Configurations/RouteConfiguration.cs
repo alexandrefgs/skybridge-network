@@ -11,6 +11,7 @@ internal sealed class RouteConfiguration : IEntityTypeConfiguration<Route>
     public void Configure(EntityTypeBuilder<Route> builder)
     {
         builder.HasKey(r => r.Id);
+        builder.Property(r => r.AtsRoute).HasMaxLength(Route.MaxAtsRouteLength);
         builder.HasIndex(r => new { r.AirlineId, r.OriginAirportId, r.DestinationAirportId }).IsUnique();
 
         builder.HasOne<Airline>()
@@ -27,5 +28,11 @@ internal sealed class RouteConfiguration : IEntityTypeConfiguration<Route>
             .WithMany()
             .HasForeignKey(r => r.DestinationAirportId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(r => r.Aircraft)
+            .WithOne()
+            .HasForeignKey(a => a.RouteId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(r => r.Aircraft).UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

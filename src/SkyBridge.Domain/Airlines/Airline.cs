@@ -16,6 +16,9 @@ public sealed partial class Airline
     public string? Callsign { get; private set; }
     public string? Country { get; private set; }
     public bool IsActive { get; private set; }
+    public DateTimeOffset? RoutesUpdatedAtUtc { get; private set; }
+    public string? RoutesSource { get; private set; }
+    public DateOnly? RoutesEdition { get; private set; }
     public IReadOnlyCollection<AirlineAircraft> Fleet => _fleet;
 
     public static Airline Create(AirlineData data, int? sourceId = null)
@@ -56,6 +59,14 @@ public sealed partial class Airline
         _fleet.RemoveAll(entry => !wanted.Contains(entry.AircraftTypeId));
         foreach (var id in wanted.Where(id => _fleet.All(entry => entry.AircraftTypeId != id)))
             _fleet.Add(new AirlineAircraft(id));
+    }
+
+    public void MarkRoutesUpdated(string source, DateOnly? edition, DateTimeOffset updatedAtUtc)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(source);
+        RoutesSource = source.Trim();
+        RoutesEdition = edition;
+        RoutesUpdatedAtUtc = updatedAtUtc;
     }
 
     public AirlineData ToData() => new(Name, IataCode, IcaoCode, Callsign, Country, IsActive);

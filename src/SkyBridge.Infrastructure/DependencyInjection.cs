@@ -89,6 +89,11 @@ public static class DependencyInjection
             client.BaseAddress = new Uri("https://raw.githubusercontent.com/jpatokal/openflights/master/data/");
             client.Timeout = TimeSpan.FromMinutes(2);
         });
+        services.AddHttpClient<IRplSource, CgnaRplSource>(client =>
+        {
+            client.BaseAddress = new Uri("https://portal.cgna.decea.mil.br/files/abas/");
+            client.Timeout = TimeSpan.FromMinutes(1);
+        });
 
         services.AddHealthChecks().AddDbContextCheck<SkyBridgeDbContext>();
 

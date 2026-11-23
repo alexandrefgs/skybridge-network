@@ -39,6 +39,8 @@ public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsync
             services.AddSingleton<IAirportSource, FakeAirportSource>();
             services.RemoveAll<IAirlineSource>();
             services.AddSingleton<IAirlineSource, FakeAirlineSource>();
+            services.RemoveAll<IRplSource>();
+            services.AddSingleton<IRplSource, FakeRplSource>();
         });
     }
 
