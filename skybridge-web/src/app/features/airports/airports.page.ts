@@ -3,7 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
-import { Airport, AirportQuery, PagedResult } from '../../core/airports/airport.models';
+import { Airport, AirportQuery, PagedResult, Runway, RunwaySurfaceType } from '../../core/airports/airport.models';
 import { AIRPORTS_PAGE_SIZE, AirportsService } from '../../core/airports/airports.service';
 import { problemMessages } from '../../core/http/problem';
 import { AirportMap } from '../../shared/map/airport-map';
@@ -101,6 +101,54 @@ import { AirportMap } from '../../shared/map/airport-map';
                 <dd>{{ airport.scheduledService ? 'Yes' : 'No' }}</dd>
               </div>
             </dl>
+
+            <div class="mt-6 border-t border-line pt-5" data-testid="runways">
+              <h3 class="text-sm font-semibold">Runways</h3>
+              @if (runways(); as list) {
+                @if (list.length) {
+                  <div class="mt-2 overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead class="text-left text-xs uppercase tracking-wide text-muted">
+                        <tr>
+                          <th class="py-2 pr-4 font-medium">Runway</th>
+                          <th class="py-2 pr-4 text-right font-medium">Length</th>
+                          <th class="py-2 pr-4 text-right font-medium">Width</th>
+                          <th class="py-2 pr-4 font-medium">Surface</th>
+                          <th class="py-2 font-medium">Lights</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-line">
+                        @for (runway of list; track $index) {
+                          <tr data-testid="runway-row">
+                            <td class="py-2 pr-4 font-mono font-semibold">{{ runway.name }}</td>
+                            <td class="whitespace-nowrap py-2 pr-4 text-right font-mono">
+                              @if (runway.lengthFt === null) {
+                                —
+                              } @else {
+                                {{ runway.lengthFt | number }} ft <span class="text-xs text-muted">{{ metres(runway.lengthFt) | number }} m</span>
+                              }
+                            </td>
+                            <td class="whitespace-nowrap py-2 pr-4 text-right font-mono">{{ runway.widthFt === null ? '—' : (runway.widthFt | number) + ' ft' }}</td>
+                            <td class="py-2 pr-4">
+                              <span class="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                                [class]="surfaceClass(runway.surfaceType)">{{ runway.surfaceType }}</span>
+                              @if (runway.surface) {
+                                <span class="ml-2 font-mono text-xs text-muted">{{ runway.surface }}</span>
+                              }
+                            </td>
+                            <td class="py-2 text-muted">{{ runway.lighted ? 'Yes' : '—' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <p class="mt-2 text-sm text-muted" data-testid="no-runways">No runway data for this airport.</p>
+                }
+              } @else {
+                <p class="mt-2 text-sm text-muted">Loading runways…</p>
+              }
+            </div>
           </div>
         } @else {
           <p class="text-sm text-muted">Select an airport on the list or on the map to see its details.</p>
@@ -118,6 +166,7 @@ export class AirportsPage {
   protected readonly query = signal<AirportQuery>({ search: '', country: '', page: 1 });
   protected readonly result = signal<PagedResult<Airport> | null>(null);
   protected readonly selected = signal<Airport | null>(null);
+  protected readonly runways = signal<Runway[] | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly totalCount = computed(() => this.result()?.totalCount ?? 0);
@@ -154,6 +203,24 @@ export class AirportsPage {
         this.loading.set(false);
         if (result) this.result.set(result);
       });
+
+    toObservable(this.selected)
+      .pipe(
+        tap(() => this.runways.set(null)),
+        switchMap(airport => (airport ? this.airports.runways(airport.ident).pipe(catchError(() => of([]))) : of(null))),
+        takeUntilDestroyed()
+      )
+      .subscribe(runways => this.runways.set(runways));
+  }
+
+  protected metres(feet: number): number {
+    return Math.round(feet * 0.3048);
+  }
+
+  protected surfaceClass(type: RunwaySurfaceType): string {
+    if (type === 'Paved') return 'border-line text-foreground';
+    if (type === 'Unpaved') return 'border-amber-500/40 text-amber-500';
+    return 'border-line text-muted';
   }
 
   protected select(airport: Airport): void {

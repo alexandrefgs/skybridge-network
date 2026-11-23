@@ -79,6 +79,7 @@ public static class DependencyInjection
         services.AddScoped<IAirportQueries, AirportQueries>();
         services.AddScoped<IAircraftCatalog, AircraftCatalog>();
         services.AddScoped<IAirportImporter, AirportImporter>();
+        services.AddScoped<IRunwayImporter, RunwayImporter>();
         services.AddHttpClient<IAirportSource, OurAirportsSource>(client =>
         {
             client.BaseAddress = new Uri("https://davidmegginson.github.io/ourairports-data/");

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using SkyBridge.Domain.Airports;
 
 namespace SkyBridge.Domain.Aircraft;
 
@@ -18,6 +19,8 @@ public sealed partial class AircraftType
     public int ServiceCeilingFt { get; private set; }
     public int Seats { get; private set; }
     public int MaxCargoKg { get; private set; }
+    public int MinRunwayFt { get; private set; }
+    public bool RequiresPavedRunway { get; private set; }
 
     public static AircraftType Create(AircraftTypeData data)
     {
@@ -44,6 +47,7 @@ public sealed partial class AircraftType
         ArgumentOutOfRangeException.ThrowIfLessThan(data.ServiceCeilingFt, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(data.Seats, 1);
         ArgumentOutOfRangeException.ThrowIfNegative(data.MaxCargoKg);
+        ArgumentOutOfRangeException.ThrowIfLessThan(data.MinRunwayFt, 1);
 
         IcaoCode = icao;
         Manufacturer = data.Manufacturer.Trim();
@@ -56,9 +60,16 @@ public sealed partial class AircraftType
         ServiceCeilingFt = data.ServiceCeilingFt;
         Seats = data.Seats;
         MaxCargoKg = data.MaxCargoKg;
+        MinRunwayFt = data.MinRunwayFt;
+        RequiresPavedRunway = data.RequiresPavedRunway;
     }
 
     public bool CanFly(int distanceNm) => distanceNm <= RangeNm;
+
+    public RunwayFit CheckRunway(Airport airport) => CheckRunway(airport.LongestRunwayFt, airport.LongestHardRunwayFt);
+
+    public RunwayFit CheckRunway(int? longestRunwayFt, int? longestHardRunwayFt) =>
+        RunwayRules.Check(MinRunwayFt, RequiresPavedRunway, longestRunwayFt, longestHardRunwayFt);
 
     [GeneratedRegex("^[A-Z0-9]{2,4}$")]
     private static partial Regex IcaoPattern();

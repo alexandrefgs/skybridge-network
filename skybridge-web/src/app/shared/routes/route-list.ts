@@ -67,7 +67,21 @@ import { problemMessages } from '../../core/http/problem';
                 }
               </td>
               <td class="whitespace-nowrap px-4 py-3 text-right font-mono">{{ route.distanceNm | number }} nm</td>
-              <td class="px-4 py-3 font-mono text-xs">{{ route.aircraft.length ? route.aircraft.join(' ') : '—' }}</td>
+              <td class="px-4 py-3 font-mono text-xs">
+                <span class="inline-flex items-center gap-1.5">
+                  {{ route.aircraft.length ? route.aircraft.join(' ') : '—' }}
+                  @if (route.warnings.length) {
+                    <span class="text-amber-500" [title]="route.warnings.join('\n')" [attr.aria-label]="route.warnings.join('. ')"
+                      [attr.data-testid]="'route-warning-' + route.id">
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+                        <path d="M12 9v4" />
+                        <path d="M12 17h.01" />
+                      </svg>
+                    </span>
+                  }
+                </span>
+              </td>
               <td class="px-4 py-3 text-right font-mono">{{ route.flightLevel ?? '—' }}</td>
               <td class="max-w-md truncate px-4 py-3 font-mono text-xs text-muted" [title]="route.atsRoute ?? ''">{{ route.atsRoute ?? '—' }}</td>
               @if (editable()) {

@@ -13,6 +13,7 @@ public class SkyBridgeDbContext(DbContextOptions<SkyBridgeDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     public DbSet<Airport> Airports => Set<Airport>();
+    public DbSet<Runway> Runways => Set<Runway>();
     public DbSet<AircraftCategory> AircraftCategories => Set<AircraftCategory>();
     public DbSet<AircraftType> AircraftTypes => Set<AircraftType>();
     public DbSet<Airline> Airlines => Set<Airline>();

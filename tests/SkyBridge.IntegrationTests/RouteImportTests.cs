@@ -122,6 +122,21 @@ public class RouteImportTests(SkyBridgeApiFactory factory)
         Assert.Equal(0, (await GetRoutesAsync(token, airline.Id)).TotalCount);
     }
 
+    [Fact]
+    public async Task Routes_WarnWhenTheRunwayIsTooShort()
+    {
+        var (token, airline) = await CreateAirlineAsync();
+
+        var created = await _client.SendAuthorizedAsync(HttpMethod.Post, $"/api/admin/airlines/{airline.Id}/routes", token,
+            new RouteRequest("SBGR", "SSKT", ["B738", "C172"]));
+        var safe = await _client.SendAuthorizedAsync(HttpMethod.Post, $"/api/admin/airlines/{airline.Id}/routes", token,
+            new RouteRequest("SBFL", "SBGR", ["B738"]));
+
+        var route = (await created.Content.ReadFromJsonAsync<RouteResponse>())!;
+        Assert.Equal(new[] { "B738 needs 4,300 ft, SSKT longest runway is 2,500 ft" }, route.Warnings);
+        Assert.Empty((await safe.Content.ReadFromJsonAsync<RouteResponse>())!.Warnings);
+    }
+
     private async Task<(string Token, AirlineDetailResponse Airline)> CreateAirlineAsync()
     {
         var token = await _client.LoginAsAdminAsync();

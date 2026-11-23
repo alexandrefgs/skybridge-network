@@ -85,6 +85,7 @@ public class AircraftTests(SkyBridgeApiFactory factory)
         Assert.All(types, t => Assert.Equal("Heavy", t.Category));
         Assert.Contains(types, t => t.IcaoCode == "B77W");
         Assert.All(types, t => Assert.True(t.ServiceCeilingFt > 0));
+        Assert.All(types, t => Assert.True(t.MinRunwayFt >= 6000 && t.RequiresPavedRunway));
     }
 
     [Fact]
@@ -117,6 +118,17 @@ public class AircraftTests(SkyBridgeApiFactory factory)
         Assert.Equal(code, type!.IcaoCode);
         Assert.Equal("Jet", type.EngineType);
         Assert.Equal(41000, type.ServiceCeilingFt);
+        Assert.Equal((5000, true), (type.MinRunwayFt, type.RequiresPavedRunway));
+    }
+
+    [Fact]
+    public async Task CreateType_Returns400_WithMinRunwayOutOfRange()
+    {
+        var token = await _client.LoginAsAdminAsync();
+
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/admin/aircraft-types", token, NewType(NewCode()) with { MinRunwayFt = 100 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -175,9 +187,10 @@ public class AircraftTests(SkyBridgeApiFactory factory)
     private static string NewCode() => $"Z{Guid.NewGuid():N}"[..4].ToUpperInvariant();
 
     private static TypePayload NewType(string code) =>
-        new(code, "Test Aircraft", "Prototype", "Medium", "Jet", 2, 3000, 450, 41000, 150, 4000);
+        new(code, "Test Aircraft", "Prototype", "Medium", "Jet", 2, 3000, 450, 41000, 150, 4000, 5000, true);
 
     private sealed record TypePayload(
         string IcaoCode, string Manufacturer, string Model, string Category, string EngineType,
-        int EngineCount, int RangeNm, int CruiseSpeedKts, int ServiceCeilingFt, int Seats, int MaxCargoKg);
+        int EngineCount, int RangeNm, int CruiseSpeedKts, int ServiceCeilingFt, int Seats, int MaxCargoKg,
+        int MinRunwayFt, bool RequiresPavedRunway);
 }

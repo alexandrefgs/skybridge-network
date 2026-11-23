@@ -28,4 +28,13 @@ public class AirportsController(IAirportQueries airports) : ControllerBase
         var airport = await airports.GetAsync(ident, cancellationToken);
         return airport is null ? NotFound() : Ok(airport);
     }
+
+    [HttpGet("{ident}/runways")]
+    [ProducesResponseType<IReadOnlyList<RunwayResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Runways(string ident, CancellationToken cancellationToken)
+    {
+        var runways = await airports.GetRunwaysAsync(ident, cancellationToken);
+        return runways is null ? NotFound() : Ok(runways);
+    }
 }

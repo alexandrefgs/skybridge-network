@@ -39,8 +39,43 @@ public class AirportsTests(SkyBridgeApiFactory factory)
         var response = await _client.SendAuthorizedAsync(HttpMethod.Post, ImportUrl, token);
 
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<AirportImportResult>();
-        Assert.Equal(new AirportImportResult(0, 0, 4, 4), result);
+        var result = (await response.Content.ReadFromJsonAsync<AirportCatalogImportResult>())!;
+        Assert.Equal(new AirportImportResult(0, 0, 4, 4), result.Airports);
+        Assert.Equal(new RunwayImportResult(0, 0, 0, 3), result.Runways);
+    }
+
+    [Fact]
+    public async Task Runways_ListsOpenLandRunways_LongestFirst()
+    {
+        await EnsureImportedAsync();
+
+        var runways = await GetAsPilotAsync<List<RunwayResponse>>("/api/airports/SBFL/runways");
+
+        Assert.Equal(new[] { "14/32", "03/21" }, runways.Select(r => r.Name));
+        Assert.Equal((7874, "Paved", true), (runways[0].LengthFt!.Value, runways[0].SurfaceType, runways[0].Lighted));
+    }
+
+    [Fact]
+    public async Task Runways_SkipsWaterAndClosedRunways()
+    {
+        await EnsureImportedAsync();
+
+        var runways = await GetAsPilotAsync<List<RunwayResponse>>("/api/airports/SSKT/runways");
+        var airport = await GetAsPilotAsync<AirportResponse>("/api/airports/SSKT");
+
+        var runway = Assert.Single(runways);
+        Assert.Equal(("15/33", "Unpaved"), (runway.Name, runway.SurfaceType));
+        Assert.Equal(2500, airport.LongestRunwayFt);
+    }
+
+    [Fact]
+    public async Task Runways_Returns404_ForUnknownAirport()
+    {
+        var token = await _client.RegisterPilotAsync();
+
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/airports/ZZZZ/runways", token);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]

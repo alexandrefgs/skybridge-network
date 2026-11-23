@@ -55,7 +55,8 @@ public sealed record RouteResponse(
     int DistanceNm,
     IReadOnlyList<string> Aircraft,
     string? AtsRoute,
-    int? FlightLevel);
+    int? FlightLevel,
+    IReadOnlyList<string> Warnings);
 
 public sealed record RouteSearch(string? Query, int Page = 1, int PageSize = 20, string? From = null, string? To = null);
 

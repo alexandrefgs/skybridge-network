@@ -112,6 +112,17 @@ const PAGE_SIZE = 10;
               <p class="sb-field-error" data-testid="error-maxCargoKg">{{ message }}</p>
             }
           </div>
+          <div>
+            <label class="sb-label" for="minRunwayFt">Min runway (ft)</label>
+            <input class="sb-input font-mono" id="minRunwayFt" type="number" min="500" max="15000" step="100" formControlName="minRunwayFt">
+            @if (fieldError('minRunwayFt'); as message) {
+              <p class="sb-field-error" data-testid="error-minRunwayFt">{{ message }}</p>
+            }
+          </div>
+          <label class="flex items-center gap-2 self-end pb-2.5 text-sm">
+            <input type="checkbox" class="accent-primary" formControlName="requiresPavedRunway" data-testid="requires-paved">
+            Needs a paved runway
+          </label>
         </div>
 
         @for (message of formErrors(); track message) {
@@ -142,6 +153,7 @@ const PAGE_SIZE = 10;
             <th class="px-4 py-3 font-medium">Category</th>
             <th class="px-4 py-3 text-right font-medium">Range</th>
             <th class="px-4 py-3 text-right font-medium">Ceiling</th>
+            <th class="px-4 py-3 text-right font-medium">Min runway</th>
             <th class="px-4 py-3 text-right font-medium">Seats</th>
             <th class="px-4 py-3"></th>
           </tr>
@@ -154,6 +166,9 @@ const PAGE_SIZE = 10;
               <td class="px-4 py-3 text-muted">{{ categoryName(type.category) }}</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.rangeNm | number }} nm</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.serviceCeilingFt | number }} ft</td>
+              <td class="whitespace-nowrap px-4 py-3 text-right font-mono" [attr.data-testid]="'runway-' + type.icaoCode">
+                {{ type.minRunwayFt | number }} ft@if (!type.requiresPavedRunway) {<span class="ml-1 text-xs text-muted" title="Can use unpaved runways">· any</span>}
+              </td>
               <td class="px-4 py-3 text-right font-mono">{{ type.seats }}</td>
               <td class="whitespace-nowrap px-4 py-2 text-right">
                 @if (confirmingDelete() === type.icaoCode) {
@@ -168,7 +183,7 @@ const PAGE_SIZE = 10;
             </tr>
           } @empty {
             <tr>
-              <td colspan="7" class="px-4 py-10 text-center text-muted">No aircraft found.</td>
+              <td colspan="8" class="px-4 py-10 text-center text-muted">No aircraft found.</td>
             </tr>
           }
         </tbody>
@@ -215,7 +230,9 @@ export class AdminAircraftTypesPage {
     cruiseSpeedKts: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(1000)]),
     serviceCeilingFt: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(60000)]),
     seats: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(1000)]),
-    maxCargoKg: this.fb.control<number | null>(null, [Validators.required, Validators.min(0), Validators.max(200000)])
+    maxCargoKg: this.fb.control<number | null>(null, [Validators.required, Validators.min(0), Validators.max(200000)]),
+    minRunwayFt: this.fb.control<number | null>(null, [Validators.required, Validators.min(500), Validators.max(15000)]),
+    requiresPavedRunway: [false]
   });
 
   constructor() {
@@ -265,7 +282,9 @@ export class AdminAircraftTypesPage {
       cruiseSpeedKts: type.cruiseSpeedKts,
       serviceCeilingFt: type.serviceCeilingFt,
       seats: type.seats,
-      maxCargoKg: type.maxCargoKg
+      maxCargoKg: type.maxCargoKg,
+      minRunwayFt: type.minRunwayFt,
+      requiresPavedRunway: type.requiresPavedRunway
     });
     this.formErrors.set([]);
     this.notice.set(null);

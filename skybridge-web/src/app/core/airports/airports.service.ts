@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Airport, AirportQuery, PagedResult } from './airport.models';
+import { Airport, AirportQuery, PagedResult, Runway } from './airport.models';
 
 export const AIRPORTS_PAGE_SIZE = 7;
 
@@ -18,5 +18,9 @@ export class AirportsService {
 
   get(ident: string): Observable<Airport> {
     return this.http.get<Airport>(`/api/airports/${encodeURIComponent(ident)}`);
+  }
+
+  runways(ident: string): Observable<Runway[]> {
+    return this.http.get<Runway[]>(`/api/airports/${encodeURIComponent(ident)}/runways`);
   }
 }

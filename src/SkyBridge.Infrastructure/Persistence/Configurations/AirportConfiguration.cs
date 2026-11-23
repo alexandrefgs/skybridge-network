@@ -21,5 +21,11 @@ internal sealed class AirportConfiguration : IEntityTypeConfiguration<Airport>
         builder.HasIndex(a => a.IcaoCode);
         builder.HasIndex(a => a.IataCode);
         builder.HasIndex(a => a.CountryCode);
+
+        builder.HasMany(a => a.Runways)
+            .WithOne()
+            .HasForeignKey(r => r.AirportId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(a => a.Runways).UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

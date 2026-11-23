@@ -6,7 +6,8 @@ import { AdminAircraftTypesPage } from './admin-aircraft-types.page';
 
 const c172: AircraftType = {
   icaoCode: 'C172', manufacturer: 'Cessna', model: '172 Skyhawk', category: 'SinglePiston', engineType: 'Piston',
-  engineCount: 1, rangeNm: 640, cruiseSpeedKts: 124, serviceCeilingFt: 14000, seats: 4, maxCargoKg: 54
+    engineCount: 1, rangeNm: 640, cruiseSpeedKts: 124, serviceCeilingFt: 14000, seats: 4, maxCargoKg: 54,
+  minRunwayFt: 1700, requiresPavedRunway: false
 };
 
 describe('AdminAircraftTypesPage', () => {
@@ -50,11 +51,13 @@ describe('AdminAircraftTypesPage', () => {
     type(element, 'serviceCeilingFt', '18100');
     type(element, 'seats', '4');
     type(element, 'maxCargoKg', '50');
+    type(element, 'minRunwayFt', '1900');
     element.querySelector<HTMLButtonElement>('[data-testid="type-form"] button[type="submit"]')!.click();
 
     const request = http.expectOne('/api/admin/aircraft-types');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toMatchObject({ icaoCode: 'C182', model: '182 Skylane', rangeNm: 915, serviceCeilingFt: 18100, maxCargoKg: 50, category: 'SinglePiston' });
+    expect(request.request.body).toMatchObject({ minRunwayFt: 1900, requiresPavedRunway: false });
     request.flush({ ...c172, icaoCode: 'C182' });
     await fixture.whenStable();
 
@@ -71,10 +74,17 @@ describe('AdminAircraftTypesPage', () => {
     element.querySelector<HTMLButtonElement>('[data-testid="edit-C172"]')!.click();
     await fixture.whenStable();
     expect(element.querySelector<HTMLInputElement>('#serviceCeilingFt')!.value).toBe('14000');
+    expect(element.querySelector<HTMLInputElement>('#minRunwayFt')!.value).toBe('1700');
     expect(element.querySelector('[data-testid="types"]')!.textContent).toContain('14,000 ft');
+    expect(element.querySelector('[data-testid="runway-C172"]')!.textContent).toContain('1,700 ft');
+    const paved = element.querySelector<HTMLInputElement>('[data-testid="requires-paved"]')!;
+    expect(paved.checked).toBe(false);
+    paved.click();
     element.querySelector<HTMLButtonElement>('[data-testid="type-form"] button[type="submit"]')!.click();
 
-    http.expectOne('/api/admin/aircraft-types/C172').flush(c172);
+    const update = http.expectOne('/api/admin/aircraft-types/C172');
+    expect(update.request.body).toMatchObject({ minRunwayFt: 1700, requiresPavedRunway: true });
+    update.flush(c172);
     await fixture.whenStable();
     http.expectOne(r => r.url === '/api/aircraft-types').flush({ items: [c172], page: 1, pageSize: 10, totalCount: 1 });
     await fixture.whenStable();
@@ -112,6 +122,7 @@ describe('AdminAircraftTypesPage', () => {
     expect(element.querySelector('[data-testid="error-manufacturer"]')!.textContent).toContain('Required.');
     expect(element.querySelector('[data-testid="error-seats"]')!.textContent).toContain('Must be at least 1.');
     expect(element.querySelector('[data-testid="error-serviceCeilingFt"]')!.textContent).toContain('Required.');
+    expect(element.querySelector('[data-testid="error-minRunwayFt"]')!.textContent).toContain('Required.');
     expect(element.querySelector('#manufacturer')!.classList).toContain('ng-invalid');
   });
 

@@ -31,6 +31,9 @@ public static class DatabaseInitializer
         if (seed.ImportAirports && !await db.Airports.AnyAsync(cancellationToken))
             await SeedAirportsAsync(provider, logger, cancellationToken);
 
+        if (seed.ImportAirports && !await db.Runways.AnyAsync(cancellationToken) && await db.Airports.AnyAsync(cancellationToken))
+            await SeedRunwaysAsync(provider, logger, cancellationToken);
+
         if (seed.ImportAirlines && !await db.Airlines.AnyAsync(cancellationToken) && await db.Airports.AnyAsync(cancellationToken))
             await SeedAirlinesAsync(provider, logger, cancellationToken);
     }
@@ -102,6 +105,20 @@ public static class DatabaseInitializer
         }
     }
     
+    private static async Task SeedRunwaysAsync(IServiceProvider provider, ILogger logger, CancellationToken cancellationToken)
+    {
+        try
+        {
+            logger.LogInformation("Runways table is empty. Importing runways from OurAirports...");
+            await using var csv = await provider.GetRequiredService<IAirportSource>().OpenRunwaysCsvAsync(cancellationToken);
+            await provider.GetRequiredService<IRunwayImporter>().ImportAsync(csv, cancellationToken);
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Could not download OurAirports runways. Runways were not imported.");
+        }
+    }
+
     private static async Task SeedAirlinesAsync(IServiceProvider provider, ILogger logger, CancellationToken cancellationToken)
     {
         try

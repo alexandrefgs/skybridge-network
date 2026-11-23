@@ -16,13 +16,13 @@ class AirportMapStub {
 const florianopolis: Airport = {
   ident: 'SBFL', icaoCode: 'SBFL', iataCode: 'FLN', name: 'Hercílio Luz International Airport', type: 'Large',
   latitude: -27.670279, longitude: -48.552502, elevationFt: 16, countryCode: 'BR', regionCode: 'BR-SC',
-  municipality: 'Florianópolis', scheduledService: true
+    municipality: 'Florianópolis', scheduledService: true, longestRunwayFt: 7874
 };
 
 const aeroclube: Airport = {
   ident: 'SSKT', icaoCode: null, iataCode: null, name: 'Aeroclube de Santa Catarina', type: 'Small',
   latitude: -27.6, longitude: -48.6, elevationFt: null, countryCode: 'BR', regionCode: 'BR-SC',
-  municipality: 'São José', scheduledService: false
+    municipality: 'São José', scheduledService: false, longestRunwayFt: 2500
 };
 
 describe('AirportsPage', () => {
@@ -64,6 +64,28 @@ describe('AirportsPage', () => {
     const details: HTMLElement = fixture.nativeElement.querySelector('[data-testid="airport-details"]');
     expect(details.textContent).toContain('Hercílio Luz International Airport');
     expect(details.textContent).toContain('16 ft');
+    http.expectOne('/api/airports/SBFL/runways').flush([
+      { name: '14/32', lengthFt: 7874, widthFt: 148, surface: 'ASP', surfaceType: 'Paved', lighted: true, headingDegT: 136 },
+      { name: '03/21', lengthFt: 4331, widthFt: 148, surface: 'CON', surfaceType: 'Paved', lighted: false, headingDegT: 23 }
+    ]);
+    await fixture.whenStable();
+
+    const rows = fixture.nativeElement.querySelectorAll('[data-testid="runway-row"]');
+    expect(rows.length).toBe(2);
+    expect(rows[0].textContent).toContain('14/32');
+    expect(rows[0].textContent).toContain('7,874 ft');
+    expect(rows[0].textContent).toContain('2,400 m');
+  });
+
+  it('says when an airport has no runway data', async () => {
+    const fixture = await render();
+
+    fixture.nativeElement.querySelectorAll('[data-testid="airport-list"] button')[1].click();
+    await fixture.whenStable();
+    http.expectOne('/api/airports/SSKT/runways').flush([]);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="no-runways"]')).not.toBeNull();
   });
 
   it('shows the range with seven airports per page', async () => {

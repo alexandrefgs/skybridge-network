@@ -34,4 +34,12 @@ describe('AirportsService', () => {
     expect(request.request.params.has('country')).toBe(false);
     request.flush({ items: [], page: 1, pageSize: 20, totalCount: 0 });
   });
+
+  it('loads the runways of an airport', () => {
+    service.runways('SBFL').subscribe();
+
+    const request = http.expectOne('/api/airports/SBFL/runways');
+    expect(request.request.method).toBe('GET');
+    request.flush([]);
+  });
 });

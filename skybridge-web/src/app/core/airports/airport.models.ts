@@ -13,6 +13,19 @@ export interface Airport {
   regionCode: string;
   municipality: string | null;
   scheduledService: boolean;
+  longestRunwayFt: number | null;
+}
+
+export type RunwaySurfaceType = 'Paved' | 'Unpaved' | 'Unknown' | 'Water';
+
+export interface Runway {
+  name: string;
+  lengthFt: number | null;
+  widthFt: number | null;
+  surface: string | null;
+  surfaceType: RunwaySurfaceType;
+  lighted: boolean;
+  headingDegT: number | null;
 }
 
 export type { PagedResult } from '../http/paged-result';
@@ -28,4 +41,16 @@ export interface AirportImportResult {
   updated: number;
   unchanged: number;
   total: number;
+}
+
+export interface RunwayImportResult {
+  added: number;
+  updated: number;
+  removed: number;
+  airportsWithRunways: number;
+}
+
+export interface AirportCatalogImportResult {
+  airports: AirportImportResult;
+  runways: RunwayImportResult;
 }

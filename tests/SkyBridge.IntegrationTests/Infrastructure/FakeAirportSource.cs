@@ -14,6 +14,21 @@ public sealed class FakeAirportSource : IAirportSource
         3,"SBXQ","medium_airport","Test, With Comma",-10.5,-50.25,100,"SA","BR","BR-TO","Palmas","no",,,,,,,
         """;
 
+    public const string RunwaysCsv = """
+        "id","airport_ref","airport_ident","length_ft","width_ft","surface","lighted","closed","le_ident","le_latitude_deg","le_longitude_deg","le_elevation_ft","le_heading_degT","le_displaced_threshold_ft","he_ident","he_latitude_deg","he_longitude_deg","he_elevation_ft","he_heading_degT","he_displaced_threshold_ft"
+        100,5901,"SBFL",7874,148,"ASP",1,0,"14",,,,136.2,,"32",,,,,
+        101,5901,"SBFL",4331,148,"CON",1,0,"03",,,,23,,"21",,,,,
+        102,5910,"SBGR",12139,148,"ASP",1,0,"10L",,,,97,,"28R",,,,,
+        103,5910,"SBGR",9843,148,"ASP",1,0,"10R",,,,97,,"28L",,,,,
+        104,1,"SSKT",2500,60,"GRS",0,0,"15",,,,,,"33",,,,,
+        105,1,"SSKT",3000,60,"WATER",0,0,"18W",,,,,,"36W",,,,,
+        106,1,"SSKT",5000,60,"ASP",0,1,"09",,,,,,"27",,,,,
+        107,6523,"00A",80,80,"ASPH-G",1,0,"H1",,,,,,,,,,,
+        """;
+
     public Task<Stream> OpenAirportsCsvAsync(CancellationToken cancellationToken) =>
         Task.FromResult<Stream>(new MemoryStream(Encoding.UTF8.GetBytes(Csv)));
+
+    public Task<Stream> OpenRunwaysCsvAsync(CancellationToken cancellationToken) =>
+        Task.FromResult<Stream>(new MemoryStream(Encoding.UTF8.GetBytes(RunwaysCsv)));
 }

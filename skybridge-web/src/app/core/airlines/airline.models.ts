@@ -39,6 +39,7 @@ export interface AirlineRoute {
   aircraft: string[];
   atsRoute: string | null;
   flightLevel: number | null;
+  warnings: string[];
 }
 
 export interface NetworkAirport {

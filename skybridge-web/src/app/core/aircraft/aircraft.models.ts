@@ -29,6 +29,8 @@ export interface AircraftType {
   serviceCeilingFt: number;
   seats: number;
   maxCargoKg: number;
+  minRunwayFt: number;
+  requiresPavedRunway: boolean;
 }
 
 export interface AircraftTypeQuery {

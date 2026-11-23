@@ -24,11 +24,14 @@ public sealed record AircraftTypeResponse(
     int CruiseSpeedKts,
     int ServiceCeilingFt,
     int Seats,
-    int MaxCargoKg)
+    int MaxCargoKg,
+    int MinRunwayFt,
+    bool RequiresPavedRunway)
 {
     public static AircraftTypeResponse From(AircraftType type) =>
         new(type.IcaoCode, type.Manufacturer, type.Model, type.Category.ToString(), type.EngineType.ToString(),
-            type.EngineCount, type.RangeNm, type.CruiseSpeedKts, type.ServiceCeilingFt, type.Seats, type.MaxCargoKg);
+            type.EngineCount, type.RangeNm, type.CruiseSpeedKts, type.ServiceCeilingFt, type.Seats, type.MaxCargoKg,
+            type.MinRunwayFt, type.RequiresPavedRunway);
 }
 
 public sealed record AircraftTypeSearch(AircraftCategoryCode? Category, string? Query, int Page = 1, int PageSize = 20);
@@ -44,8 +47,11 @@ public sealed record AircraftTypeRequest(
     [Range(1, 1_000)] int CruiseSpeedKts,
     [Range(1, 60_000)] int ServiceCeilingFt,
     [Range(1, 1_000)] int Seats,
-    [Range(0, 200_000)] int MaxCargoKg)
+    [Range(0, 200_000)] int MaxCargoKg,
+    [Range(500, 15_000)] int MinRunwayFt,
+    bool RequiresPavedRunway)
 {
     public AircraftTypeData ToData() =>
-        new(IcaoCode, Manufacturer, Model, Category, EngineType, EngineCount, RangeNm, CruiseSpeedKts, ServiceCeilingFt, Seats, MaxCargoKg);
+        new(IcaoCode, Manufacturer, Model, Category, EngineType, EngineCount, RangeNm, CruiseSpeedKts, ServiceCeilingFt, Seats, MaxCargoKg,
+            MinRunwayFt, RequiresPavedRunway);
 }

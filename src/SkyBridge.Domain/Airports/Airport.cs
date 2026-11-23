@@ -2,6 +2,8 @@ namespace SkyBridge.Domain.Airports;
 
 public sealed class Airport
 {
+    private readonly List<Runway> _runways = [];
+
     private Airport() { }
 
     public int Id { get; private set; }
@@ -17,6 +19,9 @@ public sealed class Airport
     public string RegionCode { get; private set; } = string.Empty;
     public string? Municipality { get; private set; }
     public bool ScheduledService { get; private set; }
+    public int? LongestRunwayFt { get; private set; }
+    public int? LongestHardRunwayFt { get; private set; }
+    public IReadOnlyList<Runway> Runways => _runways;
 
     public static Airport Create(AirportData data)
     {
@@ -50,4 +55,36 @@ public sealed class Airport
 
     public AirportData ToData() =>
         new(Ident, IcaoCode, IataCode, Name, Type, Latitude, Longitude, ElevationFt, CountryCode, RegionCode, Municipality, ScheduledService);
+
+    public RunwaySyncResult SyncRunways(IEnumerable<RunwayData> runways)
+    {
+        var current = _runways.ToDictionary(r => r.SourceId);
+        int added = 0, updated = 0;
+
+        foreach (var data in runways.Where(r => r.SurfaceType != RunwaySurface.Water).DistinctBy(r => r.SourceId))
+        {
+            if (current.Remove(data.SourceId, out var runway))
+            {
+                if (runway.Apply(data))
+                    updated++;
+            }
+            else
+            {
+                _runways.Add(Runway.Create(data));
+                added++;
+            }
+        }
+
+        foreach (var stale in current.Values)
+            _runways.Remove(stale);
+
+        LongestRunwayFt = _runways.Max(r => r.LengthFt);
+        LongestHardRunwayFt = _runways.Where(r => r.IsHardSurface).Max(r => r.LengthFt);
+        return new RunwaySyncResult(added, updated, current.Count);
+    }
+}
+
+public sealed record RunwaySyncResult(int Added, int Updated, int Removed)
+{
+    public bool Changed => Added + Updated + Removed > 0;
 }

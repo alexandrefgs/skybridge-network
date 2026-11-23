@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SkyBridge.Application.Airlines;
 using SkyBridge.Application.Common;
+using SkyBridge.Domain.Aircraft;
 using SkyBridge.Domain.Airlines;
 using SkyBridge.Domain.Airports;
 using SkyBridge.Domain.Routes;
@@ -168,21 +169,36 @@ internal sealed class AirlineQueries(SkyBridgeDbContext db) : IAirlineQueries
         var ids = rows.Select(r => r.Route.Id).ToList();
         var aircraft = (await db.Set<RouteAircraft>().AsNoTracking()
                 .Where(a => ids.Contains(a.RouteId))
-                .Join(db.AircraftTypes, a => a.AircraftTypeId, t => t.Id, (a, t) => new { a.RouteId, t.IcaoCode })
+                .Join(db.AircraftTypes, a => a.AircraftTypeId, t => t.Id,
+                    (a, t) => new { a.RouteId, t.IcaoCode, t.RangeNm, t.MinRunwayFt, t.RequiresPavedRunway })
                 .ToListAsync(cancellationToken))
             .GroupBy(a => a.RouteId)
-            .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(a => a.IcaoCode).Order(StringComparer.Ordinal).ToList());
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(a => new AircraftLimits(a.IcaoCode, a.RangeNm, a.MinRunwayFt, a.RequiresPavedRunway))
+                    .OrderBy(a => a.IcaoCode, StringComparer.Ordinal)
+                    .ToList());
 
-        return rows.Select(r => new RouteResponse(
-                r.Route.Id,
-                r.Origin.IcaoCode ?? r.Origin.Ident, r.Origin.IataCode, r.Origin.Name,
-                r.Destination.IcaoCode ?? r.Destination.Ident, r.Destination.IataCode, r.Destination.Name,
-                r.Route.DistanceNm,
-                aircraft.GetValueOrDefault(r.Route.Id, []),
-                r.Route.AtsRoute,
-                r.Route.FlightLevel))
+        return rows.Select(r =>
+            {
+                var types = aircraft.GetValueOrDefault(r.Route.Id, []);
+                var origin = Runways(r.Origin);
+                var destination = Runways(r.Destination);
+                return new RouteResponse(
+                    r.Route.Id,
+                    origin.Code, r.Origin.IataCode, r.Origin.Name,
+                    destination.Code, r.Destination.IataCode, r.Destination.Name,
+                    r.Route.DistanceNm,
+                    types.Select(t => t.IcaoCode).ToList(),
+                    r.Route.AtsRoute,
+                    r.Route.FlightLevel,
+                    RouteChecks.Warnings(r.Route.DistanceNm, origin, destination, types));
+            })
             .ToList();
     }
+
+    private static AirportRunways Runways(Airport airport) =>
+        new(airport.IcaoCode ?? airport.Ident, airport.LongestRunwayFt, airport.LongestHardRunwayFt);
 
     private sealed class RouteRow
     {

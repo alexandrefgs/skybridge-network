@@ -63,6 +63,7 @@ import { problemMessages } from '../../core/http/problem';
             <th class="px-4 py-3 text-right font-medium">Range</th>
             <th class="px-4 py-3 text-right font-medium">Cruise</th>
             <th class="px-4 py-3 text-right font-medium">Ceiling</th>
+            <th class="px-4 py-3 text-right font-medium">Min runway</th>
             <th class="px-4 py-3 text-right font-medium">Seats</th>
             <th class="px-4 py-3 text-right font-medium">Cargo</th>
           </tr>
@@ -79,13 +80,16 @@ import { problemMessages } from '../../core/http/problem';
               <td class="px-4 py-3 text-right font-mono">{{ type.rangeNm | number }} nm</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.cruiseSpeedKts }} kt</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.serviceCeilingFt | number }} ft</td>
+              <td class="whitespace-nowrap px-4 py-3 text-right font-mono" [attr.data-testid]="'runway-' + type.icaoCode">
+                {{ type.minRunwayFt | number }} ft@if (!type.requiresPavedRunway) {<span class="ml-1 text-xs text-muted" title="Can use unpaved runways">· any</span>}
+              </td>
               <td class="px-4 py-3 text-right font-mono">{{ type.seats }}</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.maxCargoKg | number }} kg</td>
             </tr>
           } @empty {
             @if (!loading()) {
               <tr>
-                <td colspan="9" class="px-4 py-10 text-center text-muted" data-testid="empty">No aircraft found.</td>
+                <td colspan="10" class="px-4 py-10 text-center text-muted" data-testid="empty">No aircraft found.</td>
               </tr>
             }
           }

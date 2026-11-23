@@ -11,4 +11,6 @@ public sealed record AircraftTypeData(
     int CruiseSpeedKts,
     int ServiceCeilingFt,
     int Seats,
-    int MaxCargoKg);
+    int MaxCargoKg,
+    int MinRunwayFt,
+    bool RequiresPavedRunway);

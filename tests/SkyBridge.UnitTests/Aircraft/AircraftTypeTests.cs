@@ -5,7 +5,7 @@ namespace SkyBridge.UnitTests.Aircraft;
 public class AircraftTypeTests
 {
     private static AircraftTypeData Boeing738() =>
-        new("B738", "Boeing", "737-800", AircraftCategoryCode.Medium, EngineType.Jet, 2, 2935, 453, 41000, 189, 4500);
+        new("B738", "Boeing", "737-800", AircraftCategoryCode.Medium, EngineType.Jet, 2, 2935, 453, 41000, 189, 4500, 4300, true);
 
     [Fact]
     public void Create_NormalizesIcaoCode()
@@ -39,5 +39,21 @@ public class AircraftTypeTests
 
         Assert.True(type.CanFly(2500));
         Assert.False(type.CanFly(3000));
+    }
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-500)]
+    public void Create_RejectsMinRunwayBelowOne(int minRunway)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => AircraftType.Create(Boeing738() with { MinRunwayFt = minRunway }));
+    }
+
+    [Fact]
+    public void CheckRunway_UsesTheAirportRunways()
+    {
+        var type = AircraftType.Create(Boeing738());
+
+        Assert.Equal(RunwayFit.Ok, type.CheckRunway(6365, 6365));
+        Assert.Equal(RunwayFit.TooShort, type.CheckRunway(2500, null));
     }
 }

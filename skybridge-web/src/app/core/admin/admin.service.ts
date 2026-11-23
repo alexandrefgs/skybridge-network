@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AircraftCategory, AircraftCategoryCode, AircraftType } from '../aircraft/aircraft.models';
-import { AirportImportResult } from '../airports/airport.models';
+import { AirportCatalogImportResult } from '../airports/airport.models';
 
 export interface CategoryUpdate {
   name: string;
@@ -29,7 +29,7 @@ export class AdminService {
     return this.http.delete<void>(`/api/admin/aircraft-types/${encodeURIComponent(icaoCode)}`);
   }
 
-  importAirports(): Observable<AirportImportResult> {
-    return this.http.post<AirportImportResult>('/api/admin/airports/import', {});
+  importAirports(): Observable<AirportCatalogImportResult> {
+    return this.http.post<AirportCatalogImportResult>('/api/admin/airports/import', {});
   }
 }

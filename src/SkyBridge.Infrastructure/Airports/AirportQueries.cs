@@ -49,4 +49,18 @@ internal sealed class AirportQueries(SkyBridgeDbContext db) : IAirportQueries
         var airport = await db.Airports.AsNoTracking().FirstOrDefaultAsync(a => a.Ident == value, cancellationToken);
         return airport is null ? null : AirportResponse.From(airport);
     }
+
+    public async Task<IReadOnlyList<RunwayResponse>?> GetRunwaysAsync(string ident, CancellationToken cancellationToken)
+    {
+        var value = ident.Trim();
+        var airport = await db.Airports.AsNoTracking()
+            .Include(a => a.Runways)
+            .FirstOrDefaultAsync(a => a.Ident == value, cancellationToken);
+
+        return airport?.Runways
+            .OrderByDescending(r => r.LengthFt ?? 0)
+            .ThenBy(r => r.LowEndIdent)
+            .Select(RunwayResponse.From)
+            .ToList();
+    }
 }
