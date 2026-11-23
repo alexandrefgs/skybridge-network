@@ -42,7 +42,7 @@ import { expiresIn, hasDangerousGoods, maxCargo, maxPassengers, missionLabel, ro
               <p class="mt-1 text-lg font-semibold">
                 <span class="font-mono text-primary">{{ location.code }}</span> {{ location.name }}
               </p>
-              <p class="text-sm text-muted">{{ location.municipality ?? '—' }}, {{ location.countryCode }} · {{ current.flightHours | number: '1.1-1' }} h flown</p>
+              <p class="text-sm text-muted">{{ location.municipality ?? '—' }}, {{ location.countryCode }} · {{ current.flightHours | number: '1.1-1' }} h flown · <span data-testid="balance">{{ current.balance | currency: 'USD' : 'symbol' : '1.0-0' }}</span></p>
             </div>
             @if (!jumpseatOpen() && !booking()) {
               <button type="button" class="sb-btn-secondary w-auto px-4" (click)="jumpseatOpen.set(true)" data-testid="open-jumpseat">Jumpseat</button>

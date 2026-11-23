@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkyBridge.Api.Extensions;
+using SkyBridge.Application.Common;
 using SkyBridge.Application.Pilots;
 
 namespace SkyBridge.Api.Controllers;
@@ -21,4 +22,9 @@ public class PilotController(IPilotService pilots) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Jumpseat(JumpseatRequest request, CancellationToken cancellationToken) =>
         this.ToActionResult(await pilots.JumpseatAsync(User.GetUserId(), request, cancellationToken), Ok);
+    
+    [HttpGet("transactions")]
+    [ProducesResponseType<PagedResult<PilotTransactionResponse>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Transactions([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken cancellationToken = default) =>
+        Ok(await pilots.GetTransactionsAsync(User.GetUserId(), page, pageSize, cancellationToken));
 }

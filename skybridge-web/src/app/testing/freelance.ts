@@ -1,4 +1,5 @@
 import { Booking } from '../core/bookings/booking.models';
+import { Pirep } from '../core/pireps/pirep.models';
 import { FreelanceJob, FreelanceLeg } from '../core/freelance/freelance.models';
 import { Pilot } from '../core/pilot/pilot.models';
 
@@ -45,7 +46,8 @@ export const pilotAtFlorianopolis: Pilot = {
     code: 'SBFL', iataCode: 'FLN', name: 'Hercílio Luz International Airport', municipality: 'Florianópolis',
     countryCode: 'BR', latitude: -27.67, longitude: -48.55
   },
-  flightHours: 0
+  flightHours: 0,
+  balance: 0
 };
 
 export const acceptedMedevac: Booking = {
@@ -53,4 +55,12 @@ export const acceptedMedevac: Booking = {
   currentLeg: 1, legCount: 1, legInProgress: false,
   bookedAtUtc: '2026-11-23T12:00:00Z', startDeadlineUtc: '2026-11-26T12:00:00Z',
   startedAtUtc: null, legStartedAtUtc: null, job: { ...medevac, taken: true }
+};
+
+export const filedPirep: Pirep = {
+  id: 51, bookingId: 31, pilot: 'Alexandre Fagundes', leg: 1, legCount: 1,
+  origin: 'SBFL', destination: 'SBGR', aircraft: 'C208', distanceNm: 278,
+  departedAtUtc: '2026-11-23T14:10:00Z', arrivedAtUtc: '2026-11-23T15:40:00Z', flightMinutes: 90,
+  fuelUsedKg: 180, landingRateFpm: 160, remarks: null,
+  status: 'Accepted', flag: null, reviewNote: null, filedAtUtc: '2026-11-23T15:45:00Z', reviewedAtUtc: null
 };

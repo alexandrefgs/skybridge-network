@@ -522,6 +522,12 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("PilotUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Reward")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RewardPaidAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<byte>("Source")
                         .HasColumnType("tinyint");
 
@@ -663,6 +669,9 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Balance")
+                        .HasColumnType("int");
+
                     b.Property<int?>("CurrentAirportId")
                         .HasColumnType("int");
 
@@ -674,6 +683,121 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.HasIndex("CurrentAirportId");
 
                     b.ToTable("Pilots");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Pilots.PilotTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("PilotUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PilotUserId", "CreatedAtUtc");
+
+                    b.ToTable("PilotTransactions");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Pireps.Pirep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AircraftTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ArrivedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DepartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DestinationAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DistanceNm")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FiledAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Flag")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("FlightMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FuelUsedKg")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LandingRateFpm")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LegSequence")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OriginAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PilotUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AircraftTypeId");
+
+                    b.HasIndex("DestinationAirportId");
+
+                    b.HasIndex("OriginAirportId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("BookingId", "LegSequence")
+                        .IsUnique();
+
+                    b.HasIndex("PilotUserId", "FiledAtUtc");
+
+                    b.ToTable("Pireps");
                 });
 
             modelBuilder.Entity("SkyBridge.Domain.Routes.Route", b =>
@@ -1030,6 +1154,42 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .WithOne()
                         .HasForeignKey("SkyBridge.Domain.Pilots.Pilot", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Pilots.PilotTransaction", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Pilots.Pilot", null)
+                        .WithMany()
+                        .HasForeignKey("PilotUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Pireps.Pirep", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Aircraft.AircraftType", null)
+                        .WithMany()
+                        .HasForeignKey("AircraftTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Bookings.Booking", null)
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("DestinationAirportId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("OriginAirportId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

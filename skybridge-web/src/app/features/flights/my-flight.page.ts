@@ -6,18 +6,42 @@ import { Observable } from 'rxjs';
 import { Booking } from '../../core/bookings/booking.models';
 import { BookingService } from '../../core/bookings/booking.service';
 import { problemMessages } from '../../core/http/problem';
+import { PirepFiled } from '../../core/pireps/pirep.models';
 import { JobBriefing } from '../../shared/freelance/job-briefing';
 import { expiresIn, missionLabel, routeOf } from '../../shared/freelance/missions';
+import { PirepForm } from './pirep-form';
 
 @Component({
   selector: 'sb-my-flight-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, JobBriefing],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, JobBriefing, PirepForm],
   template: `
     <p class="font-mono text-xs tracking-[0.2em] text-primary">FLIGHTS</p>
     <h1 class="mt-1 font-display text-3xl font-bold">My flight</h1>
 
     @if (error(); as message) {
       <p class="sb-error mt-4" data-testid="flight-error">{{ message }}</p>
+    }
+
+        @if (notice(); as message) {
+      <p class="sb-success mt-4" data-testid="flight-notice">{{ message }}</p>
+    }
+
+    @if (completed(); as result) {
+      <section class="sb-card mt-6 text-center" data-testid="mission-complete">
+        <p class="font-mono text-xs tracking-[0.2em] text-primary">MISSION COMPLETE</p>
+        <p class="mt-2 font-mono text-xl font-semibold">{{ result.pirep.origin }} → {{ result.pirep.destination }}</p>
+        @if (result.rewardPaid !== null) {
+          <p class="mt-3 text-lg"><span class="font-mono font-semibold text-primary">+{{ result.rewardPaid | currency: 'USD' : 'symbol' : '1.0-0' }}</span> added to your balance</p>
+        } @else {
+          <p class="mt-3 text-muted">A PIREP of this mission is waiting for staff review. The reward is paid once it's approved.</p>
+        }
+        <p class="mt-1 text-sm text-muted">
+          You are now at <span class="font-mono">{{ result.pilot.location?.code }}</span> ·
+          {{ result.pilot.flightHours | number: '1.1-1' }} h flown ·
+          balance {{ result.pilot.balance | currency: 'USD' : 'symbol' : '1.0-0' }}
+        </p>
+        <a routerLink="/freelance" class="sb-btn-primary mt-5 inline-block w-auto px-5">Find another job</a>
+      </section>
     }
 
     @if (booking(); as current) {
@@ -69,7 +93,7 @@ import { expiresIn, missionLabel, routeOf } from '../../shared/freelance/mission
 
           <div class="mt-5 flex flex-wrap items-center gap-3">
             @if (current.legInProgress) {
-              <p class="text-sm text-muted" data-testid="pirep-hint">Land at {{ currentDestination() }} and file the PIREP to finish this leg.</p>
+              <p class="text-sm text-muted" data-testid="pirep-hint">Land at {{ currentDestination() }} and file the PIREP below to finish this leg.</p>
             } @else {
               <button type="button" class="sb-btn-primary w-auto px-5" [disabled]="busy()" (click)="startLeg()" data-testid="start-leg">
                 Start leg {{ current.currentLeg }}
@@ -86,6 +110,12 @@ import { expiresIn, missionLabel, routeOf } from '../../shared/freelance/mission
               }
             </span>
           </div>
+
+          @if (current.legInProgress) {
+            <div class="mt-5">
+              <sb-pirep-form [booking]="current" (filed)="onFiled($event)" />
+            </div>
+          }
         </section>
 
         <section class="sb-card mt-6">
@@ -93,7 +123,7 @@ import { expiresIn, missionLabel, routeOf } from '../../shared/freelance/mission
           <sb-job-briefing [job]="job" />
         </section>
       }
-    } @else if (!loading()) {
+    } @else if (!loading() && !completed()) {
       <section class="sb-card mt-6 py-10 text-center" data-testid="no-flight">
         <p class="text-muted">You have no active flight.</p>
         <a routerLink="/freelance" class="sb-btn-primary mt-4 inline-block w-auto px-5">Find a freelance job</a>
@@ -109,6 +139,8 @@ export class MyFlightPage {
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly confirmingCancel = signal(false);
+  protected readonly notice = signal<string | null>(null);
+  protected readonly completed = signal<PirepFiled | null>(null);
   protected readonly currentDestination = computed(() => {
     const current = this.booking();
     return current?.job?.legs.find(leg => leg.sequence === current.currentLeg)?.destination ?? '';
@@ -130,7 +162,19 @@ export class MyFlightPage {
     });
   }
 
+  protected onFiled(result: PirepFiled): void {
+    this.booking.set(result.booking);
+    if (result.booking) {
+      const review = result.pirep.status === 'Pending' ? ' It is waiting for staff review.' : '';
+      this.notice.set(`Leg ${result.pirep.leg} filed. You are now at ${result.pirep.destination}.${review}`);
+    } else {
+      this.notice.set(null);
+      this.completed.set(result);
+    }
+  }
+
   protected startLeg(): void {
+    this.notice.set(null);
     this.run(this.bookings.startLeg(), booking => this.booking.set(booking));
   }
 

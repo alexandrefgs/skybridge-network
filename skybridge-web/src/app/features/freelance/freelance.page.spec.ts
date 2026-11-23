@@ -26,7 +26,7 @@ describe('FreelancePage', () => {
   }
 
   it('asks a new pilot where to start and moves there', async () => {
-    await start({ location: null, flightHours: 0 });
+        await start({ location: null, flightHours: 0, balance: 0 });
 
     expect(query('location')!.textContent).toContain('Choose where your career starts');
     const input = query('jumpseat-airport') as HTMLInputElement;
@@ -54,7 +54,7 @@ describe('FreelancePage', () => {
     expect(query('job-8')!.textContent).toContain('SBFL → SBGR → SBRJ → SBFL');
     expect(query('job-8')!.textContent).toContain('3 legs');
     expect(query('job-8')!.textContent).toContain('6 pax');
-    expect(query('job-7')!.textContent).toContain('$4,500');
+    expect(query('balance')!.textContent).toContain('$0');
     expect(query('job-7')!.querySelector('[data-testid="dg-badge"]')).not.toBeNull();
     expect(query('job-8')!.querySelector('[data-testid="dg-badge"]')).toBeNull();
 

@@ -11,6 +11,8 @@ public sealed record PilotLocation(
     double Latitude,
     double Longitude);
 
-public sealed record PilotResponse(PilotLocation? Location, decimal FlightHours);
+public sealed record PilotResponse(PilotLocation? Location, decimal FlightHours, int Balance);
+
+public sealed record PilotTransactionResponse(int Id, int Amount, string Description, DateTime CreatedAtUtc);
 
 public sealed record JumpseatRequest([Required, MaxLength(16)] string Airport);

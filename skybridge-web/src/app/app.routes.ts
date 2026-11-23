@@ -103,6 +103,10 @@ export const routes: Routes = [
       {
         path: 'freelance',
         loadComponent: () => import('./features/admin/admin-freelance.page').then(m => m.AdminFreelancePage)
+      },
+      {
+        path: 'pireps',
+        loadComponent: () => import('./features/admin/admin-pireps.page').then(m => m.AdminPirepsPage)
       }
     ]
   },

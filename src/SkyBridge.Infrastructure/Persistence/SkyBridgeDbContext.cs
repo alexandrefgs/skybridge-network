@@ -7,6 +7,7 @@ using SkyBridge.Domain.Airports;
 using SkyBridge.Domain.Bookings;
 using SkyBridge.Domain.Freelance;
 using SkyBridge.Domain.Pilots;
+using SkyBridge.Domain.Pireps;
 using SkyBridge.Domain.Routes;
 using SkyBridge.Infrastructure.Identity;
 
@@ -25,6 +26,8 @@ public class SkyBridgeDbContext(DbContextOptions<SkyBridgeDbContext> options)
     public DbSet<Pilot> Pilots => Set<Pilot>();
     public DbSet<FreelanceJob> FreelanceJobs => Set<FreelanceJob>();
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<Pirep> Pireps => Set<Pirep>();
+    public DbSet<PilotTransaction> PilotTransactions => Set<PilotTransaction>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

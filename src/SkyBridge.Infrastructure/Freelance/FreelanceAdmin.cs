@@ -32,6 +32,9 @@ internal sealed class FreelanceAdmin(SkyBridgeDbContext db, IFreelanceQueries qu
         if (job is null)
             return Result<FreelanceJobResponse>.NotFound();
 
+        if (await db.Bookings.AnyAsync(b => b.FreelanceJobId == id && (b.Status == BookingStatus.Active || b.Status == BookingStatus.Completed), cancellationToken))
+            return Result<FreelanceJobResponse>.Conflict("Job", "A pilot has taken this job, so it can't be changed anymore.");
+
         var input = await ValidateAsync(request, cancellationToken);
         if (input.Error is not null)
             return input.Error;

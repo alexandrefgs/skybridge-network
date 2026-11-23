@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { acceptedMedevac, executiveTour } from '../../testing/freelance';
+import { acceptedMedevac, executiveTour, filedPirep, pilotAtFlorianopolis } from '../../testing/freelance';
 import { MyFlightPage } from './my-flight.page';
 
 describe('MyFlightPage', () => {
@@ -57,6 +57,7 @@ describe('MyFlightPage', () => {
     expect(query('flight-status')!.textContent).toContain('14:05 UTC');
     expect(query('start-leg')).toBeNull();
     expect(query('pirep-hint')!.textContent).toContain('Land at SBGR');
+    expect(query('pirep-form')).not.toBeNull();
   });
 
   it('cancels the flight after confirming', async () => {
@@ -83,5 +84,49 @@ describe('MyFlightPage', () => {
     await fixture.whenStable();
 
     expect(query('flight-error')!.textContent).toContain('deadline');
+  });
+  
+  const flying = { ...acceptedMedevac, legInProgress: true, startedAtUtc: '2026-11-23T14:05:00Z', legStartedAtUtc: '2026-11-23T14:05:00Z' };
+  const gruPilot = { ...pilotAtFlorianopolis, location: { ...pilotAtFlorianopolis.location!, code: 'SBGR' }, flightHours: 1.5, balance: 4500 };
+
+  async function fileLeg(response: object) {
+    query('pirep-form')!.dispatchEvent(new Event('submit'));
+    http.expectOne('/api/pireps').flush(response);
+    await fixture.whenStable();
+  }
+
+  it('moves to the next leg after filing a PIREP', async () => {
+    await load({ ...flying, legCount: 3, job: executiveTour });
+
+    await fileLeg({
+      pirep: { ...filedPirep, legCount: 3 },
+      booking: { ...flying, legCount: 3, currentLeg: 2, legInProgress: false, legStartedAtUtc: null, job: executiveTour },
+      rewardPaid: null,
+      pilot: gruPilot
+    });
+
+    expect(query('flight-notice')!.textContent).toContain('Leg 1 filed. You are now at SBGR.');
+    expect(query('start-leg')!.textContent).toContain('Start leg 2');
+    expect(query('pirep-form')).toBeNull();
+  });
+
+  it('celebrates the last leg and shows the reward', async () => {
+    await load(flying);
+
+    await fileLeg({ pirep: filedPirep, booking: null, rewardPaid: 4500, pilot: gruPilot });
+
+    expect(query('flight')).toBeNull();
+    expect(query('no-flight')).toBeNull();
+    expect(query('mission-complete')!.textContent).toContain('+$4,500 added to your balance');
+    expect(query('mission-complete')!.textContent).toContain('SBGR');
+    expect(query('mission-complete')!.textContent).toContain('1.5 h flown');
+  });
+
+  it('explains when the reward waits for staff review', async () => {
+    await load(flying);
+
+    await fileLeg({ pirep: { ...filedPirep, status: 'Pending', flag: 'Too short' }, booking: null, rewardPaid: null, pilot: gruPilot });
+
+    expect(query('mission-complete')!.textContent).toContain('waiting for staff review');
   });
 });

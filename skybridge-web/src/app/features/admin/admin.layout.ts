@@ -26,6 +26,7 @@ export class AdminLayout {
     { path: 'aircraft-types', label: 'Aircraft types' },
     { path: 'airlines', label: 'Airlines' },
     { path: 'airports', label: 'Airports' },
-    { path: 'freelance', label: 'Freelance' }
+    { path: 'freelance', label: 'Freelance' },
+    { path: 'pireps', label: 'PIREPs' }
   ];
 }

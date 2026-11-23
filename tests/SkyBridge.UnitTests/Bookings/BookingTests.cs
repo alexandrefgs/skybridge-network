@@ -7,7 +7,7 @@ public class BookingTests
     private static readonly DateTime Now = new(2026, 11, 23, 12, 0, 0, DateTimeKind.Utc);
     private static readonly Guid PilotId = Guid.NewGuid();
 
-    private static Booking Accepted(int legs = 2) => Booking.ForFreelanceJob(PilotId, 7, 3, legs, Now.AddDays(1), Now);
+    private static Booking Accepted(int legs = 2) => Booking.ForFreelanceJob(PilotId, 7, 3, legs, 900, Now.AddDays(1), Now);
 
     [Fact]
     public void ForFreelanceJob_StartsActive_OnTheFirstLeg()
@@ -23,7 +23,7 @@ public class BookingTests
     [Fact]
     public void ForFreelanceJob_RejectsAnExpiredJob()
     {
-        Assert.Throws<InvalidOperationException>(() => Booking.ForFreelanceJob(PilotId, 7, 3, 1, Now, Now));
+        Assert.Throws<InvalidOperationException>(() => Booking.ForFreelanceJob(PilotId, 7, 3, 1, 900, Now, Now));
     }
 
     [Fact]
@@ -79,5 +79,38 @@ public class BookingTests
         Assert.Equal(BookingStatus.Cancelled, booking.Status);
         Assert.False(booking.LegInProgress);
         Assert.Throws<InvalidOperationException>(() => booking.Cancel(Now.AddHours(3)));
+    }
+    
+    [Fact]
+    public void CompleteLeg_MovesToTheNextLeg_ThenCompletesTheMission()
+    {
+        var booking = Accepted();
+        Assert.Throws<InvalidOperationException>(() => booking.CompleteLeg(Now));
+
+        booking.StartLeg(Now.AddHours(1));
+        booking.CompleteLeg(Now.AddHours(2));
+
+        Assert.Equal((BookingStatus.Active, 2, false), (booking.Status, booking.CurrentLeg, booking.LegInProgress));
+        Assert.Throws<InvalidOperationException>(() => booking.MarkRewardPaid(Now.AddHours(2)));
+
+        booking.StartLeg(Now.AddHours(3));
+        booking.CompleteLeg(Now.AddHours(4));
+
+        Assert.Equal((BookingStatus.Completed, 2), (booking.Status, booking.CurrentLeg));
+        Assert.Equal(Now.AddHours(4), booking.FinishedAtUtc);
+        Assert.Equal(900, booking.Reward);
+    }
+
+    [Fact]
+    public void MarkRewardPaid_OnlyOnce()
+    {
+        var booking = Accepted(legs: 1);
+        booking.StartLeg(Now.AddHours(1));
+        booking.CompleteLeg(Now.AddHours(2));
+
+        booking.MarkRewardPaid(Now.AddHours(2));
+
+        Assert.Equal(Now.AddHours(2), booking.RewardPaidAtUtc);
+        Assert.Throws<InvalidOperationException>(() => booking.MarkRewardPaid(Now.AddHours(3)));
     }
 }

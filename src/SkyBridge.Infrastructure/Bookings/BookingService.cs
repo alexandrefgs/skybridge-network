@@ -60,7 +60,7 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
         if (await db.Bookings.AnyAsync(b => b.FreelanceJobId == jobId && (b.Status == BookingStatus.Active || b.Status == BookingStatus.Completed), cancellationToken))
             return Result<BookingResponse>.Conflict("Job", "Another pilot has already taken this job.");
 
-        var booking = Booking.ForFreelanceJob(userId, job.Id, type.Id, job.Legs.Count, job.ExpiresAtUtc, now);
+        var booking = Booking.ForFreelanceJob(userId, job.Id, type.Id, job.Legs.Count, job.Reward, job.ExpiresAtUtc, now);
         db.Bookings.Add(booking);
 
         try

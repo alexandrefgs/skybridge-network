@@ -35,16 +35,34 @@ internal sealed class PilotService(SkyBridgeDbContext db, IBookingService bookin
         pilot.MoveTo(airport.Id);
         await db.SaveChangesAsync(cancellationToken);
 
-        return Result<PilotResponse>.Ok(new PilotResponse(ToLocation(airport), pilot.FlightHours));
+        return Result<PilotResponse>.Ok(new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.Balance));
+    }
+
+    public async Task<PagedResult<PilotTransactionResponse>> GetTransactionsAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var query = db.PilotTransactions.AsNoTracking().Where(t => t.PilotUserId == userId);
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(t => t.CreatedAtUtc)
+            .ThenByDescending(t => t.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(t => new PilotTransactionResponse(t.Id, t.Amount, t.Description, DateTime.SpecifyKind(t.CreatedAtUtc, DateTimeKind.Utc)))
+            .ToListAsync(cancellationToken);
+
+        return new PagedResult<PilotTransactionResponse>(items, page, pageSize, total);
     }
 
     private async Task<PilotResponse> ToResponseAsync(Pilot? pilot, CancellationToken cancellationToken)
     {
         if (pilot?.CurrentAirportId is not { } airportId)
-            return new PilotResponse(null, pilot?.FlightHours ?? 0);
+        return new PilotResponse(null, pilot?.FlightHours ?? 0, pilot?.Balance ?? 0);
 
         var airport = await db.Airports.AsNoTracking().FirstAsync(a => a.Id == airportId, cancellationToken);
-        return new PilotResponse(ToLocation(airport), pilot.FlightHours);
+        return new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.Balance);
     }
 
     private static PilotLocation ToLocation(Airport airport) =>

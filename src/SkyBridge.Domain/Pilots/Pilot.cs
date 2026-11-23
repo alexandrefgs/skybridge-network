@@ -7,6 +7,7 @@ public sealed class Pilot
     public Guid UserId { get; private set; }
     public int? CurrentAirportId { get; private set; }
     public int FlightMinutes { get; private set; }
+    public int Balance { get; private set; }
 
     public decimal FlightHours => Math.Round(FlightMinutes / 60m, 1);
 
@@ -22,5 +23,17 @@ public sealed class Pilot
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(airportId, 1);
         CurrentAirportId = airportId;
+    }
+    
+    public void LogFlight(int minutes)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(minutes);
+        FlightMinutes += minutes;
+    }
+
+    public void Credit(int amount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(amount);
+        Balance += amount;
     }
 }

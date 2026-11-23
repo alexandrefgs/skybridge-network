@@ -15,6 +15,7 @@ using SkyBridge.Application.Auth;
 using SkyBridge.Application.Bookings;
 using SkyBridge.Application.Freelance;
 using SkyBridge.Application.Pilots;
+using SkyBridge.Application.Pireps;
 using SkyBridge.Application.Profile;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Auth;
@@ -22,6 +23,7 @@ using SkyBridge.Infrastructure.Identity;
 using SkyBridge.Infrastructure.Bookings;
 using SkyBridge.Infrastructure.Freelance;
 using SkyBridge.Infrastructure.Persistence;
+using SkyBridge.Infrastructure.Pireps;
 using SkyBridge.Infrastructure.Pilots;
 using SkyBridge.Infrastructure.Profile;
 
@@ -90,6 +92,10 @@ public static class DependencyInjection
         services.AddScoped<IFreelanceQueries, FreelanceQueries>();
         services.AddScoped<IFreelanceAdmin, FreelanceAdmin>();
         services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<PirepMapper>();
+        services.AddScoped<RewardPayer>();
+        services.AddScoped<IPirepService, PirepService>();
+        services.AddScoped<IPirepReview, PirepReview>();
         services.AddHttpClient<IAirportSource, OurAirportsSource>(client =>
         {
             client.BaseAddress = new Uri("https://davidmegginson.github.io/ourairports-data/");
