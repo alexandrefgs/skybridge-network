@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/auth/auth.guards';
+import { authGuard, guestGuard, staffGuard } from './core/auth/auth.guards';
 
 export const routes: Routes = [
   {
@@ -36,6 +36,27 @@ export const routes: Routes = [
     title: 'Security · SkyBridge',
     canActivate: [authGuard],
     loadComponent: () => import('./features/account/security.page').then(m => m.SecurityPage)
+  },
+  {
+    path: 'admin',
+    title: 'Admin · SkyBridge',
+    canActivate: [authGuard, staffGuard],
+    loadComponent: () => import('./features/admin/admin.layout').then(m => m.AdminLayout),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'categories' },
+      {
+        path: 'categories',
+        loadComponent: () => import('./features/admin/admin-categories.page').then(m => m.AdminCategoriesPage)
+      },
+      {
+        path: 'aircraft-types',
+        loadComponent: () => import('./features/admin/admin-aircraft-types.page').then(m => m.AdminAircraftTypesPage)
+      },
+      {
+        path: 'airports',
+        loadComponent: () => import('./features/admin/admin-airports.page').then(m => m.AdminAirportsPage)
+      }
+    ]
   },
   { path: '**', redirectTo: '' }
 ];

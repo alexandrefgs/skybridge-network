@@ -1,4 +1,4 @@
-import { authGuard } from './core/auth/auth.guards';
+import { authGuard, staffGuard } from './core/auth/auth.guards';
 import { routes } from './app.routes';
 
 describe('routes', () => {
@@ -6,5 +6,11 @@ describe('routes', () => {
     const route = routes.find(r => r.path === path);
 
     expect(route?.canActivate).toContain(authGuard);
+  });
+
+  it('requires staff for /admin', () => {
+    const route = routes.find(r => r.path === 'admin');
+
+    expect(route?.canActivate).toEqual([authGuard, staffGuard]);
   });
 });

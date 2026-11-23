@@ -15,6 +15,7 @@ public sealed partial class AircraftType
     public int EngineCount { get; private set; }
     public int RangeNm { get; private set; }
     public int CruiseSpeedKts { get; private set; }
+    public int ServiceCeilingFt { get; private set; }
     public int Seats { get; private set; }
     public int MaxCargoKg { get; private set; }
 
@@ -40,6 +41,7 @@ public sealed partial class AircraftType
         ArgumentOutOfRangeException.ThrowIfLessThan(data.EngineCount, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(data.RangeNm, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(data.CruiseSpeedKts, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(data.ServiceCeilingFt, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(data.Seats, 1);
         ArgumentOutOfRangeException.ThrowIfNegative(data.MaxCargoKg);
 
@@ -51,6 +53,7 @@ public sealed partial class AircraftType
         EngineCount = data.EngineCount;
         RangeNm = data.RangeNm;
         CruiseSpeedKts = data.CruiseSpeedKts;
+        ServiceCeilingFt = data.ServiceCeilingFt;
         Seats = data.Seats;
         MaxCargoKg = data.MaxCargoKg;
     }

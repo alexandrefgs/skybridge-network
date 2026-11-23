@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
+import { signInAs } from './testing/jwt';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -46,6 +47,20 @@ describe('App', () => {
 
     expect(fixture.nativeElement.querySelector('[data-testid="user-name"]').textContent).toContain('Ana Silva');
     expect(fixture.nativeElement.querySelector('[data-testid="nav-aircraft"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-admin"]')).toBeNull();
+  });
+
+  it('shows the admin link only for staff', async () => {
+    signInAs(['Staff', 'Pilot']);
+    const fixture = TestBed.createComponent(App);
+    const http = TestBed.inject(HttpTestingController);
+    TestBed.tick();
+    http.expectOne('/api/auth/me').flush({
+      id: '1', email: 'staff@skybridge.test', firstName: 'Bia', lastName: 'Costa', twoFactorEnabled: true, roles: ['Staff', 'Pilot']
+    });
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-admin"]')).not.toBeNull();
   });
 
   it('toggles the theme from the header', async () => {

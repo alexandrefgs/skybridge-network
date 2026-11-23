@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { fakeJwt } from '../../testing/jwt';
 import { AuthService } from './auth.service';
 
 const future = () => new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -50,6 +51,25 @@ describe('AuthService', () => {
 
     expect(TestBed.inject(AuthService).accessToken()).toBeNull();
     expect(localStorage.getItem('sb-token')).toBeNull();
+  });
+
+  it('reads the roles from the token', () => {
+    service.login('ana@skybridge.test', 'Sky!Bridge2026').subscribe();
+    http.expectOne('/api/auth/login').flush({
+      requiresTwoFactor: false, accessToken: fakeJwt(['Admin', 'Pilot']), expiresAtUtc: future(), twoFactorToken: null
+    });
+
+    expect(service.roles()).toEqual(['Admin', 'Pilot']);
+    expect(service.isStaff()).toBe(true);
+  });
+
+  it('is not staff with a pilot token', () => {
+    service.login('ana@skybridge.test', 'Sky!Bridge2026').subscribe();
+    http.expectOne('/api/auth/login').flush({
+      requiresTwoFactor: false, accessToken: fakeJwt(['Pilot']), expiresAtUtc: future(), twoFactorToken: null
+    });
+
+    expect(service.isStaff()).toBe(false);
   });
 
   it('clears the session on logout', () => {

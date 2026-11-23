@@ -62,6 +62,7 @@ import { problemMessages } from '../../core/http/problem';
             <th class="px-4 py-3 font-medium">Engines</th>
             <th class="px-4 py-3 text-right font-medium">Range</th>
             <th class="px-4 py-3 text-right font-medium">Cruise</th>
+            <th class="px-4 py-3 text-right font-medium">Ceiling</th>
             <th class="px-4 py-3 text-right font-medium">Seats</th>
             <th class="px-4 py-3 text-right font-medium">Cargo</th>
           </tr>
@@ -77,13 +78,14 @@ import { problemMessages } from '../../core/http/problem';
               <td class="px-4 py-3 text-muted">{{ type.engineCount }} × {{ type.engineType }}</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.rangeNm | number }} nm</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.cruiseSpeedKts }} kt</td>
+              <td class="px-4 py-3 text-right font-mono">{{ type.serviceCeilingFt | number }} ft</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.seats }}</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.maxCargoKg | number }} kg</td>
             </tr>
           } @empty {
             @if (!loading()) {
               <tr>
-                <td colspan="8" class="px-4 py-10 text-center text-muted" data-testid="empty">No aircraft found.</td>
+                <td colspan="9" class="px-4 py-10 text-center text-muted" data-testid="empty">No aircraft found.</td>
               </tr>
             }
           }

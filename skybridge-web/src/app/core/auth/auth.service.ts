@@ -17,6 +17,8 @@ export class AuthService {
 
   readonly currentUser = signal<CurrentUser | null>(null);
   readonly isSignedIn = computed(() => this.token() !== null);
+  readonly roles = computed(() => rolesFromToken(this.token()?.accessToken));
+  readonly isStaff = computed(() => this.roles().some(role => role === 'Admin' || role === 'Staff'));
 
   accessToken(): string | null {
     const token = this.token();
@@ -86,5 +88,17 @@ function readStoredToken(): StoredToken | null {
     return raw ? (JSON.parse(raw) as StoredToken) : null;
   } catch {
     return null;
+  }
+}
+
+function rolesFromToken(accessToken: string | undefined): string[] {
+  if (!accessToken) return [];
+  try {
+    const payload = accessToken.split('.')[1];
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payload.length / 4) * 4, '=');
+    const role = (JSON.parse(atob(base64)) as { role?: string | string[] }).role;
+    return Array.isArray(role) ? role : role ? [role] : [];
+  } catch {
+    return [];
   }
 }

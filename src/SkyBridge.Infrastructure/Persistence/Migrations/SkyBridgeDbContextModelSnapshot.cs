@@ -271,6 +271,9 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<int>("Seats")
                         .HasColumnType("int");
 
+                    b.Property<int>("ServiceCeilingFt")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Category");

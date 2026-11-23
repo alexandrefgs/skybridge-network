@@ -9,5 +9,6 @@ public sealed record AircraftTypeData(
     int EngineCount,
     int RangeNm,
     int CruiseSpeedKts,
+    int ServiceCeilingFt,
     int Seats,
     int MaxCargoKg);

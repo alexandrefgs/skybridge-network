@@ -67,6 +67,10 @@
     @apply w-full rounded-md border border-line bg-surface-2 px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted focus:border-primary focus:ring-1 focus:ring-primary;
   }
 
+  .sb-input.ng-invalid.ng-touched {
+    @apply border-primary;
+  }
+
   .sb-btn-primary {
     @apply inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60;
   }
@@ -85,6 +89,10 @@
 
   .sb-error {
     @apply rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary;
+  }
+
+  .sb-success {
+    @apply rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-400;
   }
 
   .sb-field-error {

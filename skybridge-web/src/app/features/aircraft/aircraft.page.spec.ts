@@ -12,12 +12,12 @@ const categories: AircraftCategory[] = [
 
 const b77w: AircraftType = {
   icaoCode: 'B77W', manufacturer: 'Boeing', model: '777-300ER', category: 'Heavy', engineType: 'Jet',
-  engineCount: 2, rangeNm: 7370, cruiseSpeedKts: 490, seats: 396, maxCargoKg: 25000
+  engineCount: 2, rangeNm: 7370, cruiseSpeedKts: 490, serviceCeilingFt: 43100, seats: 396, maxCargoKg: 25000
 };
 
 const c172: AircraftType = {
   icaoCode: 'C172', manufacturer: 'Cessna', model: '172 Skyhawk', category: 'SinglePiston', engineType: 'Piston',
-  engineCount: 1, rangeNm: 640, cruiseSpeedKts: 124, seats: 4, maxCargoKg: 54
+  engineCount: 1, rangeNm: 640, cruiseSpeedKts: 124, serviceCeilingFt: 14000, seats: 4, maxCargoKg: 54
 };
 
 describe('AircraftPage', () => {

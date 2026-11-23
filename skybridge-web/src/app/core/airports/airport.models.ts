@@ -22,3 +22,10 @@ export interface AirportQuery {
   country: string;
   page: number;
 }
+
+export interface AirportImportResult {
+  added: number;
+  updated: number;
+  unchanged: number;
+  total: number;
+}

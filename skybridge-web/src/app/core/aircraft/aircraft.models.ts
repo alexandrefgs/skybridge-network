@@ -26,6 +26,7 @@ export interface AircraftType {
   engineCount: number;
   rangeNm: number;
   cruiseSpeedKts: number;
+  serviceCeilingFt: number;
   seats: number;
   maxCargoKg: number;
 }
