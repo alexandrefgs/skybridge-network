@@ -67,6 +67,8 @@ export interface RouteQuery {
   pageSize: number;
 }
 
+export type AirportPair = readonly [string, string];
+
 export interface AirlineInput {
   name: string;
   iataCode: string | null;

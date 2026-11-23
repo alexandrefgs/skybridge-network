@@ -91,6 +91,15 @@ internal sealed class AirlineQueries(SkyBridgeDbContext db) : IAirlineQueries
                 (r.Destination.Municipality != null && r.Destination.Municipality.Contains(term)));
         }
 
+        if (!string.IsNullOrWhiteSpace(search.From) && !string.IsNullOrWhiteSpace(search.To))
+        {
+            var from = search.From.Trim().ToUpperInvariant();
+            var to = search.To.Trim().ToUpperInvariant();
+            query = query.Where(r =>
+                ((r.Origin.IcaoCode ?? r.Origin.Ident) == from && (r.Destination.IcaoCode ?? r.Destination.Ident) == to) ||
+                ((r.Origin.IcaoCode ?? r.Origin.Ident) == to && (r.Destination.IcaoCode ?? r.Destination.Ident) == from));
+        }
+
         var total = await query.CountAsync(cancellationToken);
 
         var rows = await query

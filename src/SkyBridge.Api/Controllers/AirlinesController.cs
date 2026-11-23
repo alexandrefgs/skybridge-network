@@ -44,11 +44,13 @@ public class AirlinesController(IAirlineQueries airlines) : ControllerBase
     public async Task<IActionResult> Routes(
         int id,
         [FromQuery] string? q,
+        [FromQuery] string? from,
+        [FromQuery] string? to,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var routes = await airlines.GetRoutesAsync(id, new RouteSearch(q, page, pageSize), cancellationToken);
+        var routes = await airlines.GetRoutesAsync(id, new RouteSearch(q, page, pageSize, from, to), cancellationToken);
         return routes is null ? NotFound() : Ok(routes);
     }
 }

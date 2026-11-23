@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, output, signal, untracked }
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
-import { AirlineRoute, RouteQuery } from '../../core/airlines/airline.models';
+import { AirlineRoute, AirportPair, RouteQuery } from '../../core/airlines/airline.models';
 import { AirlinesService, ROUTES_PAGE_SIZE } from '../../core/airlines/airlines.service';
 import { PagedResult } from '../../core/http/paged-result';
 import { problemMessages } from '../../core/http/problem';
@@ -17,7 +17,15 @@ import { problemMessages } from '../../core/http/problem';
         Routes
         <span class="ml-1 text-sm font-normal text-muted" data-testid="route-count">· {{ totalCount() | number }}</span>
       </h2>
-      <input class="sb-input w-72" type="search" placeholder="Search airport ICAO, IATA or city" [formControl]="searchControl" data-testid="route-search">
+      <div class="flex items-center gap-3">
+        @if (pair(); as p) {
+          <span class="flex items-center gap-2 rounded-md border border-primary px-3 py-1.5 font-mono text-xs text-primary" data-testid="selected-pair">
+            {{ p[0] }} ⇄ {{ p[1] }}
+            <button type="button" class="text-primary hover:text-foreground" (click)="pairChange.emit(null)" aria-label="Show all routes" data-testid="clear-pair">×</button>
+          </span>
+        }
+        <input class="sb-input w-72" type="search" placeholder="Search airport ICAO, IATA or city" [formControl]="searchControl" data-testid="route-search">
+      </div>
     </div>
 
     @if (error(); as message) {
@@ -41,7 +49,11 @@ import { problemMessages } from '../../core/http/problem';
         </thead>
         <tbody class="divide-y divide-line">
           @for (route of result()?.items ?? []; track route.id) {
-            <tr class="transition-colors hover:bg-surface-2">
+            <tr class="transition-colors hover:bg-surface-2"
+              [class.cursor-pointer]="!editable()"
+              [class.bg-surface-2]="isSelected(route)"
+              (click)="!editable() && pairChange.emit([route.origin, route.destination])"
+              [attr.data-testid]="'route-row-' + route.id">
               <td class="whitespace-nowrap px-4 py-3" [title]="route.originName">
                 <span class="font-mono font-semibold">{{ route.origin }}</span>
                 @if (route.originIata) {
@@ -97,6 +109,8 @@ export class RouteList {
   readonly airlineId = input.required<number>();
   readonly editable = input(false);
   readonly refresh = input(0);
+  readonly pair = input<AirportPair | null>(null);
+  readonly pairChange = output<AirportPair | null>();
   readonly edit = output<AirlineRoute>();
   readonly delete = output<AirlineRoute>();
 
@@ -109,7 +123,8 @@ export class RouteList {
   protected readonly totalCount = computed(() => this.result()?.totalCount ?? 0);
   protected readonly totalPages = computed(() => Math.ceil(this.totalCount() / this.query().pageSize));
 
-  private readonly load$ = new Subject<{ id: number; query: RouteQuery }>();
+  private lastPair: AirportPair | null = null;
+  private readonly load$ = new Subject<{ id: number; query: RouteQuery; pair: AirportPair | null }>();
 
   constructor() {
     this.searchControl.valueChanges
@@ -122,8 +137,8 @@ export class RouteList {
           this.loading.set(true);
           this.error.set(null);
         }),
-        switchMap(({ id, query }) =>
-          this.airlines.routes(id, query).pipe(
+        switchMap(({ id, query, pair }) =>
+          this.airlines.routes(id, query, pair).pipe(
             catchError(error => {
               this.error.set(problemMessages(error)[0]);
               return of(null);
@@ -140,9 +155,22 @@ export class RouteList {
     effect(() => {
       const id = this.airlineId();
       const query = this.query();
+      const pair = this.pair();
       this.refresh();
-      untracked(() => this.load$.next({ id, query }));
+      if (pair !== this.lastPair) {
+        this.lastPair = pair;
+        if (query.page !== 1) {
+          untracked(() => this.query.set({ ...query, page: 1 }));
+          return;
+        }
+      }
+      untracked(() => this.load$.next({ id, query, pair }));
     });
+  }
+
+  protected isSelected(route: AirlineRoute): boolean {
+    const pair = this.pair();
+    return !!pair && pair.includes(route.origin) && pair.includes(route.destination);
   }
 
   protected goToPage(page: number): void {

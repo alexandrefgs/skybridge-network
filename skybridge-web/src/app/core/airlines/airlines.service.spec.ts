@@ -40,6 +40,15 @@ describe('AirlinesService', () => {
     http.expectOne('/api/airlines/7/network').flush({ airports: [], links: [] });
   });
 
+  it('filters the routes between two airports', () => {
+    service.routes(7, { search: '', page: 1, pageSize: 15 }, ['SBFL', 'SBGR']).subscribe();
+
+    const request = http.expectOne(r => r.url === '/api/airlines/7/routes');
+    expect(request.request.params.get('from')).toBe('SBFL');
+    expect(request.request.params.get('to')).toBe('SBGR');
+    request.flush({ items: [], page: 1, pageSize: 15, totalCount: 0 });
+  });
+
   it('lists the routes of an airline', () => {
     service.routes(7, { search: 'SBFL', page: 1, pageSize: 15 }).subscribe();
 

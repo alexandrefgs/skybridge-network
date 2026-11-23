@@ -78,6 +78,19 @@ public class AirlinesTests(SkyBridgeApiFactory factory)
     }
 
     [Fact]
+    public async Task Routes_FiltersBothDirectionsBetweenTwoAirports()
+    {
+        await EnsureImportedAsync();
+        var gol = await FindAsync("GLO");
+
+        var between = await GetAsPilotAsync<PagedResult<RouteResponse>>($"/api/airlines/{gol.Id}/routes?from=sbgr&to=SBFL");
+        var none = await GetAsPilotAsync<PagedResult<RouteResponse>>($"/api/airlines/{gol.Id}/routes?from=SBGR&to=SSKT");
+
+        Assert.Equal(2, between.TotalCount);
+        Assert.Equal(0, none.TotalCount);
+    }
+
+    [Fact]
     public async Task Network_JoinsBothDirectionsIntoOneLink()
     {
         await EnsureImportedAsync();

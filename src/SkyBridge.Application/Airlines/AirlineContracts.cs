@@ -57,7 +57,7 @@ public sealed record RouteResponse(
     string? AtsRoute,
     int? FlightLevel);
 
-public sealed record RouteSearch(string? Query, int Page = 1, int PageSize = 20);
+public sealed record RouteSearch(string? Query, int Page = 1, int PageSize = 20, string? From = null, string? To = null);
 
 public sealed record RouteRequest(
     [Required, MaxLength(16)] string Origin,

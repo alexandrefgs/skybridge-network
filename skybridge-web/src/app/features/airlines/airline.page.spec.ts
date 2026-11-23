@@ -1,9 +1,10 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { RouteNetwork } from '../../core/airlines/airline.models';
+import { AirportPair, RouteNetwork } from '../../core/airlines/airline.models';
 import { RouteMap } from '../../shared/map/route-map';
 import { flnGru, golDetail, page } from '../../testing/airlines';
 import { AirlinePage } from './airline.page';
@@ -11,6 +12,8 @@ import { AirlinePage } from './airline.page';
 @Component({ selector: 'sb-route-map', template: '' })
 class RouteMapStub {
   readonly network = input<RouteNetwork | null>(null);
+  readonly selected = input<AirportPair | null>(null);
+  readonly selectedChange = output<AirportPair | null>();
 }
 
 const network: RouteNetwork = {
@@ -76,6 +79,48 @@ describe('AirlinePage', () => {
     const request = http.expectOne(r => r.url === '/api/airlines/2579/routes');
     expect(request.request.params.get('q')).toBe('SBFL');
     request.flush(page([flnGru]));
+  });
+
+  it('shows the routes between two airports when a line is clicked on the map', async () => {
+    const fixture = await render();
+    http.expectOne('/api/airlines/2579').flush(golDetail);
+    http.expectOne('/api/airlines/2579/network').flush(network);
+    await fixture.whenStable();
+    http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru]));
+    await fixture.whenStable();
+    const map = fixture.debugElement.query(By.directive(RouteMapStub)).componentInstance as RouteMapStub;
+
+    map.selectedChange.emit(['SBGR', 'SBFL']);
+    await fixture.whenStable();
+
+    const request = http.expectOne(r => r.url === '/api/airlines/2579/routes');
+    expect(request.request.params.get('from')).toBe('SBGR');
+    expect(request.request.params.get('to')).toBe('SBFL');
+    request.flush(page([flnGru]));
+    await fixture.whenStable();
+    expect(map.selected()).toEqual(['SBGR', 'SBFL']);
+    expect(fixture.nativeElement.querySelector('[data-testid="selected-pair"]').textContent).toContain('SBGR ⇄ SBFL');
+
+    fixture.nativeElement.querySelector('[data-testid="clear-pair"]').click();
+    await fixture.whenStable();
+    expect(http.expectOne(r => r.url === '/api/airlines/2579/routes').request.params.has('from')).toBe(false);
+    expect(map.selected()).toBeNull();
+  });
+
+  it('selects the route on the map when a row is clicked', async () => {
+    const fixture = await render();
+    http.expectOne('/api/airlines/2579').flush(golDetail);
+    http.expectOne('/api/airlines/2579/network').flush(network);
+    await fixture.whenStable();
+    http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru]));
+    await fixture.whenStable();
+    const map = fixture.debugElement.query(By.directive(RouteMapStub)).componentInstance as RouteMapStub;
+
+    fixture.nativeElement.querySelector('[data-testid="route-row-10"] td').click();
+    await fixture.whenStable();
+
+    expect(map.selected()).toEqual(['SBFL', 'SBGR']);
+    http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru]));
   });
 
   it('tags airlines that no longer operate as retro', async () => {
