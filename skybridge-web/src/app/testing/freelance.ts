@@ -47,6 +47,7 @@ export const pilotAtFlorianopolis: Pilot = {
     countryCode: 'BR', latitude: -27.67, longitude: -48.55
   },
   flightHours: 0,
+  flightMinutes: 0,
   balance: 0
 };
 

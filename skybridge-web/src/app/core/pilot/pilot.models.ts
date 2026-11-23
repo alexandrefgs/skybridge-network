@@ -11,6 +11,7 @@ export interface PilotLocation {
 export interface Pilot {
   location: PilotLocation | null;
   flightHours: number;
+  flightMinutes: number;
   balance: number;
 }
 

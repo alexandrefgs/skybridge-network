@@ -11,7 +11,7 @@ public sealed record PilotLocation(
     double Latitude,
     double Longitude);
 
-public sealed record PilotResponse(PilotLocation? Location, decimal FlightHours, int Balance);
+public sealed record PilotResponse(PilotLocation? Location, decimal FlightHours, int FlightMinutes, int Balance);
 
 public sealed record PilotTransactionResponse(int Id, int Amount, string Description, DateTime CreatedAtUtc);
 

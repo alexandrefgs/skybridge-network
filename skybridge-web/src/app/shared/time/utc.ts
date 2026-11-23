@@ -11,7 +11,7 @@ export function fromUtcInput(value: string): string | null {
 }
 
 export function durationLabel(minutes: number): string {
-  if (minutes <= 0) return '0m';
+  if (minutes <= 0) return '0min';
   const hours = Math.floor(minutes / 60);
-  return hours > 0 ? `${hours}h ${pad(minutes % 60)}m` : `${minutes}m`;
+  return hours > 0 ? `${hours}h${pad(minutes % 60)}min` : `${minutes}min`;
 }

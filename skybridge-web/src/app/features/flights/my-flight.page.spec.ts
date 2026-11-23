@@ -87,7 +87,7 @@ describe('MyFlightPage', () => {
   });
   
   const flying = { ...acceptedMedevac, legInProgress: true, startedAtUtc: '2026-11-23T14:05:00Z', legStartedAtUtc: '2026-11-23T14:05:00Z' };
-  const gruPilot = { ...pilotAtFlorianopolis, location: { ...pilotAtFlorianopolis.location!, code: 'SBGR' }, flightHours: 1.5, balance: 4500 };
+  const gruPilot = { ...pilotAtFlorianopolis, location: { ...pilotAtFlorianopolis.location!, code: 'SBGR' }, flightHours: 1.5, flightMinutes: 90, balance: 4500 };
 
   async function fileLeg(response: object) {
     query('pirep-form')!.dispatchEvent(new Event('submit'));
@@ -119,7 +119,7 @@ describe('MyFlightPage', () => {
     expect(query('no-flight')).toBeNull();
     expect(query('mission-complete')!.textContent).toContain('+$4,500 added to your balance');
     expect(query('mission-complete')!.textContent).toContain('SBGR');
-    expect(query('mission-complete')!.textContent).toContain('1.5 h flown');
+    expect(query('mission-complete')!.textContent).toContain('1h30min flown');
   });
 
   it('explains when the reward waits for staff review', async () => {

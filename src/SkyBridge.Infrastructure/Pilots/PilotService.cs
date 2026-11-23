@@ -35,7 +35,7 @@ internal sealed class PilotService(SkyBridgeDbContext db, IBookingService bookin
         pilot.MoveTo(airport.Id);
         await db.SaveChangesAsync(cancellationToken);
 
-        return Result<PilotResponse>.Ok(new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.Balance));
+        return Result<PilotResponse>.Ok(new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.FlightMinutes, pilot.Balance));
     }
 
     public async Task<PagedResult<PilotTransactionResponse>> GetTransactionsAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken)
@@ -59,10 +59,10 @@ internal sealed class PilotService(SkyBridgeDbContext db, IBookingService bookin
     private async Task<PilotResponse> ToResponseAsync(Pilot? pilot, CancellationToken cancellationToken)
     {
         if (pilot?.CurrentAirportId is not { } airportId)
-        return new PilotResponse(null, pilot?.FlightHours ?? 0, pilot?.Balance ?? 0);
+        return new PilotResponse(null, pilot?.FlightHours ?? 0, pilot?.FlightMinutes ?? 0, pilot?.Balance ?? 0);
 
         var airport = await db.Airports.AsNoTracking().FirstAsync(a => a.Id == airportId, cancellationToken);
-        return new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.Balance);
+        return new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.FlightMinutes, pilot.Balance);
     }
 
     private static PilotLocation ToLocation(Airport airport) =>

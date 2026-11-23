@@ -5,12 +5,13 @@ import { Booking } from '../../core/bookings/booking.models';
 import { problemMessages } from '../../core/http/problem';
 import { PirepFiled } from '../../core/pireps/pirep.models';
 import { PirepService } from '../../core/pireps/pirep.service';
+import { FuelConverter } from '../../shared/forms/fuel-converter';
 import { UtcDateTimeInput } from '../../shared/forms/utc-datetime-input';
 import { durationLabel, fromUtcInput, toUtcInput } from '../../shared/time/utc';
 
 @Component({
   selector: 'sb-pirep-form',
-  imports: [ReactiveFormsModule, UtcDateTimeInput],
+  imports: [ReactiveFormsModule, UtcDateTimeInput, FuelConverter],
   template: `
     <form class="rounded-lg border border-line p-4" [formGroup]="form" (ngSubmit)="submit()" data-testid="pirep-form">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -31,10 +32,13 @@ import { durationLabel, fromUtcInput, toUtcInput } from '../../shared/time/utc';
           <label class="text-muted" for="pirep-arrived">Landing</label>
           <sb-utc-datetime-input class="mt-1" inputId="pirep-arrived" testId="pirep-arrived" formControlName="arrived" />
         </div>
-        <label class="block text-sm">
-          <span class="text-muted">Fuel used (kg)</span>
-          <input type="number" min="0" class="sb-input mt-1 font-mono" formControlName="fuel" data-testid="pirep-fuel">
-        </label>
+        <div class="text-sm">
+          <label class="text-muted" for="pirep-fuel">Fuel used (kg)</label>
+          <div class="mt-1 flex items-stretch gap-2">
+            <input id="pirep-fuel" type="number" min="0" class="sb-input font-mono" formControlName="fuel" data-testid="pirep-fuel">
+            <sb-fuel-converter testId="fuel-converter" (use)="form.controls.fuel.setValue($event)" />
+          </div>
+        </div>
         <label class="block text-sm">
           <span class="text-muted">Landing rate (fpm)</span>
           <input type="number" min="0" max="5000" class="sb-input mt-1 font-mono" formControlName="landingRate" data-testid="pirep-landing-rate">

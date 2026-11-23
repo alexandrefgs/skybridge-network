@@ -9,6 +9,7 @@ import { problemMessages } from '../../core/http/problem';
 import { PirepFiled } from '../../core/pireps/pirep.models';
 import { JobBriefing } from '../../shared/freelance/job-briefing';
 import { expiresIn, missionLabel, routeOf } from '../../shared/freelance/missions';
+import { durationLabel } from '../../shared/time/utc';
 import { PirepForm } from './pirep-form';
 
 @Component({
@@ -37,7 +38,7 @@ import { PirepForm } from './pirep-form';
         }
         <p class="mt-1 text-sm text-muted">
           You are now at <span class="font-mono">{{ result.pilot.location?.code }}</span> ·
-          {{ result.pilot.flightHours | number: '1.1-1' }} h flown ·
+          {{ flightTime(result.pilot.flightMinutes) }} flown ·
           balance {{ result.pilot.balance | currency: 'USD' : 'symbol' : '1.0-0' }}
         </p>
         <a routerLink="/freelance" class="sb-btn-primary mt-5 inline-block w-auto px-5">Find another job</a>
@@ -147,6 +148,7 @@ export class MyFlightPage {
   });
 
   protected readonly label = missionLabel;
+  protected readonly flightTime = durationLabel;
   protected readonly route = routeOf;
 
   constructor() {

@@ -14,8 +14,10 @@ describe('utc helpers', () => {
   });
 
   it('labels durations', () => {
-    expect(durationLabel(140)).toBe('2h 20m');
-    expect(durationLabel(45)).toBe('45m');
-    expect(durationLabel(0)).toBe('0m');
+    expect(durationLabel(140)).toBe('2h20min');
+    expect(durationLabel(90)).toBe('1h30min');
+    expect(durationLabel(65)).toBe('1h05min');
+    expect(durationLabel(45)).toBe('45min');
+    expect(durationLabel(0)).toBe('0min');
   });
 });

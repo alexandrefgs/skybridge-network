@@ -42,7 +42,7 @@ describe('PirepForm', () => {
 
     await pick('pirep-arrived', '2026-11-23', '1625');
 
-    expect(query('pirep-duration').textContent).toContain('2h 20m');
+    expect(query('pirep-duration').textContent).toContain('2h20min');
   });
 
   it('files the PIREP in UTC and emits the result', async () => {
@@ -78,5 +78,16 @@ describe('PirepForm', () => {
     await fixture.whenStable();
 
     expect(query('pirep-error').textContent).toContain('Landing must be after takeoff.');
+  });
+  
+  it('fills the fuel in kg from the converter', async () => {
+    query('fuel-converter').click();
+    await fixture.whenStable();
+    set('fuel-converter-amount', '1000');
+    await fixture.whenStable();
+    query('fuel-converter-use').click();
+    await fixture.whenStable();
+
+    expect(query('pirep-fuel').value).toBe('454');
   });
 });

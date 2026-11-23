@@ -25,7 +25,7 @@ describe('AdminPirepsPage', () => {
   it('lists pending PIREPs with the reason', () => {
     expect(query('pirep-60')!.textContent).toContain('SBFL → SBGR');
     expect(query('pirep-60')!.textContent).toContain('Alexandre Fagundes');
-    expect(query('pirep-60')!.textContent).toContain('30m');
+    expect(query('pirep-60')!.textContent).toContain('30min');
     expect(query('flag-60')!.textContent).toContain('too short');
   });
 
