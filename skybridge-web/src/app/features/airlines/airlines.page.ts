@@ -20,13 +20,13 @@ import { DataCredits } from '../../shared/data/data-credits';
 
     <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
       <h2 class="text-lg font-semibold">
-        {{ query().active ? 'Active airlines' : 'All airlines' }}
+        {{ query().active ? 'Active airlines' : 'All airlines, including retro' }}
         <span class="ml-1 text-sm font-normal text-muted" data-testid="count">· {{ totalCount() | number }}</span>
       </h2>
       <div class="flex items-center gap-4">
         <label class="flex items-center gap-2 text-sm text-muted">
           <input type="checkbox" class="accent-primary" [checked]="query().active" (change)="setActiveOnly($any($event.target).checked)" data-testid="active-only">
-          Active only
+          Hide retro
         </label>
         <input class="sb-input w-72" type="search" placeholder="Search name, ICAO, IATA or country" [formControl]="searchControl" data-testid="search">
       </div>
@@ -56,7 +56,7 @@ import { DataCredits } from '../../shared/data/data-credits';
               <td class="px-4 py-3">
                 <a [routerLink]="['/airlines', airline.id]" class="font-medium transition-colors hover:text-primary" [attr.data-testid]="'airline-' + airline.id">{{ airline.name }}</a>
                 @if (!airline.isActive) {
-                  <span class="ml-2 rounded border border-line px-1.5 py-0.5 text-xs text-muted">Inactive</span>
+                  <span class="ml-2 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-500" data-testid="retro">Retro</span>
                 }
               </td>
               <td class="px-4 py-3 font-mono text-xs text-muted">{{ airline.callsign ?? '—' }}</td>

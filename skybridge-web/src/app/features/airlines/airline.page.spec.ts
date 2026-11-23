@@ -57,6 +57,16 @@ describe('AirlinePage', () => {
     request.flush(page([flnGru]));
   });
 
+  it('tags airlines that no longer operate as retro', async () => {
+    const fixture = await render();
+    http.expectOne('/api/airlines/2579').flush({ ...golDetail, name: 'VARIG', isActive: false });
+    await fixture.whenStable();
+    http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([]));
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="retro"]').textContent).toContain('Retro');
+  });
+
   it('explains when the airline does not exist', async () => {
     const fixture = await render('99');
     http.expectOne('/api/airlines/99').flush(null, { status: 404, statusText: 'Not Found' });

@@ -42,6 +42,7 @@ import { AirlineInput } from '../../core/airlines/airline.models';
       <label class="mt-4 flex items-center gap-2 text-sm">
         <input type="checkbox" class="accent-primary" formControlName="isActive" data-testid="is-active">
         Active airline
+        <span class="text-muted">· unchecked shows it as retro (no longer operating)</span>
       </label>
 
       @for (message of errors(); track message) {

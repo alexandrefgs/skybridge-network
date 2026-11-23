@@ -23,14 +23,16 @@ import { RouteList } from '../../shared/routes/route-list';
       <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p class="font-mono text-xs tracking-[0.2em] text-primary" data-testid="codes">{{ a.icaoCode ?? '—' }} · {{ a.iataCode ?? '—' }}</p>
-          <h1 class="mt-1 font-display text-3xl font-bold" data-testid="airline-name">{{ a.name }}</h1>
+          <h1 class="mt-1 flex items-center gap-3 font-display text-3xl font-bold" data-testid="airline-name">
+            {{ a.name }}
+            @if (!a.isActive) {
+              <span class="rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-mono text-xs uppercase tracking-wider text-amber-500" data-testid="retro">Retro</span>
+            }
+          </h1>
           <p class="mt-1 text-muted">
             {{ a.country ?? 'Unknown country' }}
             @if (a.callsign) {
               · callsign <span class="font-mono">{{ a.callsign }}</span>
-            }
-            @if (!a.isActive) {
-              · <span class="text-primary">inactive</span>
             }
           </p>
         </div>

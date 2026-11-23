@@ -20,7 +20,7 @@ import { AirlineForm } from './airline-form';
         <input class="sb-input w-72" type="search" placeholder="Search name, ICAO, IATA or country" [formControl]="searchControl" data-testid="search">
         <label class="flex items-center gap-2 text-sm text-muted">
           <input type="checkbox" class="accent-primary" [checked]="query().active" (change)="setActiveOnly($any($event.target).checked)" data-testid="active-only">
-          Active only
+          Hide retro
         </label>
       </div>
       <button type="button" class="sb-btn-primary w-auto px-4" (click)="creating.set(true); formErrors.set([])" data-testid="new-airline">New airline</button>
@@ -57,7 +57,7 @@ import { AirlineForm } from './airline-form';
               <td class="px-4 py-3">
                 {{ airline.name }}
                 @if (!airline.isActive) {
-                  <span class="ml-2 rounded border border-line px-1.5 py-0.5 text-xs text-muted">Inactive</span>
+                  <span class="ml-2 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-500" data-testid="retro">Retro</span>
                 }
               </td>
               <td class="px-4 py-3 text-muted">{{ airline.country ?? '—' }}</td>

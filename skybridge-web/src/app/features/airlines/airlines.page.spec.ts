@@ -32,7 +32,7 @@ describe('AirlinesPage', () => {
 
     expect(element.querySelector('[data-testid="count"]')!.textContent).toContain('1,253');
     expect(element.querySelector('[data-testid="airline-2579"]')!.getAttribute('href')).toBe('/airlines/2579');
-    expect(element.querySelector('[data-testid="airlines"]')!.textContent).toContain('Inactive');
+    expect(element.querySelector('[data-testid="airlines"]')!.textContent).toContain('Retro');
     expect(element.querySelector('[data-testid="data-credits"]')!.textContent).toContain('ODbL');
     expect(element.querySelector('[data-testid="next"]')).not.toBeNull();
   });
