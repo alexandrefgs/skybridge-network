@@ -3,15 +3,16 @@ import { Component, inject, input, signal } from '@angular/core';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
-import { AirlineDetail } from '../../core/airlines/airline.models';
+import { AirlineDetail, RouteNetwork } from '../../core/airlines/airline.models';
 import { AirlinesService } from '../../core/airlines/airlines.service';
 import { problemMessages } from '../../core/http/problem';
 import { DataCredits } from '../../shared/data/data-credits';
+import { RouteMap } from '../../shared/map/route-map';
 import { RouteList } from '../../shared/routes/route-list';
 
 @Component({
   selector: 'sb-airline-page',
-  imports: [RouterLink, DatePipe, DecimalPipe, RouteList, DataCredits],
+  imports: [RouterLink, DatePipe, DecimalPipe, RouteList, RouteMap, DataCredits],
   template: `
     <a routerLink="/airlines" class="text-sm text-muted transition-colors hover:text-primary">← Airlines</a>
 
@@ -49,6 +50,13 @@ import { RouteList } from '../../shared/routes/route-list';
         </div>
       </div>
 
+      <section class="sb-card mt-8 overflow-hidden p-0" aria-label="Route map">
+        <sb-route-map class="h-[440px]" [network]="network()" />
+        <p class="border-t border-line px-4 py-2 text-xs text-muted" data-testid="network-summary">
+          {{ network()?.airports?.length ?? 0 | number }} airports · {{ network()?.links?.length ?? 0 | number }} connections
+        </p>
+      </section>
+
       <section class="mt-8" aria-label="Fleet">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-muted">Fleet</h2>
         <div class="mt-3 flex flex-wrap gap-2" data-testid="fleet">
@@ -77,6 +85,7 @@ export class AirlinePage {
   readonly id = input.required<string>();
 
   protected readonly airline = signal<AirlineDetail | null>(null);
+  protected readonly network = signal<RouteNetwork | null>(null);
   protected readonly error = signal<string | null>(null);
 
   constructor() {
@@ -93,5 +102,12 @@ export class AirlinePage {
         takeUntilDestroyed()
       )
       .subscribe(airline => this.airline.set(airline));
+
+    toObservable(this.id)
+      .pipe(
+        switchMap(id => this.airlines.network(Number(id)).pipe(catchError(() => of(null)))),
+        takeUntilDestroyed()
+      )
+      .subscribe(network => this.network.set(network));
   }
 }

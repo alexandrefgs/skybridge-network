@@ -1,9 +1,25 @@
+import { Component, input } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { RouteNetwork } from '../../core/airlines/airline.models';
+import { RouteMap } from '../../shared/map/route-map';
 import { flnGru, golDetail, page } from '../../testing/airlines';
 import { AirlinePage } from './airline.page';
+
+@Component({ selector: 'sb-route-map', template: '' })
+class RouteMapStub {
+  readonly network = input<RouteNetwork | null>(null);
+}
+
+const network: RouteNetwork = {
+  airports: [
+    { code: 'SBFL', iataCode: 'FLN', name: 'Hercílio Luz', latitude: -27.67, longitude: -48.55 },
+    { code: 'SBGR', iataCode: 'GRU', name: 'Guarulhos', latitude: -23.43, longitude: -46.47 }
+  ],
+  links: [[0, 1]]
+};
 
 describe('AirlinePage', () => {
   let http: HttpTestingController;
@@ -12,7 +28,9 @@ describe('AirlinePage', () => {
     await TestBed.configureTestingModule({
       imports: [AirlinePage],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])]
-    }).compileComponents();
+    })
+      .overrideComponent(AirlinePage, { remove: { imports: [RouteMap] }, add: { imports: [RouteMapStub] } })
+      .compileComponents();
     http = TestBed.inject(HttpTestingController);
   });
 
@@ -26,6 +44,7 @@ describe('AirlinePage', () => {
   it('shows the airline, its fleet, the last update and the routes', async () => {
     const fixture = await render();
     http.expectOne('/api/airlines/2579').flush(golDetail);
+    http.expectOne('/api/airlines/2579/network').flush(network);
     await fixture.whenStable();
     http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru], 293));
     await fixture.whenStable();
@@ -37,11 +56,13 @@ describe('AirlinePage', () => {
     expect(element.querySelector('[data-testid="routes"]')!.textContent).toContain('UZ10 BUXUK');
     expect(element.querySelector('[data-testid="route-count"]')!.textContent).toContain('293');
     expect(element.querySelector('[data-testid="routes"] th:last-child')!.textContent).toContain('Route');
+    expect(element.querySelector('[data-testid="network-summary"]')!.textContent).toContain('2 airports · 1 connections');
   });
 
   it('searches the routes by airport', async () => {
     const fixture = await render();
     http.expectOne('/api/airlines/2579').flush(golDetail);
+    http.expectOne('/api/airlines/2579/network').flush(network);
     await fixture.whenStable();
     http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru]));
     await fixture.whenStable();
@@ -60,6 +81,7 @@ describe('AirlinePage', () => {
   it('tags airlines that no longer operate as retro', async () => {
     const fixture = await render();
     http.expectOne('/api/airlines/2579').flush({ ...golDetail, name: 'VARIG', isActive: false });
+    http.expectOne('/api/airlines/2579/network').flush({ airports: [], links: [] });
     await fixture.whenStable();
     http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([]));
     await fixture.whenStable();
@@ -70,6 +92,7 @@ describe('AirlinePage', () => {
   it('explains when the airline does not exist', async () => {
     const fixture = await render('99');
     http.expectOne('/api/airlines/99').flush(null, { status: 404, statusText: 'Not Found' });
+    http.expectOne('/api/airlines/99/network').flush(null, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent).toContain('Airline not found.');

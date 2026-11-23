@@ -3,14 +3,7 @@ import * as L from 'leaflet';
 import { Airport } from '../../core/airports/airport.models';
 import { ClientConfigService } from '../../core/config/client-config.service';
 import { ThemeService } from '../../core/theme/theme.service';
-
-const TILE_STYLES = { dark: 'dark_all', light: 'light_all' } as const;
-
-const tileUrl = (theme: keyof typeof TILE_STYLES, key: string | null) =>
-  `https://basemaps.cartocdn.com/rastertiles/${TILE_STYLES[theme]}/{z}/{x}/{y}{r}.png` + (key ? `?key=${encodeURIComponent(key)}` : '');
-
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
-const PRIMARY = '#ef233c';
+import { ATTRIBUTION, PRIMARY, tileUrl } from './map-tiles';
 
 @Component({
   selector: 'sb-airport-map',

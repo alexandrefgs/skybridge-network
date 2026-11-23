@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { gol, page } from '../../testing/airlines';
 import { AirlinesPage } from './airlines.page';
 
@@ -35,6 +35,15 @@ describe('AirlinesPage', () => {
     expect(element.querySelector('[data-testid="airlines"]')!.textContent).toContain('Retro');
     expect(element.querySelector('[data-testid="data-credits"]')!.textContent).toContain('ODbL');
     expect(element.querySelector('[data-testid="next"]')).not.toBeNull();
+  });
+
+  it('opens the airline when the row is clicked', async () => {
+    const fixture = await render();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    fixture.nativeElement.querySelector('[data-testid="row-2579"] td').click();
+
+    expect(navigate).toHaveBeenCalledWith(['/airlines', 2579]);
   });
 
   it('shows every airline when active only is unchecked', async () => {

@@ -41,6 +41,19 @@ export interface AirlineRoute {
   flightLevel: number | null;
 }
 
+export interface NetworkAirport {
+  code: string;
+  iataCode: string | null;
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface RouteNetwork {
+  airports: NetworkAirport[];
+  links: [number, number][];
+}
+
 export interface AirlineQuery {
   search: string;
   active: boolean | null;

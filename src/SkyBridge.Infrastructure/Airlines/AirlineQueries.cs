@@ -109,6 +109,36 @@ internal sealed class AirlineQueries(SkyBridgeDbContext db) : IAirlineQueries
         return row is null ? null : (await ToResponsesAsync([row], cancellationToken))[0];
     }
 
+    public async Task<RouteNetworkResponse?> GetNetworkAsync(int airlineId, CancellationToken cancellationToken)
+    {
+        if (!await db.Airlines.AnyAsync(a => a.Id == airlineId, cancellationToken))
+            return null;
+
+        var pairs = await db.Routes.AsNoTracking()
+            .Where(r => r.AirlineId == airlineId)
+            .Select(r => new { r.OriginAirportId, r.DestinationAirportId })
+            .ToListAsync(cancellationToken);
+
+        var ids = pairs.SelectMany(p => new[] { p.OriginAirportId, p.DestinationAirportId }).Distinct().ToList();
+        var airports = await db.Airports.AsNoTracking()
+            .Where(a => ids.Contains(a.Id))
+            .Select(a => new { a.Id, Code = a.IcaoCode ?? a.Ident, a.IataCode, a.Name, a.Latitude, a.Longitude })
+            .OrderBy(a => a.Code)
+            .ToListAsync(cancellationToken);
+
+        var index = airports.Select((airport, position) => (airport.Id, position)).ToDictionary(x => x.Id, x => x.position);
+        var links = pairs
+            .Select(p => (A: index[p.OriginAirportId], B: index[p.DestinationAirportId]))
+            .Select(l => (Math.Min(l.A, l.B), Math.Max(l.A, l.B)))
+            .Distinct()
+            .Select(l => new[] { l.Item1, l.Item2 })
+            .ToList();
+
+        return new RouteNetworkResponse(
+            airports.Select(a => new NetworkAirport(a.Code, a.IataCode, a.Name, a.Latitude, a.Longitude)).ToList(),
+            links);
+    }
+
     private IQueryable<RouteRow> RouteRows(int airlineId) =>
         from route in db.Routes.AsNoTracking()
         where route.AirlineId == airlineId

@@ -8,4 +8,5 @@ public interface IAirlineQueries
     Task<AirlineDetailResponse?> GetAsync(int id, CancellationToken cancellationToken);
     Task<PagedResult<RouteResponse>?> GetRoutesAsync(int airlineId, RouteSearch search, CancellationToken cancellationToken);
     Task<RouteResponse?> GetRouteAsync(int airlineId, int routeId, CancellationToken cancellationToken);
+    Task<RouteNetworkResponse?> GetNetworkAsync(int airlineId, CancellationToken cancellationToken);
 }

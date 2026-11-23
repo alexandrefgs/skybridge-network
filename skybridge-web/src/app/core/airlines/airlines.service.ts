@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PagedResult } from '../http/paged-result';
-import { Airline, AirlineDetail, AirlineQuery, AirlineRoute, RouteQuery } from './airline.models';
+import { Airline, AirlineDetail, AirlineQuery, AirlineRoute, RouteNetwork, RouteQuery } from './airline.models';
 
 export const AIRLINES_PAGE_SIZE = 15;
 export const ROUTES_PAGE_SIZE = 15;
@@ -20,6 +20,10 @@ export class AirlinesService {
 
   get(id: number): Observable<AirlineDetail> {
     return this.http.get<AirlineDetail>(`/api/airlines/${id}`);
+  }
+
+  network(id: number): Observable<RouteNetwork> {
+    return this.http.get<RouteNetwork>(`/api/airlines/${id}/network`);
   }
 
   routes(id: number, query: RouteQuery): Observable<PagedResult<AirlineRoute>> {

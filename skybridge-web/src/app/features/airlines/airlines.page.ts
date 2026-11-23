@@ -2,7 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
 import { Airline, AirlineQuery } from '../../core/airlines/airline.models';
 import { AIRLINES_PAGE_SIZE, AirlinesService } from '../../core/airlines/airlines.service';
@@ -50,7 +50,7 @@ import { DataCredits } from '../../shared/data/data-credits';
         </thead>
         <tbody class="divide-y divide-line">
           @for (airline of result()?.items ?? []; track airline.id) {
-            <tr class="transition-colors hover:bg-surface-2">
+            <tr class="cursor-pointer transition-colors hover:bg-surface-2" (click)="open(airline.id)" [attr.data-testid]="'row-' + airline.id">
               <td class="px-4 py-3 font-mono font-semibold">{{ airline.icaoCode ?? '—' }}</td>
               <td class="px-4 py-3 font-mono text-muted">{{ airline.iataCode ?? '—' }}</td>
               <td class="px-4 py-3">
@@ -87,6 +87,7 @@ import { DataCredits } from '../../shared/data/data-credits';
 })
 export class AirlinesPage {
   private readonly airlines = inject(AirlinesService);
+  private readonly router = inject(Router);
 
   protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected readonly query = signal<AirlineQuery>({ search: '', active: true, page: 1, pageSize: AIRLINES_PAGE_SIZE });
@@ -125,6 +126,10 @@ export class AirlinesPage {
 
   protected setActiveOnly(activeOnly: boolean): void {
     this.query.update(q => ({ ...q, active: activeOnly ? true : null, page: 1 }));
+  }
+
+  protected open(id: number): void {
+    this.router.navigate(['/airlines', id]);
   }
 
   protected goToPage(page: number): void {

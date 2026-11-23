@@ -83,4 +83,8 @@ public sealed record RouteImportResult(
     IReadOnlyList<string> FleetAdded,
     IReadOnlyList<RouteImportIssue> Issues);
 
+public sealed record NetworkAirport(string Code, string? IataCode, string Name, double Latitude, double Longitude);
+
+public sealed record RouteNetworkResponse(IReadOnlyList<NetworkAirport> Airports, IReadOnlyList<int[]> Links);
+
 public sealed record AirlineImportResult(int AirlinesAdded, int AirlinesUpdated, int RoutesAdded, int RoutesSkipped);

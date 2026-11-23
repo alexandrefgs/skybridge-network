@@ -78,6 +78,19 @@ public class AirlinesTests(SkyBridgeApiFactory factory)
     }
 
     [Fact]
+    public async Task Network_JoinsBothDirectionsIntoOneLink()
+    {
+        await EnsureImportedAsync();
+        var gol = await FindAsync("GLO");
+
+        var network = await GetAsPilotAsync<RouteNetworkResponse>($"/api/airlines/{gol.Id}/network");
+
+        Assert.Equal(new[] { "SBFL", "SBGR" }, network.Airports.Select(a => a.Code));
+        Assert.Equal("FLN", network.Airports[0].IataCode);
+        Assert.Equal(new[] { 0, 1 }, Assert.Single(network.Links));
+    }
+
+    [Fact]
     public async Task Get_Returns404_ForUnknownAirline()
     {
         var response = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/airlines/999999", await _client.RegisterPilotAsync());

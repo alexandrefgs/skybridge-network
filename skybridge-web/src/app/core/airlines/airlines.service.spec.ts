@@ -34,6 +34,12 @@ describe('AirlinesService', () => {
     request.flush({ items: [], page: 1, pageSize: 15, totalCount: 0 });
   });
 
+  it('loads the route network of an airline', () => {
+    service.network(7).subscribe();
+
+    http.expectOne('/api/airlines/7/network').flush({ airports: [], links: [] });
+  });
+
   it('lists the routes of an airline', () => {
     service.routes(7, { search: 'SBFL', page: 1, pageSize: 15 }).subscribe();
 
