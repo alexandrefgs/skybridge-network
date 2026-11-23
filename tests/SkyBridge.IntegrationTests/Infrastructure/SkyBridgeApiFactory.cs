@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using SkyBridge.Application.Airlines;
 using SkyBridge.Application.Airports;
 using Testcontainers.MsSql;
 
@@ -27,6 +28,7 @@ public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseEnvironment("Development");
         builder.UseSetting("ConnectionStrings:Default", connectionString);
         builder.UseSetting("Seed:ImportAirports", "false");
+        builder.UseSetting("Seed:ImportAirlines", "false");
         builder.UseSetting("Seed:AdminEmail", AdminEmail);
         builder.UseSetting("Seed:AdminPassword", AdminPassword);
         builder.UseSetting("Maps:CartoApiKey", "test-carto-key");
@@ -35,6 +37,8 @@ public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsync
         {
             services.RemoveAll<IAirportSource>();
             services.AddSingleton<IAirportSource, FakeAirportSource>();
+            services.RemoveAll<IAirlineSource>();
+            services.AddSingleton<IAirlineSource, FakeAirlineSource>();
         });
     }
 

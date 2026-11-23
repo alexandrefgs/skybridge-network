@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SkyBridge.Application.Airlines;
 using SkyBridge.Application.Airports;
 using SkyBridge.Domain.Aircraft;
 using SkyBridge.Infrastructure.Persistence.Seed;
@@ -29,6 +30,9 @@ public static class DatabaseInitializer
 
         if (seed.ImportAirports && !await db.Airports.AnyAsync(cancellationToken))
             await SeedAirportsAsync(provider, logger, cancellationToken);
+
+        if (seed.ImportAirlines && !await db.Airlines.AnyAsync(cancellationToken) && await db.Airports.AnyAsync(cancellationToken))
+            await SeedAirlinesAsync(provider, logger, cancellationToken);
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager)
@@ -95,6 +99,22 @@ public static class DatabaseInitializer
         catch (HttpRequestException exception)
         {
             logger.LogWarning(exception, "Could not download OurAirports data. Airports were not imported.");
+        }
+    }
+    
+    private static async Task SeedAirlinesAsync(IServiceProvider provider, ILogger logger, CancellationToken cancellationToken)
+    {
+        try
+        {
+            logger.LogInformation("Airlines table is empty. Importing airlines and routes from OpenFlights...");
+            var source = provider.GetRequiredService<IAirlineSource>();
+            await using var airlines = await source.OpenAirlinesAsync(cancellationToken);
+            await using var routes = await source.OpenRoutesAsync(cancellationToken);
+            await provider.GetRequiredService<IAirlineImporter>().ImportAsync(airlines, routes, cancellationToken);
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Could not download OpenFlights data. Airlines were not imported.");
         }
     }
 }

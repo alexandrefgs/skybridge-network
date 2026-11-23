@@ -7,8 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SkyBridge.Application.Aircraft;
+using SkyBridge.Application.Airlines;
 using SkyBridge.Application.Airports;
 using SkyBridge.Infrastructure.Aircraft;
+using SkyBridge.Infrastructure.Airlines;
 using SkyBridge.Application.Auth;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Auth;
@@ -76,6 +78,15 @@ public static class DependencyInjection
         services.AddHttpClient<IAirportSource, OurAirportsSource>(client =>
         {
             client.BaseAddress = new Uri("https://davidmegginson.github.io/ourairports-data/");
+            client.Timeout = TimeSpan.FromMinutes(2);
+        });
+
+        services.AddScoped<IAirlineQueries, AirlineQueries>();
+        services.AddScoped<IAirlineAdmin, AirlineAdmin>();
+        services.AddScoped<IAirlineImporter, AirlineImporter>();
+        services.AddHttpClient<IAirlineSource, OpenFlightsSource>(client =>
+        {
+            client.BaseAddress = new Uri("https://raw.githubusercontent.com/jpatokal/openflights/master/data/");
             client.Timeout = TimeSpan.FromMinutes(2);
         });
 
