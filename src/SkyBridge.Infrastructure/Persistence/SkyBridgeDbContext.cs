@@ -17,6 +17,7 @@ public class SkyBridgeDbContext(DbContextOptions<SkyBridgeDbContext> options)
     public DbSet<AircraftType> AircraftTypes => Set<AircraftType>();
     public DbSet<Airline> Airlines => Set<Airline>();
     public DbSet<Route> Routes => Set<Route>();
+    public DbSet<UserImage> UserImages => Set<UserImage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

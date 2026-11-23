@@ -37,7 +37,8 @@ public sealed record CurrentUserResponse(
     string FirstName,
     string LastName,
     bool TwoFactorEnabled,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    string? AvatarUrl);
 
 public sealed record AuthResult<T>(bool Succeeded, T? Value, Dictionary<string, string[]> Errors)
 {

@@ -44,10 +44,22 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register.page').then(m => m.RegisterPage)
   },
   {
-    path: 'account/security',
-    title: 'Security · SkyBridge',
+    path: 'account',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/account/security.page').then(m => m.SecurityPage)
+    loadComponent: () => import('./features/account/account.layout').then(m => m.AccountLayout),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'profile' },
+      {
+        path: 'profile',
+        title: 'Profile · SkyBridge',
+        loadComponent: () => import('./features/account/profile.page').then(m => m.ProfilePage)
+      },
+      {
+        path: 'security',
+        title: 'Security · SkyBridge',
+        loadComponent: () => import('./features/account/security.page').then(m => m.SecurityPage)
+      }
+    ]
   },
   {
     path: 'admin',

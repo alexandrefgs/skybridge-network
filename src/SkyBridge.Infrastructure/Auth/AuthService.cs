@@ -8,7 +8,8 @@ namespace SkyBridge.Infrastructure.Auth;
 internal sealed class AuthService(
     UserManager<ApplicationUser> userManager,
     JwtTokenService tokens,
-    TwoFactorLoginTokens twoFactorTokens) : IAuthService
+    TwoFactorLoginTokens twoFactorTokens,
+    CurrentUserReader reader) : IAuthService
 {
     public async Task<AuthResult<LoginResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
@@ -80,8 +81,7 @@ internal sealed class AuthService(
         if (user is null)
             return null;
 
-        var roles = await userManager.GetRolesAsync(user);
-        return new CurrentUserResponse(user.Id, user.Email!, user.FirstName, user.LastName, user.TwoFactorEnabled, roles.ToList());
+        return await reader.ReadAsync(user, cancellationToken);
     }
 
     private async Task<bool> IsValidSecondFactorAsync(ApplicationUser user, string code)

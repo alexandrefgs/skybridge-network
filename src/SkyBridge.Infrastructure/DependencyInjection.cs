@@ -12,10 +12,12 @@ using SkyBridge.Application.Airports;
 using SkyBridge.Infrastructure.Aircraft;
 using SkyBridge.Infrastructure.Airlines;
 using SkyBridge.Application.Auth;
+using SkyBridge.Application.Profile;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Auth;
 using SkyBridge.Infrastructure.Identity;
 using SkyBridge.Infrastructure.Persistence;
+using SkyBridge.Infrastructure.Profile;
 
 namespace SkyBridge.Infrastructure;
 
@@ -65,7 +67,9 @@ public static class DependencyInjection
 
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<JwtTokenService>();
+        services.AddScoped<CurrentUserReader>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<ITwoFactorService, TwoFactorService>();
         services.AddDataProtection();
         services.AddSingleton<TwoFactorLoginTokens>();

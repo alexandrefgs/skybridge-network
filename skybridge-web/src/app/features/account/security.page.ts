@@ -12,11 +12,10 @@ import { CodeInput } from '../../shared/forms/code-input';
   selector: 'sb-security-page',
   imports: [ReactiveFormsModule, CodeInput],
   template: `
-    <div class="mx-auto max-w-2xl">
-      <h1 class="font-display text-3xl font-bold">Security</h1>
-      <p class="mt-1 text-muted">Manage how you sign in to SkyBridge.</p>
+    <div>
+      <p class="text-muted">Manage how you sign in to SkyBridge.</p>
 
-      <div class="sb-card mt-8">
+      <div class="sb-card mt-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-lg font-semibold">Two-factor authentication</h2>

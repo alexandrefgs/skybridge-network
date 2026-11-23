@@ -19,6 +19,12 @@ export interface CurrentUser {
   lastName: string;
   twoFactorEnabled: boolean;
   roles: string[];
+  avatarUrl: string | null;
+}
+
+export interface ProfileInput {
+  firstName: string;
+  lastName: string;
 }
 
 export interface TwoFactorSetup {
