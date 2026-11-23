@@ -15,6 +15,21 @@ public sealed record BookingResponse(
     DateTime StartDeadlineUtc,
     DateTime? StartedAtUtc,
     DateTime? LegStartedAtUtc,
-    FreelanceJobResponse? Job);
+    FreelanceJobResponse? Job,
+    string? FlightNumber,
+    int PayPerHour,
+    AirlineFlightResponse? Flight);
+
+public sealed record AirlineFlightResponse(
+    int? RouteId,
+    string FlightNumber,
+    string Airline,
+    string Origin,
+    string OriginName,
+    string Destination,
+    string DestinationName,
+    int DistanceNm,
+    string? AtsRoute,
+    int? FlightLevel);
 
 public sealed record AcceptJobRequest([Required, MaxLength(4)] string Aircraft);

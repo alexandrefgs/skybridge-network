@@ -15,6 +15,7 @@ export interface AircraftCategory {
   code: AircraftCategoryCode;
   name: string;
   requiredHours: number;
+  payPerHour: number;
 }
 
 export interface AircraftType {

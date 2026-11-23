@@ -55,7 +55,22 @@ export const acceptedMedevac: Booking = {
   id: 31, status: 'Active', source: 'Freelance', aircraft: 'C208',
   currentLeg: 1, legCount: 1, legInProgress: false,
   bookedAtUtc: '2026-11-23T12:00:00Z', startDeadlineUtc: '2026-11-26T12:00:00Z',
-  startedAtUtc: null, legStartedAtUtc: null, job: { ...medevac, taken: true }
+  startedAtUtc: null, legStartedAtUtc: null, job: { ...medevac, taken: true },
+  flightNumber: null, payPerHour: 0, flight: null
+};
+
+export const bookedGolFlight: Booking = {
+  id: 40, status: 'Active', source: 'Airline', aircraft: 'B738',
+  currentLeg: 1, legCount: 1, legInProgress: false,
+  bookedAtUtc: '2026-11-23T12:00:00Z', startDeadlineUtc: '2026-11-24T12:00:00Z',
+  startedAtUtc: null, legStartedAtUtc: null, job: null,
+  flightNumber: 'GLO1042', payPerHour: 320,
+  flight: {
+    routeId: 42, flightNumber: 'GLO1042', airline: 'Gol Transportes Aéreos',
+    origin: 'SBFL', originName: 'Hercílio Luz International Airport',
+    destination: 'SBGR', destinationName: 'São Paulo/Guarulhos International Airport',
+    distanceNm: 278, atsRoute: 'UZ6 PAKOT DCT', flightLevel: 360
+  }
 };
 
 export const filedPirep: Pirep = {

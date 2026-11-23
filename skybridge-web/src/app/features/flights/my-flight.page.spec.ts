@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { acceptedMedevac, executiveTour, filedPirep, pilotAtFlorianopolis } from '../../testing/freelance';
+import { acceptedMedevac, bookedGolFlight, executiveTour, filedPirep, pilotAtFlorianopolis } from '../../testing/freelance';
 import { MyFlightPage } from './my-flight.page';
 
 describe('MyFlightPage', () => {
@@ -128,5 +128,26 @@ describe('MyFlightPage', () => {
     await fileLeg({ pirep: { ...filedPirep, status: 'Pending', flag: 'Too short' }, booking: null, rewardPaid: null, pilot: gruPilot });
 
     expect(query('mission-complete')!.textContent).toContain('waiting for staff review');
+  });
+  
+  it('shows an airline flight with its flight plan and hourly pay', async () => {
+    await load(bookedGolFlight);
+
+    expect(query('flight-number')!.textContent).toContain('GLO1042');
+    expect(query('flight')!.textContent).toContain('Gol Transportes Aéreos');
+    expect(query('flight-pay')!.textContent).toContain('$320/h');
+    expect(query('leg-1')!.textContent).toContain('SBFL → SBGR');
+    expect(query('leg-1')!.textContent).not.toContain('pax');
+    expect(query('flight-plan')!.textContent).toContain('FL360');
+    expect(query('ats-route')!.textContent).toContain('UZ6 PAKOT DCT');
+  });
+
+  it('names the flight when an airline flight is complete', async () => {
+    await load({ ...bookedGolFlight, legInProgress: true, startedAtUtc: '2026-11-23T14:05:00Z', legStartedAtUtc: '2026-11-23T14:05:00Z' });
+
+    await fileLeg({ pirep: filedPirep, booking: null, rewardPaid: 480, pilot: gruPilot });
+
+    expect(query('mission-complete')!.textContent).toContain('FLIGHT GLO1042 COMPLETE');
+    expect(query('mission-complete')!.textContent).toContain('+$480');
   });
 });

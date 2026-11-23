@@ -12,6 +12,7 @@ import { PagedResult } from '../../core/http/paged-result';
 import { problemMessages } from '../../core/http/problem';
 import { Pilot } from '../../core/pilot/pilot.models';
 import { PilotService } from '../../core/pilot/pilot.service';
+import { bookingRoute } from '../../shared/flights/booking-legs';
 import { JobBriefing } from '../../shared/freelance/job-briefing';
 import { expiresIn, hasDangerousGoods, maxCargo, maxPassengers, missionLabel, routeOf } from '../../shared/freelance/missions';
 import { durationLabel } from '../../shared/time/utc';
@@ -28,7 +29,7 @@ import { durationLabel } from '../../shared/time/utc';
       <section class="sb-card mt-6 flex flex-wrap items-center justify-between gap-4 border-primary/50" data-testid="active-flight">
         <div>
           <p class="text-xs uppercase tracking-wide text-primary">Active flight</p>
-          <p class="mt-1 font-mono font-semibold">{{ active.job ? route(active.job) : '—' }} · {{ active.aircraft }}</p>
+          <p class="mt-1 font-mono font-semibold">{{ activeRoute(active) }} · {{ active.aircraft }}</p>
           <p class="text-sm text-muted">Finish or cancel it before taking another job or a jumpseat.</p>
         </div>
         <a routerLink="/flight" class="sb-btn-primary w-auto px-5">Go to my flight</a>
@@ -162,6 +163,7 @@ export class FreelancePage {
   protected readonly pilot = signal<Pilot | null>(null);
   protected readonly booking = signal<Booking | null>(null);
   protected readonly flightTime = durationLabel;
+  protected readonly activeRoute = bookingRoute;
   protected readonly accepting = signal(false);
   protected readonly acceptError = signal<string | null>(null);
   protected readonly jumpseatOpen = signal(false);

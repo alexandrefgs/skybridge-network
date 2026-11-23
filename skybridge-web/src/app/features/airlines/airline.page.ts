@@ -1,18 +1,24 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
-import { AirlineDetail, RouteFilter, RouteNetwork } from '../../core/airlines/airline.models';
+import { AirlineDetail, AirlineRoute, RouteFilter, RouteNetwork } from '../../core/airlines/airline.models';
 import { AirlinesService } from '../../core/airlines/airlines.service';
+import { Booking } from '../../core/bookings/booking.models';
+import { BookingService } from '../../core/bookings/booking.service';
 import { problemMessages } from '../../core/http/problem';
+import { Pilot } from '../../core/pilot/pilot.models';
+import { PilotService } from '../../core/pilot/pilot.service';
+import { bookingRoute } from '../../shared/flights/booking-legs';
 import { DataCredits } from '../../shared/data/data-credits';
 import { RouteMap } from '../../shared/map/route-map';
 import { RouteList } from '../../shared/routes/route-list';
+import { RouteBooking } from './route-booking';
 
 @Component({
   selector: 'sb-airline-page',
-  imports: [RouterLink, DatePipe, DecimalPipe, RouteList, RouteMap, DataCredits],
+  imports: [RouterLink, DatePipe, DecimalPipe, RouteList, RouteMap, DataCredits, RouteBooking],
   template: `
     <a routerLink="/airlines" class="text-sm text-muted transition-colors hover:text-primary">← Airlines</a>
 
@@ -71,8 +77,37 @@ import { RouteList } from '../../shared/routes/route-list';
         </div>
       </section>
 
-      <section class="mt-10">
-        <sb-route-list [airlineId]="a.id" [filter]="routeFilter()" (filterChange)="routeFilter.set($event)" />
+      <section class="mt-10" aria-label="Fly this airline">
+        @if (booking(); as active) {
+          <div class="sb-card flex flex-wrap items-center justify-between gap-4 py-5" data-testid="fly-active">
+            <p class="text-sm"><span class="text-primary">Active flight</span> · <span class="font-mono">{{ activeRoute(active) }} · {{ active.aircraft }}</span></p>
+            <a routerLink="/flight" class="sb-btn-primary w-auto px-5">Go to my flight</a>
+          </div>
+        } @else if (pilot()?.location; as location) {
+          @if (selected(); as route) {
+            <sb-route-booking [route]="route" [airlineCode]="a.icaoCode ?? a.iataCode" (closed)="selected.set(null)" />
+          } @else {
+            <div class="sb-card flex flex-wrap items-center justify-between gap-4 py-5" data-testid="fly-here">
+              <p class="text-sm text-muted">
+                You are at <span class="font-mono font-semibold text-foreground">{{ location.code }}</span>.
+                @if (a.isActive) {
+                  Book any route departing from here.
+                } @else {
+                  This airline no longer operates, so its routes can't be booked.
+                }
+              </p>
+              @if (a.isActive) {
+                <button type="button" class="sb-btn-secondary w-auto px-4 py-1.5" (click)="routeFilter.set({ from: location.code, to: null })"
+                  data-testid="show-departures">Departures from {{ location.code }}</button>
+              }
+            </div>
+          }
+        }
+      </section>
+
+      <section class="mt-6">
+        <sb-route-list [airlineId]="a.id" [filter]="routeFilter()" (filterChange)="routeFilter.set($event)"
+          [bookableFrom]="bookableFrom()" (book)="selected.set($event)" />
       </section>
 
       <sb-data-credits />
@@ -88,8 +123,17 @@ export class AirlinePage {
   protected readonly network = signal<RouteNetwork | null>(null);
   protected readonly routeFilter = signal<RouteFilter | null>(null);
   protected readonly error = signal<string | null>(null);
+  protected readonly pilot = signal<Pilot | null>(null);
+  protected readonly booking = signal<Booking | null>(null);
+  protected readonly selected = signal<AirlineRoute | null>(null);
+  protected readonly bookableFrom = computed(() =>
+    this.airline()?.isActive && !this.booking() ? (this.pilot()?.location?.code ?? null) : null
+  );
+  protected readonly activeRoute = bookingRoute;
 
   constructor() {
+    inject(PilotService).get().pipe(catchError(() => of(null)), takeUntilDestroyed()).subscribe(pilot => this.pilot.set(pilot));
+    inject(BookingService).current().pipe(catchError(() => of(null)), takeUntilDestroyed()).subscribe(booking => this.booking.set(booking));
     toObservable(this.id)
       .pipe(
         switchMap(id =>

@@ -36,7 +36,7 @@ public class AircraftTests(SkyBridgeApiFactory factory)
         var token = await _client.RegisterPilotAsync();
 
         var response = await _client.SendAuthorizedAsync(HttpMethod.Put, "/api/admin/aircraft-categories/Heavy", token,
-            new UpdateAircraftCategoryRequest("Heavy", 0));
+            new UpdateAircraftCategoryRequest("Heavy", 0, 0));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -47,14 +47,15 @@ public class AircraftTests(SkyBridgeApiFactory factory)
         var token = await _client.LoginAsAdminAsync();
 
         var response = await _client.SendAuthorizedAsync(HttpMethod.Put, "/api/admin/aircraft-categories/MidSizeJet", token,
-            new UpdateAircraftCategoryRequest("Mid-size jet", 160));
+            new UpdateAircraftCategoryRequest("Mid-size jet", 160, 240));
 
         response.EnsureSuccessStatusCode();
         var categories = await GetAsPilotAsync<List<AircraftCategoryResponse>>("/api/aircraft-categories");
-        Assert.Equal(160, categories.Single(c => c.Code == "MidSizeJet").RequiredHours);
+                var midSize = categories.Single(c => c.Code == "MidSizeJet");
+        Assert.Equal((160, 240), (midSize.RequiredHours, midSize.PayPerHour));
 
         await _client.SendAuthorizedAsync(HttpMethod.Put, "/api/admin/aircraft-categories/MidSizeJet", token,
-            new UpdateAircraftCategoryRequest("Mid-size jet", 150));
+            new UpdateAircraftCategoryRequest("Mid-size jet", 150, 220));
     }
 
     [Fact]

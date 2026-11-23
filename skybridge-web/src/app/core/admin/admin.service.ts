@@ -7,6 +7,7 @@ import { AirportCatalogImportResult } from '../airports/airport.models';
 export interface CategoryUpdate {
   name: string;
   requiredHours: number;
+  payPerHour: number;
 }
 
 @Injectable({ providedIn: 'root' })

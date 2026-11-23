@@ -163,6 +163,9 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("PayPerHour")
+                        .HasColumnType("int");
+
                     b.Property<int>("RequiredHours")
                         .HasColumnType("int");
 
@@ -175,54 +178,63 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         {
                             Code = 1,
                             Name = "Single piston",
+                            PayPerHour = 60,
                             RequiredHours = 0
                         },
                         new
                         {
                             Code = 2,
                             Name = "Twin piston",
+                            PayPerHour = 90,
                             RequiredHours = 0
                         },
                         new
                         {
                             Code = 3,
                             Name = "Turboprop",
+                            PayPerHour = 130,
                             RequiredHours = 25
                         },
                         new
                         {
                             Code = 4,
                             Name = "Regional",
+                            PayPerHour = 180,
                             RequiredHours = 75
                         },
                         new
                         {
                             Code = 5,
                             Name = "Light jet",
+                            PayPerHour = 170,
                             RequiredHours = 75
                         },
                         new
                         {
                             Code = 6,
                             Name = "Mid-size jet",
+                            PayPerHour = 220,
                             RequiredHours = 150
                         },
                         new
                         {
                             Code = 7,
                             Name = "Large business jet",
+                            PayPerHour = 280,
                             RequiredHours = 300
                         },
                         new
                         {
                             Code = 8,
                             Name = "Medium (narrow-body)",
+                            PayPerHour = 320,
                             RequiredHours = 300
                         },
                         new
                         {
                             Code = 9,
                             Name = "Heavy (wide-body)",
+                            PayPerHour = 450,
                             RequiredHours = 600
                         });
                 });
@@ -501,14 +513,28 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<int>("AircraftTypeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("AirlineName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTime>("BookedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("CurrentLeg")
                         .HasColumnType("int");
 
+                    b.Property<int?>("DestinationAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DistanceNm")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("FinishedAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("FlightNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<int?>("FreelanceJobId")
                         .HasColumnType("int");
@@ -519,6 +545,12 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("LegStartedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("OriginAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PayPerHour")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("PilotUserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -527,6 +559,9 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime?>("RewardPaidAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("RouteId")
+                        .HasColumnType("int");
 
                     b.Property<byte>("Source")
                         .HasColumnType("tinyint");
@@ -544,15 +579,21 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AircraftTypeId");
 
+                    b.HasIndex("DestinationAirportId");
+
                     b.HasIndex("FreelanceJobId")
                         .IsUnique()
                         .HasDatabaseName("IX_Bookings_TakenFreelanceJob")
                         .HasFilter("[FreelanceJobId] IS NOT NULL AND [Status] IN (1, 2)");
 
+                    b.HasIndex("OriginAirportId");
+
                     b.HasIndex("PilotUserId")
                         .IsUnique()
                         .HasDatabaseName("IX_Bookings_ActivePilot")
                         .HasFilter("[Status] = 1");
+
+                    b.HasIndex("RouteId");
 
                     b.ToTable("Bookings");
                 });
@@ -1050,16 +1091,31 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("DestinationAirportId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SkyBridge.Domain.Freelance.FreelanceJob", null)
                         .WithMany()
                         .HasForeignKey("FreelanceJobId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("OriginAirportId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SkyBridge.Domain.Pilots.Pilot", null)
                         .WithMany()
                         .HasForeignKey("PilotUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Routes.Route", null)
+                        .WithMany()
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJob", b =>

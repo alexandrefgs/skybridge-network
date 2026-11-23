@@ -15,6 +15,10 @@ export class BookingService {
     return this.http.post<Booking>(`/api/freelance/${jobId}/accept`, { aircraft });
   }
 
+  bookRoute(routeId: number, aircraft: string): Observable<Booking> {
+    return this.http.post<Booking>(`/api/bookings/routes/${routeId}`, { aircraft });
+  }
+
   startLeg(): Observable<Booking> {
     return this.http.post<Booking>('/api/bookings/current/start', {});
   }

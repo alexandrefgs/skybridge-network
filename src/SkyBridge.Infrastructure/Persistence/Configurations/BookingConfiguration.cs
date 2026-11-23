@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SkyBridge.Domain.Aircraft;
+using SkyBridge.Domain.Airports;
 using SkyBridge.Domain.Bookings;
 using SkyBridge.Domain.Freelance;
 using SkyBridge.Domain.Pilots;
+using SkyBridge.Domain.Routes;
 
 namespace SkyBridge.Infrastructure.Persistence.Configurations;
 
@@ -15,6 +17,8 @@ internal sealed class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.Property(b => b.Status).HasConversion<byte>();
         builder.Property(b => b.Source).HasConversion<byte>();
         builder.Ignore(b => b.LegInProgress);
+        builder.Property(b => b.FlightNumber).HasMaxLength(10);
+        builder.Property(b => b.AirlineName).HasMaxLength(Booking.MaxAirlineNameLength);
 
         builder.HasIndex(b => b.PilotUserId)
             .IsUnique()
@@ -35,6 +39,21 @@ internal sealed class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .WithMany()
             .HasForeignKey(b => b.FreelanceJobId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne<Route>()
+            .WithMany()
+            .HasForeignKey(b => b.RouteId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne<Airport>()
+            .WithMany()
+            .HasForeignKey(b => b.OriginAirportId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Airport>()
+            .WithMany()
+            .HasForeignKey(b => b.DestinationAirportId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne<AircraftType>()
             .WithMany()

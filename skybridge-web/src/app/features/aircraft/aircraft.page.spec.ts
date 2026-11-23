@@ -5,9 +5,9 @@ import { AircraftCategory, AircraftType } from '../../core/aircraft/aircraft.mod
 import { AircraftPage } from './aircraft.page';
 
 const categories: AircraftCategory[] = [
-  { code: 'SinglePiston', name: 'Single piston', requiredHours: 0 },
-  { code: 'Turboprop', name: 'Turboprop', requiredHours: 25 },
-  { code: 'Heavy', name: 'Heavy (wide-body)', requiredHours: 600 }
+  { code: 'SinglePiston', name: 'Single piston', requiredHours: 0, payPerHour: 0 },
+  { code: 'Turboprop', name: 'Turboprop', requiredHours: 25, payPerHour: 0 },
+  { code: 'Heavy', name: 'Heavy (wide-body)', requiredHours: 600, payPerHour: 0 }
 ];
 
 const b77w: AircraftType = {

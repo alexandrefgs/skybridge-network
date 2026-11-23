@@ -18,8 +18,8 @@ describe('AdminCategoriesPage', () => {
     const fixture = TestBed.createComponent(AdminCategoriesPage);
     await fixture.whenStable();
     http.expectOne('/api/aircraft-categories').flush([
-      { code: 'Turboprop', name: 'Turboprop', requiredHours: 25 },
-      { code: 'Heavy', name: 'Heavy (wide-body)', requiredHours: 600 }
+      { code: 'Turboprop', name: 'Turboprop', requiredHours: 25, payPerHour: 130 },
+      { code: 'Heavy', name: 'Heavy (wide-body)', requiredHours: 600, payPerHour: 450 }
     ]);
     await fixture.whenStable();
     return fixture;
@@ -58,11 +58,25 @@ describe('AdminCategoriesPage', () => {
     fixture.nativeElement.querySelector('[data-testid="save-Turboprop"]').click();
     const request = http.expectOne('/api/admin/aircraft-categories/Turboprop');
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toEqual({ name: 'Turboprop', requiredHours: 30 });
-    request.flush({ code: 'Turboprop', name: 'Turboprop', requiredHours: 30 });
+    expect(request.request.body).toEqual({ name: 'Turboprop', requiredHours: 30, payPerHour: 130 });
+    request.flush({ code: 'Turboprop', name: 'Turboprop', requiredHours: 30, payPerHour: 130 });
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('[data-testid="saved"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="save-Turboprop"]')).toBeNull();
+  });
+  
+  it('saves a new pay rate', async () => {
+    const fixture = await render();
+    const pay: HTMLInputElement = fixture.nativeElement.querySelector('[data-testid="pay-Heavy"]');
+    expect(pay.value).toBe('450');
+    pay.value = '500';
+    pay.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+
+    fixture.nativeElement.querySelector('[data-testid="save-Heavy"]').click();
+    const request = http.expectOne('/api/admin/aircraft-categories/Heavy');
+    expect(request.request.body).toEqual({ name: 'Heavy (wide-body)', requiredHours: 600, payPerHour: 500 });
+    request.flush({ code: 'Heavy', name: 'Heavy (wide-body)', requiredHours: 600, payPerHour: 500 });
   });
 });

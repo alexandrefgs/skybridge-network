@@ -18,6 +18,13 @@ public class BookingsController(IBookingService bookings) : ControllerBase
         var booking = await bookings.GetCurrentAsync(User.GetUserId(), cancellationToken);
         return booking is null ? NoContent() : Ok(booking);
     }
+    [HttpPost("routes/{routeId:int}")]
+    [ProducesResponseType<BookingResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> BookRoute(int routeId, AcceptJobRequest request, CancellationToken cancellationToken) =>
+        this.ToActionResult(await bookings.BookRouteAsync(User.GetUserId(), routeId, request, cancellationToken), Ok);
 
     [HttpPost("current/start")]
     [ProducesResponseType<BookingResponse>(StatusCodes.Status200OK)]

@@ -2,12 +2,22 @@ namespace SkyBridge.Domain.Bookings;
 
 public sealed class Booking
 {
+    public const int MaxAirlineNameLength = 100;
+    public static readonly TimeSpan AirlineStartWindow = TimeSpan.FromHours(24);
+
     private Booking() { }
 
     public int Id { get; private set; }
     public Guid PilotUserId { get; private set; }
     public BookingSource Source { get; private set; }
     public int? FreelanceJobId { get; private set; }
+    public int? RouteId { get; private set; }
+    public string? FlightNumber { get; private set; }
+    public string? AirlineName { get; private set; }
+    public int? OriginAirportId { get; private set; }
+    public int? DestinationAirportId { get; private set; }
+    public int DistanceNm { get; private set; }
+    public int PayPerHour { get; private set; }
     public int AircraftTypeId { get; private set; }
     public BookingStatus Status { get; private set; }
     public int LegCount { get; private set; }
@@ -46,6 +56,49 @@ public sealed class Booking
             StartDeadlineUtc = startDeadlineUtc
         };
     }
+
+        public static Booking ForAirlineFlight(Guid pilotUserId, AirlineFlight flight, int aircraftTypeId, int payPerHour, DateTime nowUtc)
+    {
+        if (pilotUserId == Guid.Empty)
+            throw new ArgumentException("Booking needs a pilot.", nameof(pilotUserId));
+        ArgumentNullException.ThrowIfNull(flight);
+        ArgumentException.ThrowIfNullOrWhiteSpace(flight.FlightNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(flight.AirlineName);
+        ArgumentOutOfRangeException.ThrowIfNegative(payPerHour);
+        if (flight.OriginAirportId == flight.DestinationAirportId)
+            throw new ArgumentException("A flight needs two different airports.", nameof(flight));
+
+        var airlineName = flight.AirlineName.Trim();
+        return new Booking
+        {
+            PilotUserId = pilotUserId,
+            Source = BookingSource.Airline,
+            RouteId = flight.RouteId,
+            FlightNumber = flight.FlightNumber,
+            AirlineName = airlineName.Length > MaxAirlineNameLength ? airlineName[..MaxAirlineNameLength] : airlineName,
+            OriginAirportId = flight.OriginAirportId,
+            DestinationAirportId = flight.DestinationAirportId,
+            DistanceNm = flight.DistanceNm,
+            PayPerHour = payPerHour,
+            AircraftTypeId = aircraftTypeId,
+            Status = BookingStatus.Active,
+            LegCount = 1,
+            CurrentLeg = 1,
+            BookedAtUtc = nowUtc,
+            StartDeadlineUtc = nowUtc + AirlineStartWindow
+        };
+    }
+
+    public static string FlightNumberFor(string? icaoCode, string? iataCode, int routeId)
+    {
+        var prefix = !string.IsNullOrWhiteSpace(icaoCode) ? icaoCode.Trim().ToUpperInvariant()
+            : !string.IsNullOrWhiteSpace(iataCode) ? iataCode.Trim().ToUpperInvariant()
+            : "SKB";
+        return $"{prefix}{1000 + routeId % 9000}";
+    }
+
+    public int PayFor(int flightMinutes) =>
+        (int)Math.Round(flightMinutes * PayPerHour / 60.0, MidpointRounding.AwayFromZero);
 
     public bool IsOverdue(DateTime nowUtc) =>
         Status == BookingStatus.Active && StartedAtUtc is null && nowUtc >= StartDeadlineUtc;

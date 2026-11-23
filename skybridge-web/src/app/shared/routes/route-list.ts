@@ -42,7 +42,7 @@ import { problemMessages } from '../../core/http/problem';
             <th class="px-4 py-3 font-medium">Aircraft</th>
             <th class="px-4 py-3 text-right font-medium">FL</th>
             <th class="px-4 py-3 font-medium">Route</th>
-            @if (editable()) {
+            @if (editable() || bookableFrom()) {
               <th class="px-4 py-3"></th>
             }
           </tr>
@@ -84,6 +84,14 @@ import { problemMessages } from '../../core/http/problem';
               </td>
               <td class="px-4 py-3 text-right font-mono">{{ route.flightLevel ?? '—' }}</td>
               <td class="max-w-md truncate px-4 py-3 font-mono text-xs text-muted" [title]="route.atsRoute ?? ''">{{ route.atsRoute ?? '—' }}</td>
+              @if (!editable() && bookableFrom()) {
+                <td class="whitespace-nowrap px-4 py-2 text-right">
+                  @if (route.origin === bookableFrom() && route.aircraft.length) {
+                    <button type="button" class="sb-btn-primary w-auto px-3 py-1 text-xs" (click)="$event.stopPropagation(); book.emit(route)"
+                      [attr.data-testid]="'book-route-' + route.id">Book</button>
+                  }
+                </td>
+              }
               @if (editable()) {
                 <td class="whitespace-nowrap px-4 py-2 text-right">
                   @if (confirmingDelete() === route.id) {
@@ -100,7 +108,7 @@ import { problemMessages } from '../../core/http/problem';
           } @empty {
             @if (!loading()) {
               <tr>
-                <td [attr.colspan]="editable() ? 7 : 6" class="px-4 py-10 text-center text-muted" data-testid="no-routes">No routes found.</td>
+                <td [attr.colspan]="editable() || bookableFrom() ? 7 : 6" class="px-4 py-10 text-center text-muted" data-testid="no-routes">No routes found.</td>
               </tr>
             }
           }
@@ -124,7 +132,9 @@ export class RouteList {
   readonly editable = input(false);
   readonly refresh = input(0);
   readonly filter = input<RouteFilter | null>(null);
+  readonly bookableFrom = input<string | null>(null);
   readonly filterChange = output<RouteFilter | null>();
+  readonly book = output<AirlineRoute>();
   readonly edit = output<AirlineRoute>();
   readonly delete = output<AirlineRoute>();
 

@@ -32,6 +32,14 @@ describe('BookingService', () => {
     expect(request.request.body).toEqual({ aircraft: 'C208' });
   });
 
+  it('books an airline route with the chosen aircraft', () => {
+    service.bookRoute(42, 'A320').subscribe();
+
+    const request = http.expectOne('/api/bookings/routes/42');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ aircraft: 'A320' });
+  });
+
   it('starts the leg and cancels the flight', () => {
     service.startLeg().subscribe();
     service.cancel().subscribe();

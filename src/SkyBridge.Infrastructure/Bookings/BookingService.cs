@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using SkyBridge.Application.Bookings;
 using SkyBridge.Application.Common;
 using SkyBridge.Application.Freelance;
+using SkyBridge.Domain.Aircraft;
 using SkyBridge.Domain.Bookings;
+using SkyBridge.Domain.Routes;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Persistence;
 
@@ -34,45 +36,47 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
         if (job.IsExpired(now))
             return Invalid("Job", "This job has expired.");
 
-        var pilot = await db.Pilots.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
-        if (pilot?.CurrentAirportId is null)
-            return Invalid("Job", "Choose where your career starts before accepting a job.");
-
-        if (pilot.CurrentAirportId != job.OriginAirportId)
-        {
-            var origin = await db.Airports.AsNoTracking().FirstAsync(a => a.Id == job.OriginAirportId, cancellationToken);
-            return Invalid("Job", $"This job departs from {AirportCodes.Display(origin)}. Take a jumpseat there first.");
-        }
-
-        var code = request.Aircraft.Trim().ToUpperInvariant();
-        var type = await db.AircraftTypes.AsNoTracking().FirstOrDefaultAsync(t => t.IcaoCode == code, cancellationToken);
-        if (type is null || job.Aircraft.All(a => a.AircraftTypeId != type.Id))
-            return Invalid("Aircraft", $"{code} is not allowed on this job.");
-
-        var category = await db.AircraftCategories.AsNoTracking().FirstAsync(c => c.Code == type.Category, cancellationToken);
-        if (!category.IsUnlockedFor(pilot.FlightHours))
-            return Invalid("Aircraft",
-                $"{type.IcaoCode} is a {category.Name} aircraft and needs {category.RequiredHours} h. You have {pilot.FlightHours.ToString("0.0", CultureInfo.InvariantCulture)} h.");
-
-        if (await ActiveAsync(userId, cancellationToken) is not null)
-            return Result<BookingResponse>.Conflict("Booking", "You already have an active flight. Finish or cancel it first.");
+        var check = await CheckAsync(userId, job.OriginAirportId, "job", job.Aircraft.Select(a => a.AircraftTypeId).ToList(), request.Aircraft, cancellationToken);
+        if (check.Error is not null)
+            return check.Error;
 
         if (await db.Bookings.AnyAsync(b => b.FreelanceJobId == jobId && (b.Status == BookingStatus.Active || b.Status == BookingStatus.Completed), cancellationToken))
             return Result<BookingResponse>.Conflict("Job", "Another pilot has already taken this job.");
 
-        var booking = Booking.ForFreelanceJob(userId, job.Id, type.Id, job.Legs.Count, job.Reward, job.ExpiresAtUtc, now);
-        db.Bookings.Add(booking);
+        var booking = Booking.ForFreelanceJob(userId, job.Id, check.Type!.Id, job.Legs.Count, job.Reward, job.ExpiresAtUtc, now);
+        return await SaveAsync(booking, "Another pilot has already taken this job.", cancellationToken);
+    }
 
-        try
-        {
-            await db.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException)
-        {
-            return Result<BookingResponse>.Conflict("Job", "Another pilot has already taken this job.");
-        }
+    public async Task<Result<BookingResponse>> BookRouteAsync(Guid userId, int routeId, AcceptJobRequest request, CancellationToken cancellationToken)
+    {
+        var route = await db.Routes.AsNoTracking().FirstOrDefaultAsync(r => r.Id == routeId, cancellationToken);
+        if (route is null)
+            return Result<BookingResponse>.NotFound();
 
-        return Result<BookingResponse>.Ok(await ToResponseAsync(booking, cancellationToken));
+        var airline = await db.Airlines.AsNoTracking().FirstAsync(a => a.Id == route.AirlineId, cancellationToken);
+        if (!airline.IsActive)
+            return Invalid("Route", $"{airline.Name} is not operating at the moment.");
+
+        var allowed = await db.Set<RouteAircraft>().AsNoTracking()
+            .Where(a => a.RouteId == routeId)
+            .Select(a => a.AircraftTypeId)
+            .ToListAsync(cancellationToken);
+        if (allowed.Count == 0)
+            return Invalid("Aircraft", "No aircraft is assigned to this route yet.");
+
+        var check = await CheckAsync(userId, route.OriginAirportId, "flight", allowed, request.Aircraft, cancellationToken);
+        if (check.Error is not null)
+            return check.Error;
+
+        var flight = new AirlineFlight(
+            route.Id,
+            Booking.FlightNumberFor(airline.IcaoCode, airline.IataCode, route.Id),
+            airline.Name,
+            route.OriginAirportId,
+            route.DestinationAirportId,
+            route.DistanceNm);
+        var booking = Booking.ForAirlineFlight(userId, flight, check.Type!.Id, check.Category!.PayPerHour, Now());
+        return await SaveAsync(booking, "You already have an active flight. Finish or cancel it first.", cancellationToken);
     }
 
     public async Task<Result<BookingResponse>> StartLegAsync(Guid userId, CancellationToken cancellationToken)
@@ -105,6 +109,51 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
         return true;
     }
 
+    private async Task<BookingCheck> CheckAsync(Guid userId, int originAirportId, string what, IReadOnlyCollection<int> allowedTypeIds,
+        string aircraft, CancellationToken cancellationToken)
+    {
+        var pilot = await db.Pilots.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+        if (pilot?.CurrentAirportId is null)
+            return BookingCheck.Fail(Invalid("Booking", $"Choose where your career starts before booking a {what}."));
+
+        if (pilot.CurrentAirportId != originAirportId)
+        {
+            var origin = await db.Airports.AsNoTracking().FirstAsync(a => a.Id == originAirportId, cancellationToken);
+            var article = what == "job" ? "This job" : "This flight";
+            return BookingCheck.Fail(Invalid("Booking", $"{article} departs from {AirportCodes.Display(origin)}. Take a jumpseat there first."));
+        }
+
+        var code = aircraft.Trim().ToUpperInvariant();
+        var type = await db.AircraftTypes.AsNoTracking().FirstOrDefaultAsync(t => t.IcaoCode == code, cancellationToken);
+        if (type is null || !allowedTypeIds.Contains(type.Id))
+            return BookingCheck.Fail(Invalid("Aircraft", $"{code} is not allowed on this {what}."));
+
+        var category = await db.AircraftCategories.AsNoTracking().FirstAsync(c => c.Code == type.Category, cancellationToken);
+        if (!category.IsUnlockedFor(pilot.FlightHours))
+            return BookingCheck.Fail(Invalid("Aircraft",
+                $"{type.IcaoCode} is a {category.Name} aircraft and needs {category.RequiredHours} h. You have {pilot.FlightHours.ToString("0.0", CultureInfo.InvariantCulture)} h."));
+
+        if (await ActiveAsync(userId, cancellationToken) is not null)
+            return BookingCheck.Fail(Result<BookingResponse>.Conflict("Booking", "You already have an active flight. Finish or cancel it first."));
+
+        return new BookingCheck(null, type, category);
+    }
+
+    private async Task<Result<BookingResponse>> SaveAsync(Booking booking, string conflictMessage, CancellationToken cancellationToken)
+    {
+        db.Bookings.Add(booking);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            return Result<BookingResponse>.Conflict("Booking", conflictMessage);
+        }
+
+        return Result<BookingResponse>.Ok(await ToResponseAsync(booking, cancellationToken));
+    }
+
     private async Task<Booking?> ActiveAsync(Guid userId, CancellationToken cancellationToken)
     {
         var booking = await db.Bookings.FirstOrDefaultAsync(b => b.PilotUserId == userId && b.Status == BookingStatus.Active, cancellationToken);
@@ -125,6 +174,7 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
             .FirstAsync(cancellationToken);
 
         var job = booking.FreelanceJobId is { } jobId ? await freelance.GetAsync(jobId, cancellationToken) : null;
+        var flight = booking.Source == BookingSource.Airline ? await FlightAsync(booking, cancellationToken) : null;
 
         return new BookingResponse(
             booking.Id,
@@ -138,7 +188,35 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
             Utc(booking.StartDeadlineUtc),
             booking.StartedAtUtc is { } started ? Utc(started) : null,
             booking.LegStartedAtUtc is { } legStarted ? Utc(legStarted) : null,
-            job);
+            job,
+            booking.FlightNumber,
+            booking.PayPerHour,
+            flight);
+    }
+
+    private async Task<AirlineFlightResponse> FlightAsync(Booking booking, CancellationToken cancellationToken)
+    {
+        var ids = new[] { booking.OriginAirportId!.Value, booking.DestinationAirportId!.Value };
+        var airports = await db.Airports.AsNoTracking()
+            .Where(a => ids.Contains(a.Id))
+            .ToDictionaryAsync(a => a.Id, cancellationToken);
+        var route = booking.RouteId is { } routeId
+            ? await db.Routes.AsNoTracking().FirstOrDefaultAsync(r => r.Id == routeId, cancellationToken)
+            : null;
+
+        var origin = airports[booking.OriginAirportId.Value];
+        var destination = airports[booking.DestinationAirportId.Value];
+        return new AirlineFlightResponse(
+            route?.Id,
+            booking.FlightNumber!,
+            booking.AirlineName!,
+            AirportCodes.Display(origin),
+            origin.Name,
+            AirportCodes.Display(destination),
+            destination.Name,
+            booking.DistanceNm,
+            route?.AtsRoute,
+            route?.FlightLevel);
     }
 
     private DateTime Now() => time.GetUtcNow().UtcDateTime;
@@ -146,4 +224,9 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
     private static DateTime Utc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
 
     private static Result<BookingResponse> Invalid(string field, string message) => Result<BookingResponse>.Invalid(field, message);
+
+    private sealed record BookingCheck(Result<BookingResponse>? Error, AircraftType? Type, AircraftCategory? Category)
+    {
+        public static BookingCheck Fail(Result<BookingResponse> error) => new(error, null, null);
+    }
 }

@@ -112,5 +112,45 @@ public class BookingTests
 
         Assert.Equal(Now.AddHours(2), booking.RewardPaidAtUtc);
         Assert.Throws<InvalidOperationException>(() => booking.MarkRewardPaid(Now.AddHours(3)));
+    }    
+    private static readonly AirlineFlight Flight = new(42, "GLO1042", "Gol Transportes Aéreos", 10, 20, 278);
+
+    [Fact]
+    public void ForAirlineFlight_HasOneLeg_AndTwentyFourHoursToStart()
+    {
+        var booking = Booking.ForAirlineFlight(PilotId, Flight, 3, 60, Now);
+
+        Assert.Equal((BookingSource.Airline, BookingStatus.Active, 1, 1), (booking.Source, booking.Status, booking.CurrentLeg, booking.LegCount));
+        Assert.Equal((42, "GLO1042", "Gol Transportes Aéreos"), (booking.RouteId!.Value, booking.FlightNumber!, booking.AirlineName!));
+        Assert.Equal((10, 20, 278, 60), (booking.OriginAirportId!.Value, booking.DestinationAirportId!.Value, booking.DistanceNm, booking.PayPerHour));
+        Assert.Equal(Now.AddHours(24), booking.StartDeadlineUtc);
+        Assert.Null(booking.FreelanceJobId);
+        Assert.True(booking.IsOverdue(Now.AddHours(24)));
+    }
+
+    [Fact]
+    public void ForAirlineFlight_RejectsTheSameAirport()
+    {
+        Assert.Throws<ArgumentException>(() => Booking.ForAirlineFlight(PilotId, Flight with { DestinationAirportId = 10 }, 3, 60, Now));
+    }
+
+    [Theory]
+    [InlineData("glo", "G3", 42, "GLO1042")]
+    [InlineData(null, "g3", 9001, "G31001")]
+    [InlineData(null, null, 7, "SKB1007")]
+    public void FlightNumberFor_UsesTheAirlineCode(string? icao, string? iata, int routeId, string expected)
+    {
+        Assert.Equal(expected, Booking.FlightNumberFor(icao, iata, routeId));
+    }
+
+    [Fact]
+    public void PayFor_PaysTheHourlyRateByTheMinute()
+    {
+        var booking = Booking.ForAirlineFlight(PilotId, Flight, 3, 60, Now);
+
+        Assert.Equal(140, booking.PayFor(140));
+        Assert.Equal(83, booking.PayFor(83));
+        Assert.Equal(0, Booking.ForAirlineFlight(PilotId, Flight, 3, 0, Now).PayFor(140));
+        Assert.Equal(2, Booking.ForAirlineFlight(PilotId, Flight, 3, 90, Now).PayFor(1));
     }
 }

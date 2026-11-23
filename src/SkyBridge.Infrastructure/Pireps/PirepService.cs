@@ -28,8 +28,7 @@ internal sealed class PirepService(
         if (booking.LegStartedAtUtc is not { } legStartedAtUtc)
             return Invalid("Booking", "Start the leg before filing the PIREP.");
 
-        var leg = await db.Set<FreelanceJobLeg>().AsNoTracking()
-            .FirstOrDefaultAsync(l => l.FreelanceJobId == booking.FreelanceJobId && l.Sequence == booking.CurrentLeg, cancellationToken);
+        var leg = await LegAsync(booking, cancellationToken);
         if (leg is null)
             return Invalid("Booking", $"Leg {booking.CurrentLeg} of this flight was not found.");
 
@@ -40,7 +39,7 @@ internal sealed class PirepService(
         try
         {
             pirep = Pirep.File(
-                new PirepLeg(booking.Id, userId, leg.Sequence, leg.OriginAirportId, leg.DestinationAirportId, leg.DistanceNm,
+                new PirepLeg(booking.Id, userId, booking.CurrentLeg, leg.OriginAirportId, leg.DestinationAirportId, leg.DistanceNm,
                     type.Id, type.IcaoCode, type.CruiseSpeedKts, legStartedAtUtc),
                 new PirepTimes(AsUtc(request.DepartedAtUtc), AsUtc(request.ArrivedAtUtc), request.FuelUsedKg, request.LandingRateFpm, request.Remarks),
                 now);
@@ -85,6 +84,19 @@ internal sealed class PirepService(
 
         return new PagedResult<PirepResponse>(await mapper.ToResponsesAsync(items, cancellationToken), page, pageSize, total);
     }
+
+    private async Task<LegInfo?> LegAsync(Booking booking, CancellationToken cancellationToken)
+    {
+        if (booking.Source == BookingSource.Airline)
+            return new LegInfo(booking.OriginAirportId!.Value, booking.DestinationAirportId!.Value, booking.DistanceNm);
+
+        return await db.Set<FreelanceJobLeg>().AsNoTracking()
+            .Where(l => l.FreelanceJobId == booking.FreelanceJobId && l.Sequence == booking.CurrentLeg)
+            .Select(l => new LegInfo(l.OriginAirportId, l.DestinationAirportId, l.DistanceNm))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private sealed record LegInfo(int OriginAirportId, int DestinationAirportId, int DistanceNm);
 
     private static DateTime AsUtc(DateTime value) => value.Kind switch
     {

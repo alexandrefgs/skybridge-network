@@ -24,7 +24,7 @@ describe('AdminAircraftTypesPage', () => {
   const render = async () => {
     const fixture = TestBed.createComponent(AdminAircraftTypesPage);
     await fixture.whenStable();
-    http.expectOne('/api/aircraft-categories').flush([{ code: 'SinglePiston', name: 'Single piston', requiredHours: 0 }]);
+    http.expectOne('/api/aircraft-categories').flush([{ code: 'SinglePiston', name: 'Single piston', requiredHours: 0, payPerHour: 0 }]);
     http.expectOne(r => r.url === '/api/aircraft-types').flush({ items: [c172], page: 1, pageSize: 10, totalCount: 1 });
     await fixture.whenStable();
     return fixture;

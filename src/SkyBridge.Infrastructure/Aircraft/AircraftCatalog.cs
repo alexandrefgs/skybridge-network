@@ -21,7 +21,7 @@ internal sealed class AircraftCatalog(SkyBridgeDbContext db) : IAircraftCatalog
         if (category is null)
             return Result<AircraftCategoryResponse>.NotFound();
 
-        category.Update(request.Name, request.RequiredHours);
+        category.Update(request.Name, request.RequiredHours, request.PayPerHour);
         await db.SaveChangesAsync(cancellationToken);
         return Result<AircraftCategoryResponse>.Ok(AircraftCategoryResponse.From(category));
     }

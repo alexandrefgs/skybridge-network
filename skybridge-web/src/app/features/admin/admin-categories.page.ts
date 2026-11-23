@@ -8,13 +8,14 @@ interface CategoryRow {
   code: AircraftCategoryCode;
   name: string;
   requiredHours: number;
+  payPerHour: number;
   saved: AircraftCategory;
 }
 
 @Component({
   selector: 'sb-admin-categories-page',
   template: `
-    <p class="text-sm text-muted">Hours a pilot needs before flying each category. Changes apply immediately to every pilot.</p>
+    <p class="text-sm text-muted">Hours a pilot needs before flying each category, and what airlines pay per flight hour. Changes apply immediately to every pilot and to new bookings.</p>
 
     @if (error(); as message) {
       <p class="sb-error mt-4">{{ message }}</p>
@@ -27,6 +28,7 @@ interface CategoryRow {
             <th class="px-4 py-3 font-medium">Code</th>
             <th class="px-4 py-3 font-medium">Name</th>
             <th class="px-4 py-3 font-medium">Required hours</th>
+            <th class="px-4 py-3 font-medium">Pay per hour ($)</th>
             <th class="w-28 px-4 py-3"></th>
           </tr>
         </thead>
@@ -41,6 +43,10 @@ interface CategoryRow {
               <td class="px-4 py-2">
                 <input class="sb-input w-28 font-mono" type="number" min="0" step="1" [value]="row.requiredHours"
                   (input)="edit(row.code, { requiredHours: $any($event.target).valueAsNumber })" [attr.data-testid]="'hours-' + row.code">
+              </td>
+              <td class="px-4 py-2">
+                <input class="sb-input w-28 font-mono" type="number" min="0" step="1" [value]="row.payPerHour"
+                  (input)="edit(row.code, { payPerHour: $any($event.target).valueAsNumber })" [attr.data-testid]="'pay-' + row.code">
               </td>
               <td class="px-4 py-2 text-right">
                 @if (isDirty(row)) {
@@ -74,23 +80,29 @@ export class AdminCategoriesPage {
       });
   }
 
-  protected edit(code: AircraftCategoryCode, change: Partial<Pick<CategoryRow, 'name' | 'requiredHours'>>): void {
+  protected edit(code: AircraftCategoryCode, change: Partial<Pick<CategoryRow, 'name' | 'requiredHours' | 'payPerHour'>>): void {
     this.savedCode.set(null);
     this.rows.update(rows => rows.map(row => (row.code === code ? { ...row, ...change } : row)));
   }
 
   protected isDirty(row: CategoryRow): boolean {
-    return row.name !== row.saved.name || row.requiredHours !== row.saved.requiredHours;
+    return row.name !== row.saved.name || row.requiredHours !== row.saved.requiredHours || row.payPerHour !== row.saved.payPerHour;
   }
 
   protected isValid(row: CategoryRow): boolean {
-    return row.name.trim().length > 0 && Number.isInteger(row.requiredHours) && row.requiredHours >= 0;
+    return (
+      row.name.trim().length > 0 &&
+      Number.isInteger(row.requiredHours) &&
+      row.requiredHours >= 0 &&
+      Number.isInteger(row.payPerHour) &&
+      row.payPerHour >= 0
+    );
   }
 
   protected save(row: CategoryRow): void {
     this.savingCode.set(row.code);
     this.error.set(null);
-    this.admin.updateCategory(row.code, { name: row.name.trim(), requiredHours: row.requiredHours }).subscribe({
+    this.admin.updateCategory(row.code, { name: row.name.trim(), requiredHours: row.requiredHours, payPerHour: row.payPerHour }).subscribe({
       next: saved => {
         this.rows.update(rows => rows.map(r => (r.code === saved.code ? { ...saved, saved } : r)));
         this.savingCode.set(null);

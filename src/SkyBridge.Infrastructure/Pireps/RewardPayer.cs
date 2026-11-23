@@ -13,19 +13,31 @@ internal sealed class RewardPayer(SkyBridgeDbContext db)
         if (booking.Status != BookingStatus.Completed || booking.RewardPaidAtUtc is not null)
             return null;
 
-        var statuses = await db.Pireps.Where(p => p.BookingId == booking.Id).Select(p => p.Status).ToListAsync(cancellationToken);
-        if (statuses.Count < booking.LegCount || statuses.Any(s => s != PirepStatus.Accepted))
+        var pireps = await db.Pireps.Where(p => p.BookingId == booking.Id)
+            .Select(p => new { p.Status, p.FlightMinutes })
+            .ToListAsync(cancellationToken);
+        if (pireps.Count < booking.LegCount || pireps.Any(p => p.Status != PirepStatus.Accepted))
             return null;
 
+        var minutes = pireps.Sum(p => p.FlightMinutes);
+        var amount = booking.Source == BookingSource.Airline ? booking.PayFor(minutes) : booking.Reward;
+
         booking.MarkRewardPaid(nowUtc);
-        if (booking.Reward > 0)
+        if (amount > 0)
         {
-            pilot.Credit(booking.Reward);
-            var description = booking.FreelanceJobId is { } jobId ? $"Freelance job #{jobId} completed" : "Freelance job completed";
-            db.PilotTransactions.Add(PilotTransaction.Create(pilot.UserId, booking.Reward, description, booking.Id, nowUtc));
+            pilot.Credit(amount);
+            db.PilotTransactions.Add(PilotTransaction.Create(pilot.UserId, amount, Description(booking, minutes), booking.Id, nowUtc));
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        return booking.Reward;
+        return amount;
+    }
+
+    private static string Description(Booking booking, int minutes)
+    {
+        if (booking.Source == BookingSource.Airline)
+            return $"Flight {booking.FlightNumber} · {minutes / 60}h{minutes % 60:00}min at ${booking.PayPerHour}/h";
+
+        return booking.FreelanceJobId is { } jobId ? $"Freelance job #{jobId} completed" : "Freelance job completed";
     }
 }

@@ -5,6 +5,7 @@ import { Booking } from '../../core/bookings/booking.models';
 import { problemMessages } from '../../core/http/problem';
 import { PirepFiled } from '../../core/pireps/pirep.models';
 import { PirepService } from '../../core/pireps/pirep.service';
+import { currentLeg } from '../../shared/flights/booking-legs';
 import { FuelConverter } from '../../shared/forms/fuel-converter';
 import { UtcDateTimeInput } from '../../shared/forms/utc-datetime-input';
 import { durationLabel, fromUtcInput, toUtcInput } from '../../shared/time/utc';
@@ -76,8 +77,7 @@ export class PirepForm implements OnInit {
   private readonly times = toSignal(this.form.valueChanges, { initialValue: this.form.value });
 
   protected readonly leg = computed(() => {
-    const current = this.booking();
-    const leg = current.job?.legs.find(l => l.sequence === current.currentLeg);
+    const leg = currentLeg(this.booking());
     return leg ? `${leg.origin} → ${leg.destination}` : '';
   });
 

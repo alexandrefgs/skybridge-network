@@ -3,15 +3,16 @@ using SkyBridge.Domain.Aircraft;
 
 namespace SkyBridge.Application.Aircraft;
 
-public sealed record AircraftCategoryResponse(string Code, string Name, int RequiredHours)
+public sealed record AircraftCategoryResponse(string Code, string Name, int RequiredHours, int PayPerHour)
 {
     public static AircraftCategoryResponse From(AircraftCategory category) =>
-        new(category.Code.ToString(), category.Name, category.RequiredHours);
+        new(category.Code.ToString(), category.Name, category.RequiredHours, category.PayPerHour);
 }
 
 public sealed record UpdateAircraftCategoryRequest(
     [Required, MaxLength(50)] string Name,
-    [Range(0, 100_000)] int RequiredHours);
+    [Range(0, 100_000)] int RequiredHours,
+    [Range(0, 100_000)] int PayPerHour);
 
 public sealed record AircraftTypeResponse(
     string IcaoCode,

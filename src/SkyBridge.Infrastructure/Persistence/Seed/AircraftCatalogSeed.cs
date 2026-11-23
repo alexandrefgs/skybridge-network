@@ -8,15 +8,15 @@ public static class AircraftCatalogSeed
 {
     public static IReadOnlyList<AircraftCategory> Categories() =>
     [
-        AircraftCategory.Create(Cat.SinglePiston, "Single piston", 0),
-        AircraftCategory.Create(Cat.TwinPiston, "Twin piston", 0),
-        AircraftCategory.Create(Cat.Turboprop, "Turboprop", 25),
-        AircraftCategory.Create(Cat.Regional, "Regional", 75),
-        AircraftCategory.Create(Cat.LightJet, "Light jet", 75),
-        AircraftCategory.Create(Cat.MidSizeJet, "Mid-size jet", 150),
-        AircraftCategory.Create(Cat.LargeBusinessJet, "Large business jet", 300),
-        AircraftCategory.Create(Cat.Medium, "Medium (narrow-body)", 300),
-        AircraftCategory.Create(Cat.Heavy, "Heavy (wide-body)", 600)
+        AircraftCategory.Create(Cat.SinglePiston, "Single piston", 0, 60),
+        AircraftCategory.Create(Cat.TwinPiston, "Twin piston", 0, 90),
+        AircraftCategory.Create(Cat.Turboprop, "Turboprop", 25, 130),
+        AircraftCategory.Create(Cat.Regional, "Regional", 75, 180),
+        AircraftCategory.Create(Cat.LightJet, "Light jet", 75, 170),
+        AircraftCategory.Create(Cat.MidSizeJet, "Mid-size jet", 150, 220),
+        AircraftCategory.Create(Cat.LargeBusinessJet, "Large business jet", 300, 280),
+        AircraftCategory.Create(Cat.Medium, "Medium (narrow-body)", 300, 320),
+        AircraftCategory.Create(Cat.Heavy, "Heavy (wide-body)", 600, 450)
     ];
 
     public static IReadOnlyList<AircraftTypeData> Types { get; } =

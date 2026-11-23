@@ -7,6 +7,7 @@ import { provideRouter } from '@angular/router';
 import { RouteFilter, RouteNetwork } from '../../core/airlines/airline.models';
 import { RouteMap } from '../../shared/map/route-map';
 import { flnGru, golDetail, page } from '../../testing/airlines';
+import { bookedGolFlight, pilotAtFlorianopolis } from '../../testing/freelance';
 import { AirlinePage } from './airline.page';
 
 @Component({ selector: 'sb-route-map', template: '' })
@@ -154,5 +155,46 @@ describe('AirlinePage', () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent).toContain('Airline not found.');
+  });
+  
+  async function renderAsPilot(booking: typeof bookedGolFlight | null = null) {
+    const fixture = await render();
+    http.expectOne('/api/airlines/2579').flush(golDetail);
+    http.expectOne('/api/airlines/2579/network').flush(network);
+    http.expectOne('/api/pilot').flush(pilotAtFlorianopolis);
+    http.expectOne('/api/bookings/current').flush(booking);
+    await fixture.whenStable();
+    http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru]));
+    await fixture.whenStable();
+    return fixture;
+  }
+
+  it('lets a pilot at the origin book a route', async () => {
+    const fixture = await renderAsPilot();
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[data-testid="fly-here"]')!.textContent).toContain('You are at SBFL');
+    (element.querySelector('[data-testid="book-route-10"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="route-booking"]')!.textContent).toContain('SBFL → SBGR');
+    expect(http.match(r => r.url === '/api/airlines/2579/routes').length).toBe(0);
+  });
+
+  it('shows the departures from where the pilot is', async () => {
+    const fixture = await renderAsPilot();
+
+    (fixture.nativeElement.querySelector('[data-testid="show-departures"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(http.expectOne(r => r.url === '/api/airlines/2579/routes').request.params.get('from')).toBe('SBFL');
+  });
+
+  it('hides booking while a flight is active', async () => {
+    const fixture = await renderAsPilot(bookedGolFlight);
+    const element: HTMLElement = fixture.nativeElement;
+
+    expect(element.querySelector('[data-testid="fly-active"]')!.textContent).toContain('SBFL → SBGR · B738');
+    expect(element.querySelector('[data-testid="book-route-10"]')).toBeNull();
   });
 });
