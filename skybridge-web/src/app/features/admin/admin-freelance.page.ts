@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap } from 'rxjs';
@@ -12,7 +12,7 @@ import { FreelanceJobForm } from './freelance-job-form';
 
 @Component({
   selector: 'sb-admin-freelance-page',
-  imports: [DecimalPipe, FreelanceJobForm],
+  imports: [CurrencyPipe, FreelanceJobForm],
   template: `
     <div class="flex flex-wrap items-center justify-between gap-3">
       <p class="text-sm text-muted">Charter, cargo and special missions that pilots pick up at the origin airport.</p>
@@ -63,7 +63,7 @@ import { FreelanceJobForm } from './freelance-job-form';
               </td>
               <td class="max-w-48 truncate px-4 py-3 text-muted">{{ job.client ?? '—' }}</td>
               <td class="px-4 py-3 font-mono text-xs">{{ job.aircraft.join(' ') }}</td>
-              <td class="px-4 py-3 text-right font-mono">SB$ {{ job.reward | number }}</td>
+              <td class="px-4 py-3 text-right font-mono">{{ job.reward | currency: 'USD' : 'symbol' : '1.0-0' }}</td>
               <td class="whitespace-nowrap px-4 py-3">
                 @if (job.expired) {
                   <span class="text-xs uppercase tracking-wide text-muted">Expired</span>

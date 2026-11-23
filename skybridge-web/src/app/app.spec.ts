@@ -32,7 +32,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('Create account');
-    expect(fixture.nativeElement.querySelector('[data-testid="nav-airports"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-about"]')).toBeNull();
   });
 
   it('loads the pilot profile when signed in', async () => {
@@ -47,7 +47,7 @@ describe('App', () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('[data-testid="user-name"]').textContent).toContain('Ana Silva');
-    expect(fixture.nativeElement.querySelector('[data-testid="nav-aircraft"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-about"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="nav-admin"]')).toBeNull();
   });
 

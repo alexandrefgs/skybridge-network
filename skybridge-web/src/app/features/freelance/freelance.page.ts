@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,7 +14,7 @@ import { expiresIn, hasDangerousGoods, maxCargo, maxPassengers, missionLabel, ro
 
 @Component({
   selector: 'sb-freelance-page',
-  imports: [ReactiveFormsModule, DecimalPipe, JobBriefing],
+  imports: [ReactiveFormsModule, CurrencyPipe, DecimalPipe, JobBriefing],
   template: `
     <p class="font-mono text-xs tracking-[0.2em] text-primary">FLIGHTS</p>
     <h1 class="mt-1 font-display text-3xl font-bold">Freelance</h1>
@@ -89,7 +89,7 @@ import { expiresIn, hasDangerousGoods, maxCargo, maxPassengers, missionLabel, ro
             }
             <span class="font-mono text-xs text-muted">{{ job.aircraft.join(' ') }}</span>
             <span class="ml-auto text-right">
-              <span class="block font-mono font-semibold text-primary">SB$ {{ job.reward | number }}</span>
+              <span class="block font-mono font-semibold text-primary">{{ job.reward | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
               <span class="block text-xs text-muted">expires in {{ timeLeft(job.expiresAtUtc) }}</span>
             </span>
           </button>

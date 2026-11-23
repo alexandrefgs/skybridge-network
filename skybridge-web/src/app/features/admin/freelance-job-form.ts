@@ -47,7 +47,7 @@ export function toLocalInput(date: Date): string {
           <textarea class="sb-input min-h-28" id="job-briefing" maxlength="4000" placeholder="Why this flight exists, what the crew should expect…" formControlName="briefing"></textarea>
         </div>
         <div>
-          <label class="sb-label" for="job-reward">Reward (SB$)</label>
+          <label class="sb-label" for="job-reward">Reward ($)</label>
           <input class="sb-input font-mono" id="job-reward" type="number" min="0" formControlName="reward">
         </div>
       </div>
