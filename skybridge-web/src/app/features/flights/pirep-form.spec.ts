@@ -25,12 +25,22 @@ describe('PirepForm', () => {
 
   afterEach(() => http.verify());
 
-  it('starts with the takeoff at the leg start and shows the flight time', async () => {
-    expect(query('pirep-departed').value).toBe('2026-11-23T14:05');
-    expect(fixture.nativeElement.textContent).toContain('SBFL → SBGR');
-
-    set('pirep-arrived', '2026-11-23T16:25');
+    async function pick(id: string, day: string, hhmm: string) {
+    query(id).click();
     await fixture.whenStable();
+    query(`${id}-day-${day}`).click();
+    set(`${id}-typed`, hhmm);
+    query(`${id}-done`).click();
+    await fixture.whenStable();
+  }
+
+  it('starts with the takeoff at the leg start and shows the flight time', async () => {
+    expect(query('pirep-departed').textContent).toContain('23 NOV 2026');
+    expect(query('pirep-departed').textContent).toContain('14:05');
+    expect(fixture.nativeElement.textContent).toContain('SBFL → SBGR');
+    expect(query('pirep-window').textContent).toContain('Leg started 14:05Z · takeoff from 13:35Z');
+
+    await pick('pirep-arrived', '2026-11-23', '1625');
 
     expect(query('pirep-duration').textContent).toContain('2h 20m');
   });
@@ -38,8 +48,8 @@ describe('PirepForm', () => {
   it('files the PIREP in UTC and emits the result', async () => {
     let emitted: PirepFiled | null = null;
     fixture.componentInstance.filed.subscribe(result => (emitted = result));
-    set('pirep-departed', '2026-11-23T14:10');
-    set('pirep-arrived', '2026-11-23T15:40');
+    await pick('pirep-departed', '2026-11-23', '1410');
+    await pick('pirep-arrived', '2026-11-23', '1540');
     set('pirep-fuel', '180');
     set('pirep-landing-rate', '160');
     set('pirep-remarks', '  Light chop on descent ');

@@ -5,11 +5,12 @@ import { Booking } from '../../core/bookings/booking.models';
 import { problemMessages } from '../../core/http/problem';
 import { PirepFiled } from '../../core/pireps/pirep.models';
 import { PirepService } from '../../core/pireps/pirep.service';
+import { UtcDateTimeInput } from '../../shared/forms/utc-datetime-input';
 import { durationLabel, fromUtcInput, toUtcInput } from '../../shared/time/utc';
 
 @Component({
   selector: 'sb-pirep-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, UtcDateTimeInput],
   template: `
     <form class="rounded-lg border border-line p-4" [formGroup]="form" (ngSubmit)="submit()" data-testid="pirep-form">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -17,15 +18,19 @@ import { durationLabel, fromUtcInput, toUtcInput } from '../../shared/time/utc';
         <span class="font-mono text-sm text-muted" data-testid="pirep-duration">{{ duration() }}</span>
       </div>
 
+      <p class="mt-1 font-mono text-[11px] text-muted" data-testid="pirep-window">
+        Leg started {{ startedLabel() }} · takeoff from {{ earliestLabel() }} · landing up to now
+      </p>
+
       <div class="mt-4 grid gap-4 sm:grid-cols-2">
-        <label class="block text-sm">
-          <span class="text-muted">Takeoff (UTC)</span>
-          <input type="datetime-local" class="sb-input mt-1 font-mono" formControlName="departed" data-testid="pirep-departed">
-        </label>
-        <label class="block text-sm">
-          <span class="text-muted">Landing (UTC)</span>
-          <input type="datetime-local" class="sb-input mt-1 font-mono" formControlName="arrived" data-testid="pirep-arrived">
-        </label>
+        <div class="text-sm">
+          <label class="text-muted" for="pirep-departed">Takeoff</label>
+          <sb-utc-datetime-input class="mt-1" inputId="pirep-departed" testId="pirep-departed" formControlName="departed" />
+        </div>
+        <div class="text-sm">
+          <label class="text-muted" for="pirep-arrived">Landing</label>
+          <sb-utc-datetime-input class="mt-1" inputId="pirep-arrived" testId="pirep-arrived" formControlName="arrived" />
+        </div>
         <label class="block text-sm">
           <span class="text-muted">Fuel used (kg)</span>
           <input type="number" min="0" class="sb-input mt-1 font-mono" formControlName="fuel" data-testid="pirep-fuel">
@@ -72,6 +77,9 @@ export class PirepForm implements OnInit {
     return leg ? `${leg.origin} → ${leg.destination}` : '';
   });
 
+  protected readonly startedLabel = computed(() => this.zulu(this.booking().legStartedAtUtc, 0));
+  protected readonly earliestLabel = computed(() => this.zulu(this.booking().legStartedAtUtc, -30));
+
   protected readonly duration = computed(() => {
     const departed = fromUtcInput(this.times().departed ?? '');
     const arrived = fromUtcInput(this.times().arrived ?? '');
@@ -79,6 +87,12 @@ export class PirepForm implements OnInit {
     const minutes = Math.round((new Date(arrived).getTime() - new Date(departed).getTime()) / 60000);
     return minutes > 0 ? durationLabel(minutes) : '—';
   });
+
+    private zulu(value: string | null, offsetMinutes: number): string {
+    if (!value) return '--:--Z';
+    const date = new Date(new Date(value).getTime() + offsetMinutes * 60_000);
+    return `${toUtcInput(date).slice(11)}Z`;
+  }
 
   ngOnInit(): void {
     const started = this.booking().legStartedAtUtc;

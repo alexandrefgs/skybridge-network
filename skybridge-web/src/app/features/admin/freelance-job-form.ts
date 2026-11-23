@@ -8,20 +8,17 @@ import {
   FreelanceJobKind,
   FreelanceLeg
 } from '../../core/freelance/freelance.models';
+import { UtcDateTimeInput } from '../../shared/forms/utc-datetime-input';
 import { HAZARD_CLASSES, MISSION_KINDS } from '../../shared/freelance/missions';
+import { fromUtcInput, toUtcInput } from '../../shared/time/utc';
 
 const DEFAULT_DAYS = 3;
 const MAX_LEGS = 8;
 const AIRPORT = /^[A-Za-z0-9-]{3,10}$/;
 
-export function toLocalInput(date: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 @Component({
   selector: 'sb-freelance-job-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, UtcDateTimeInput],
   template: `
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate data-testid="job-form">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -39,7 +36,7 @@ export function toLocalInput(date: Date): string {
         </div>
         <div>
           <label class="sb-label" for="job-expires">Expires</label>
-          <input class="sb-input font-mono" id="job-expires" type="datetime-local" formControlName="expiresAt">
+          <sb-utc-datetime-input inputId="job-expires" testId="job-expires" formControlName="expiresAt" />
         </div>
 
         <div class="sm:col-span-2 lg:col-span-3">
@@ -183,7 +180,7 @@ export class FreelanceJobForm {
       for (const leg of job?.legs ?? [undefined]) this.legs.push(this.legGroup(leg));
       this.form.patchValue({
         kind: job?.kind ?? 'Charter',
-        expiresAt: toLocalInput(expires),
+        expiresAt: toUtcInput(expires),
         client: job?.client ?? '',
         briefing: job?.briefing ?? '',
         reward: job?.reward ?? 0
@@ -233,7 +230,7 @@ export class FreelanceJobForm {
     const value = this.form.getRawValue();
     this.saved.emit({
       kind: value.kind,
-      expiresAtUtc: new Date(value.expiresAt).toISOString(),
+      expiresAtUtc: fromUtcInput(value.expiresAt)!,
       client: value.client.trim() || null,
       briefing: value.briefing.trim() || null,
       reward: value.reward ?? 0,
