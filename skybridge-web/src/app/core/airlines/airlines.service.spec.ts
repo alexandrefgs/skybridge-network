@@ -41,7 +41,7 @@ describe('AirlinesService', () => {
   });
 
   it('filters the routes between two airports', () => {
-    service.routes(7, { search: '', page: 1, pageSize: 15 }, ['SBFL', 'SBGR']).subscribe();
+    service.routes(7, { search: '', page: 1, pageSize: 15 }, { from: 'SBFL', to: 'SBGR' }).subscribe();
 
     const request = http.expectOne(r => r.url === '/api/airlines/7/routes');
     expect(request.request.params.get('from')).toBe('SBFL');

@@ -85,13 +85,15 @@ public class AirlinesTests(SkyBridgeApiFactory factory)
 
         var between = await GetAsPilotAsync<PagedResult<RouteResponse>>($"/api/airlines/{gol.Id}/routes?from=sbgr&to=SBFL");
         var none = await GetAsPilotAsync<PagedResult<RouteResponse>>($"/api/airlines/{gol.Id}/routes?from=SBGR&to=SSKT");
+        var departing = await GetAsPilotAsync<PagedResult<RouteResponse>>($"/api/airlines/{gol.Id}/routes?from=SBFL");
 
         Assert.Equal(2, between.TotalCount);
         Assert.Equal(0, none.TotalCount);
+        Assert.Equal(("SBFL", "SBGR"), (Assert.Single(departing.Items).Origin, departing.Items[0].Destination));
     }
 
     [Fact]
-    public async Task Network_JoinsBothDirectionsIntoOneLink()
+    public async Task Network_ListsEachDirectionAsALink()
     {
         await EnsureImportedAsync();
         var gol = await FindAsync("GLO");
@@ -100,7 +102,7 @@ public class AirlinesTests(SkyBridgeApiFactory factory)
 
         Assert.Equal(new[] { "SBFL", "SBGR" }, network.Airports.Select(a => a.Code));
         Assert.Equal("FLN", network.Airports[0].IataCode);
-        Assert.Equal(new[] { 0, 1 }, Assert.Single(network.Links));
+        Assert.Equal(new[] { new[] { 0, 1 }, new[] { 1, 0 } }, network.Links);
     }
 
     [Fact]

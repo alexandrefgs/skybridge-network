@@ -131,3 +131,41 @@
 .dark .leaflet-control-attribution a {
   color: var(--sb-foreground);
 }
+
+
+.leaflet-tooltip {
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-line);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+  color: var(--sb-foreground);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  padding: 0.375rem 0.625rem;
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: var(--sb-line);
+}
+
+.leaflet-tooltip-bottom::before {
+  border-bottom-color: var(--sb-line);
+}
+
+.leaflet-tooltip-left::before {
+  border-left-color: var(--sb-line);
+}
+
+.leaflet-tooltip-right::before {
+  border-right-color: var(--sb-line);
+}
+
+.sb-tooltip-code {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.sb-tooltip-muted {
+  color: var(--sb-muted);
+}

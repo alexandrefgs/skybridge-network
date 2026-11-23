@@ -69,6 +69,11 @@ export interface RouteQuery {
 
 export type AirportPair = readonly [string, string];
 
+export interface RouteFilter {
+  from: string;
+  to: string | null;
+}
+
 export interface AirlineInput {
   name: string;
   iataCode: string | null;

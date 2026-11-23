@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnDestroy, afterNextRender, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import * as L from 'leaflet';
-import { AirportPair, RouteNetwork } from '../../core/airlines/airline.models';
+import { NetworkAirport, RouteFilter, RouteNetwork } from '../../core/airlines/airline.models';
 import { ClientConfigService } from '../../core/config/client-config.service';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ATTRIBUTION, PRIMARY, tileUrl } from './map-tiles';
@@ -12,19 +12,19 @@ import { ATTRIBUTION, PRIMARY, tileUrl } from './map-tiles';
 })
 export class RouteMap implements OnDestroy {
   readonly network = input<RouteNetwork | null>(null);
-  readonly selected = input<AirportPair | null>(null);
-  readonly selectedChange = output<AirportPair | null>();
+  readonly filter = input<RouteFilter | null>(null);
+  readonly filterChange = output<RouteFilter | null>();
 
   private readonly theme = inject(ThemeService);
   private readonly config = inject(ClientConfigService);
   private readonly container = viewChild.required<ElementRef<HTMLDivElement>>('map');
   private readonly ready = signal(false);
-  private readonly lines = L.layerGroup();
   private readonly pins = L.layerGroup();
-  private readonly lineLayers = new Map<string, L.Polyline>();
+  private readonly routes = L.layerGroup();
   private readonly pinLayers = new Map<string, L.CircleMarker>();
   private map?: L.Map;
   private tiles?: L.TileLayer;
+  private lastOrigin: string | null | undefined;
 
   constructor() {
     afterNextRender(() => {
@@ -34,9 +34,9 @@ export class RouteMap implements OnDestroy {
         worldCopyJump: true,
         zoomSnap: 0.25
       }).setView([-15, -50], 3);
-      this.lines.addTo(this.map);
+      this.routes.addTo(this.map);
       this.pins.addTo(this.map);
-      this.map.on('click', () => this.selectedChange.emit(null));
+      this.map.on('click', () => this.filterChange.emit(null));
       this.ready.set(true);
     });
 
@@ -51,14 +51,16 @@ export class RouteMap implements OnDestroy {
     effect(() => {
       const network = this.network();
       if (!this.ready() || !this.map) return;
-      this.render(network);
+      this.renderPins(network);
+      this.lastOrigin = undefined;
     });
 
     effect(() => {
-      const selected = this.selected();
       const network = this.network();
+      const filter = this.filter();
+      this.theme.theme();
       if (!this.ready() || !network) return;
-      this.highlight(network, selected);
+      this.renderRoutes(network, filter);
     });
   }
 
@@ -66,56 +68,98 @@ export class RouteMap implements OnDestroy {
     this.map?.remove();
   }
 
-  private render(network: RouteNetwork | null): void {
-    this.lines.clearLayers();
+  private renderPins(network: RouteNetwork | null): void {
     this.pins.clearLayers();
-    this.lineLayers.clear();
     this.pinLayers.clear();
     if (!network?.airports.length) return;
 
-    const points = network.airports.map(a => [a.latitude, a.longitude] as L.LatLngTuple);
-
-    for (const [from, to] of network.links) {
-      const pair = [network.airports[from].code, network.airports[to].code] as const;
-      const line = L.polyline([points[from], points[to]], { color: PRIMARY, weight: 1 })
-        .bindTooltip(`${pair[0]} ⇄ ${pair[1]}`, { sticky: true })
-        .on('click', event => {
-          L.DomEvent.stopPropagation(event);
-          this.selectedChange.emit(pair);
-        })
-        .addTo(this.lines);
-      this.lineLayers.set(key(pair), line);
-    }
-
-    network.airports.forEach((airport, position) => {
-      const pin = L.circleMarker(points[position], { radius: 4, color: PRIMARY, weight: 1.5, fillOpacity: 1 })
-        .bindTooltip(airport.iataCode ? `${airport.code} · ${airport.iataCode}<br>${airport.name}` : `${airport.code}<br>${airport.name}`, { direction: 'top', offset: [0, -4] })
-        .addTo(this.pins);
+    for (const airport of network.airports) {
+      const pin = this.pin(airport, [airport.latitude, airport.longitude]).addTo(this.pins);
       this.pinLayers.set(airport.code, pin);
-    });
-
-    this.highlight(network, this.selected());
-    this.map!.invalidateSize();
-    this.map!.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: 7 });
+    }
   }
 
-  private highlight(network: RouteNetwork, selected: AirportPair | null): void {
+  private renderRoutes(network: RouteNetwork, filter: RouteFilter | null): void {
     const fill = this.theme.theme() === 'dark' ? '#0a0a0b' : '#ffffff';
-    const resting = network.links.length > 300 ? 0.25 : 0.5;
-    const selectedKey = selected ? key(selected) : null;
+    this.routes.clearLayers();
 
-    for (const [lineKey, line] of this.lineLayers) {
-      const isSelected = lineKey === selectedKey;
-      line.setStyle({ weight: isSelected ? 3 : 1, opacity: isSelected ? 1 : selected ? 0.08 : resting });
-      if (isSelected) line.bringToFront();
-    }
+    const origin = filter ? network.airports.findIndex(a => a.code === filter.from) : -1;
+    const from = origin >= 0 ? network.airports[origin] : null;
+    const destinations = from ? network.links.filter(([a]) => a === origin).map(([, b]) => network.airports[b]) : [];
+    const reachable = new Set(destinations.map(d => d.code));
 
     for (const [code, pin] of this.pinLayers) {
-      const isEnd = !!selected && selected.includes(code);
-      pin.setStyle({ radius: isEnd ? 7 : 4, fillColor: isEnd ? PRIMARY : fill, opacity: selected && !isEnd ? 0.3 : 1, fillOpacity: selected && !isEnd ? 0.3 : 1 });
-      if (isEnd) pin.bringToFront();
+      const isOrigin = code === from?.code;
+      const isTarget = code === filter?.to;
+      const dimmed = !!from && !isOrigin && !reachable.has(code);
+      pin.setStyle({
+        radius: isOrigin || isTarget ? 7 : 4,
+        fillColor: isOrigin || isTarget ? PRIMARY : fill,
+        opacity: dimmed ? 0.25 : 1,
+        fillOpacity: dimmed ? 0.25 : 1
+      });
+      if (isOrigin || isTarget) pin.bringToFront();
     }
+
+    const bounds: L.LatLngTuple[] = [];
+    if (from) {
+      bounds.push([from.latitude, from.longitude]);
+      for (const destination of destinations) {
+        const end: L.LatLngTuple = [destination.latitude, nearestLongitude(from.longitude, destination.longitude)];
+        const isTarget = destination.code === filter?.to;
+        L.polyline([[from.latitude, from.longitude], end], {
+          color: PRIMARY,
+          weight: isTarget ? 3 : 1.5,
+          opacity: filter?.to ? (isTarget ? 1 : 0.2) : 0.7
+        })
+          .bindTooltip(`<span class="sb-tooltip-code">${escape(from.code)} → ${escape(destination.code)}</span>`, { sticky: true })
+          .on('click', event => {
+            L.DomEvent.stopPropagation(event);
+            this.filterChange.emit({ from: from.code, to: destination.code });
+          })
+          .addTo(this.routes);
+
+        if (end[1] !== destination.longitude) {
+          this.pin(destination, end)
+            .setStyle({ radius: isTarget ? 7 : 4, fillColor: isTarget ? PRIMARY : fill })
+            .addTo(this.routes);
+        }
+        bounds.push(end);
+      }
+    }
+
+    const originCode = from?.code ?? null;
+    if (originCode !== this.lastOrigin) {
+      this.lastOrigin = originCode;
+      const points = bounds.length > 1 ? bounds : network.airports.map(a => [a.latitude, a.longitude] as L.LatLngTuple);
+      this.map!.invalidateSize();
+      this.map!.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: from ? 6 : 7 });
+    }
+  }
+
+  private pin(airport: NetworkAirport, position: L.LatLngTuple): L.CircleMarker {
+    const fill = this.theme.theme() === 'dark' ? '#0a0a0b' : '#ffffff';
+    return L.circleMarker(position, { radius: 4, color: PRIMARY, weight: 1.5, fillColor: fill, fillOpacity: 1 })
+      .bindTooltip(tooltip(airport), { direction: 'top', offset: [0, -4] })
+      .on('click', event => {
+        L.DomEvent.stopPropagation(event);
+        this.filterChange.emit({ from: airport.code, to: null });
+      });
   }
 }
 
-const key = (pair: AirportPair) => [...pair].sort().join('-');
+export function nearestLongitude(reference: number, longitude: number): number {
+  let value = longitude;
+  while (value - reference > 180) value -= 360;
+  while (value - reference < -180) value += 360;
+  return value;
+}
+
+function tooltip(airport: NetworkAirport): string {
+  const iata = airport.iataCode ? ` <span class="sb-tooltip-muted">· ${escape(airport.iataCode)}</span>` : '';
+  return `<span class="sb-tooltip-code">${escape(airport.code)}</span>${iata}<br><span class="sb-tooltip-muted">${escape(airport.name)}</span>`;
+}
+
+function escape(text: string): string {
+  return text.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+}

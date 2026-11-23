@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, output, signal, untracked }
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap, tap } from 'rxjs';
-import { AirlineRoute, AirportPair, RouteQuery } from '../../core/airlines/airline.models';
+import { AirlineRoute, RouteFilter, RouteQuery } from '../../core/airlines/airline.models';
 import { AirlinesService, ROUTES_PAGE_SIZE } from '../../core/airlines/airlines.service';
 import { PagedResult } from '../../core/http/paged-result';
 import { problemMessages } from '../../core/http/problem';
@@ -18,10 +18,10 @@ import { problemMessages } from '../../core/http/problem';
         <span class="ml-1 text-sm font-normal text-muted" data-testid="route-count">· {{ totalCount() | number }}</span>
       </h2>
       <div class="flex items-center gap-3">
-        @if (pair(); as p) {
-          <span class="flex items-center gap-2 rounded-md border border-primary px-3 py-1.5 font-mono text-xs text-primary" data-testid="selected-pair">
-            {{ p[0] }} ⇄ {{ p[1] }}
-            <button type="button" class="text-primary hover:text-foreground" (click)="pairChange.emit(null)" aria-label="Show all routes" data-testid="clear-pair">×</button>
+        @if (filter(); as f) {
+          <span class="flex items-center gap-2 rounded-md border border-primary px-3 py-1.5 font-mono text-xs text-primary" data-testid="route-filter">
+            {{ f.to ? f.from + ' ⇄ ' + f.to : 'From ' + f.from }}
+            <button type="button" class="text-primary hover:text-foreground" (click)="filterChange.emit(null)" aria-label="Show all routes" data-testid="clear-filter">×</button>
           </span>
         }
         <input class="sb-input w-72" type="search" placeholder="Search airport ICAO, IATA or city" [formControl]="searchControl" data-testid="route-search">
@@ -52,7 +52,7 @@ import { problemMessages } from '../../core/http/problem';
             <tr class="transition-colors hover:bg-surface-2"
               [class.cursor-pointer]="!editable()"
               [class.bg-surface-2]="isSelected(route)"
-              (click)="!editable() && pairChange.emit([route.origin, route.destination])"
+              (click)="!editable() && filterChange.emit({ from: route.origin, to: route.destination })"
               [attr.data-testid]="'route-row-' + route.id">
               <td class="whitespace-nowrap px-4 py-3" [title]="route.originName">
                 <span class="font-mono font-semibold">{{ route.origin }}</span>
@@ -109,8 +109,8 @@ export class RouteList {
   readonly airlineId = input.required<number>();
   readonly editable = input(false);
   readonly refresh = input(0);
-  readonly pair = input<AirportPair | null>(null);
-  readonly pairChange = output<AirportPair | null>();
+  readonly filter = input<RouteFilter | null>(null);
+  readonly filterChange = output<RouteFilter | null>();
   readonly edit = output<AirlineRoute>();
   readonly delete = output<AirlineRoute>();
 
@@ -123,8 +123,8 @@ export class RouteList {
   protected readonly totalCount = computed(() => this.result()?.totalCount ?? 0);
   protected readonly totalPages = computed(() => Math.ceil(this.totalCount() / this.query().pageSize));
 
-  private lastPair: AirportPair | null = null;
-  private readonly load$ = new Subject<{ id: number; query: RouteQuery; pair: AirportPair | null }>();
+  private lastFilter: RouteFilter | null = null;
+  private readonly load$ = new Subject<{ id: number; query: RouteQuery; filter: RouteFilter | null }>();
 
   constructor() {
     this.searchControl.valueChanges
@@ -137,8 +137,8 @@ export class RouteList {
           this.loading.set(true);
           this.error.set(null);
         }),
-        switchMap(({ id, query, pair }) =>
-          this.airlines.routes(id, query, pair).pipe(
+        switchMap(({ id, query, filter }) =>
+          this.airlines.routes(id, query, filter).pipe(
             catchError(error => {
               this.error.set(problemMessages(error)[0]);
               return of(null);
@@ -155,22 +155,22 @@ export class RouteList {
     effect(() => {
       const id = this.airlineId();
       const query = this.query();
-      const pair = this.pair();
+      const filter = this.filter();
       this.refresh();
-      if (pair !== this.lastPair) {
-        this.lastPair = pair;
+      if (filter !== this.lastFilter) {
+        this.lastFilter = filter;
         if (query.page !== 1) {
           untracked(() => this.query.set({ ...query, page: 1 }));
           return;
         }
       }
-      untracked(() => this.load$.next({ id, query, pair }));
+      untracked(() => this.load$.next({ id, query, filter }));
     });
   }
 
   protected isSelected(route: AirlineRoute): boolean {
-    const pair = this.pair();
-    return !!pair && pair.includes(route.origin) && pair.includes(route.destination);
+    const filter = this.filter();
+    return !!filter?.to && [filter.from, filter.to].includes(route.origin) && [filter.from, filter.to].includes(route.destination);
   }
 
   protected goToPage(page: number): void {

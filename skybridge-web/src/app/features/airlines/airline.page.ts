@@ -3,7 +3,7 @@ import { Component, inject, input, signal } from '@angular/core';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
-import { AirlineDetail, AirportPair, RouteNetwork } from '../../core/airlines/airline.models';
+import { AirlineDetail, RouteFilter, RouteNetwork } from '../../core/airlines/airline.models';
 import { AirlinesService } from '../../core/airlines/airlines.service';
 import { problemMessages } from '../../core/http/problem';
 import { DataCredits } from '../../shared/data/data-credits';
@@ -51,10 +51,9 @@ import { RouteList } from '../../shared/routes/route-list';
       </div>
 
       <section class="sb-card mt-8 overflow-hidden p-0" aria-label="Route map">
-        <sb-route-map class="h-[440px]" [network]="network()" [selected]="selectedPair()" (selectedChange)="selectPair($event)" />
+        <sb-route-map class="h-[440px]" [network]="network()" [filter]="routeFilter()" (filterChange)="routeFilter.set($event)" />
         <p class="border-t border-line px-4 py-2 text-xs text-muted" data-testid="network-summary">
-          {{ network()?.airports?.length ?? 0 | number }} airports · {{ network()?.links?.length ?? 0 | number }} connections
-          · click a line to see that route
+          {{ network()?.airports?.length ?? 0 | number }} airports · click an airport to see its departures, then a line to pick a route
         </p>
       </section>
 
@@ -73,7 +72,7 @@ import { RouteList } from '../../shared/routes/route-list';
       </section>
 
       <section class="mt-10">
-        <sb-route-list [airlineId]="a.id" [pair]="selectedPair()" (pairChange)="selectPair($event)" />
+        <sb-route-list [airlineId]="a.id" [filter]="routeFilter()" (filterChange)="routeFilter.set($event)" />
       </section>
 
       <sb-data-credits />
@@ -87,7 +86,7 @@ export class AirlinePage {
 
   protected readonly airline = signal<AirlineDetail | null>(null);
   protected readonly network = signal<RouteNetwork | null>(null);
-  protected readonly selectedPair = signal<AirportPair | null>(null);
+  protected readonly routeFilter = signal<RouteFilter | null>(null);
   protected readonly error = signal<string | null>(null);
 
   constructor() {
@@ -111,9 +110,5 @@ export class AirlinePage {
         takeUntilDestroyed()
       )
       .subscribe(network => this.network.set(network));
-  }
-
-  protected selectPair(pair: AirportPair | null): void {
-    this.selectedPair.set(pair);
   }
 }

@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { AirportPair, RouteNetwork } from '../../core/airlines/airline.models';
+import { RouteFilter, RouteNetwork } from '../../core/airlines/airline.models';
 import { RouteMap } from '../../shared/map/route-map';
 import { flnGru, golDetail, page } from '../../testing/airlines';
 import { AirlinePage } from './airline.page';
@@ -12,8 +12,8 @@ import { AirlinePage } from './airline.page';
 @Component({ selector: 'sb-route-map', template: '' })
 class RouteMapStub {
   readonly network = input<RouteNetwork | null>(null);
-  readonly selected = input<AirportPair | null>(null);
-  readonly selectedChange = output<AirportPair | null>();
+  readonly filter = input<RouteFilter | null>(null);
+  readonly filterChange = output<RouteFilter | null>();
 }
 
 const network: RouteNetwork = {
@@ -59,7 +59,7 @@ describe('AirlinePage', () => {
     expect(element.querySelector('[data-testid="routes"]')!.textContent).toContain('UZ10 BUXUK');
     expect(element.querySelector('[data-testid="route-count"]')!.textContent).toContain('293');
     expect(element.querySelector('[data-testid="routes"] th:last-child')!.textContent).toContain('Route');
-    expect(element.querySelector('[data-testid="network-summary"]')!.textContent).toContain('2 airports · 1 connections');
+    expect(element.querySelector('[data-testid="network-summary"]')!.textContent).toContain('2 airports');
   });
 
   it('searches the routes by airport', async () => {
@@ -81,7 +81,7 @@ describe('AirlinePage', () => {
     request.flush(page([flnGru]));
   });
 
-  it('shows the routes between two airports when a line is clicked on the map', async () => {
+    const renderWithRoutes = async () => {
     const fixture = await render();
     http.expectOne('/api/airlines/2579').flush(golDetail);
     http.expectOne('/api/airlines/2579/network').flush(network);
@@ -89,8 +89,27 @@ describe('AirlinePage', () => {
     http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru]));
     await fixture.whenStable();
     const map = fixture.debugElement.query(By.directive(RouteMapStub)).componentInstance as RouteMapStub;
+    return { fixture, map };
+  };
 
-    map.selectedChange.emit(['SBGR', 'SBFL']);
+  it('lists the departures of the airport clicked on the map', async () => {
+    const { fixture, map } = await renderWithRoutes();
+
+    map.filterChange.emit({ from: 'SBFL', to: null });
+    await fixture.whenStable();
+
+    const request = http.expectOne(r => r.url === '/api/airlines/2579/routes');
+    expect(request.request.params.get('from')).toBe('SBFL');
+    expect(request.request.params.has('to')).toBe(false);
+    request.flush(page([flnGru]));
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('[data-testid="route-filter"]').textContent).toContain('From SBFL');
+  });
+
+  it('shows the routes between two airports when a line is clicked on the map', async () => {
+    const { fixture, map } = await renderWithRoutes();
+
+    map.filterChange.emit({ from: 'SBGR', to: 'SBFL' });
     await fixture.whenStable();
 
     const request = http.expectOne(r => r.url === '/api/airlines/2579/routes');
@@ -98,28 +117,22 @@ describe('AirlinePage', () => {
     expect(request.request.params.get('to')).toBe('SBFL');
     request.flush(page([flnGru]));
     await fixture.whenStable();
-    expect(map.selected()).toEqual(['SBGR', 'SBFL']);
-    expect(fixture.nativeElement.querySelector('[data-testid="selected-pair"]').textContent).toContain('SBGR ⇄ SBFL');
+    expect(map.filter()).toEqual({ from: 'SBGR', to: 'SBFL' });
+    expect(fixture.nativeElement.querySelector('[data-testid="route-filter"]').textContent).toContain('SBGR ⇄ SBFL');
 
-    fixture.nativeElement.querySelector('[data-testid="clear-pair"]').click();
+    fixture.nativeElement.querySelector('[data-testid="clear-filter"]').click();
     await fixture.whenStable();
     expect(http.expectOne(r => r.url === '/api/airlines/2579/routes').request.params.has('from')).toBe(false);
-    expect(map.selected()).toBeNull();
+    expect(map.filter()).toBeNull();
   });
 
   it('selects the route on the map when a row is clicked', async () => {
-    const fixture = await render();
-    http.expectOne('/api/airlines/2579').flush(golDetail);
-    http.expectOne('/api/airlines/2579/network').flush(network);
-    await fixture.whenStable();
-    http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru]));
-    await fixture.whenStable();
-    const map = fixture.debugElement.query(By.directive(RouteMapStub)).componentInstance as RouteMapStub;
+    const { fixture, map } = await renderWithRoutes();
 
     fixture.nativeElement.querySelector('[data-testid="route-row-10"] td').click();
     await fixture.whenStable();
 
-    expect(map.selected()).toEqual(['SBFL', 'SBGR']);
+    expect(map.filter()).toEqual({ from: 'SBFL', to: 'SBGR' });
     http.expectOne(r => r.url === '/api/airlines/2579/routes').flush(page([flnGru]));
   });
 

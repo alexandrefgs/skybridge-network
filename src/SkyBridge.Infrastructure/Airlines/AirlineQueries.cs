@@ -91,13 +91,20 @@ internal sealed class AirlineQueries(SkyBridgeDbContext db) : IAirlineQueries
                 (r.Destination.Municipality != null && r.Destination.Municipality.Contains(term)));
         }
 
-        if (!string.IsNullOrWhiteSpace(search.From) && !string.IsNullOrWhiteSpace(search.To))
+        if (!string.IsNullOrWhiteSpace(search.From))
         {
             var from = search.From.Trim().ToUpperInvariant();
-            var to = search.To.Trim().ToUpperInvariant();
-            query = query.Where(r =>
-                ((r.Origin.IcaoCode ?? r.Origin.Ident) == from && (r.Destination.IcaoCode ?? r.Destination.Ident) == to) ||
-                ((r.Origin.IcaoCode ?? r.Origin.Ident) == to && (r.Destination.IcaoCode ?? r.Destination.Ident) == from));
+            if (string.IsNullOrWhiteSpace(search.To))
+            {
+                query = query.Where(r => (r.Origin.IcaoCode ?? r.Origin.Ident) == from);
+            }
+            else
+            {
+                var to = search.To.Trim().ToUpperInvariant();
+                query = query.Where(r =>
+                    ((r.Origin.IcaoCode ?? r.Origin.Ident) == from && (r.Destination.IcaoCode ?? r.Destination.Ident) == to) ||
+                    ((r.Origin.IcaoCode ?? r.Origin.Ident) == to && (r.Destination.IcaoCode ?? r.Destination.Ident) == from));
+            }
         }
 
         var total = await query.CountAsync(cancellationToken);
@@ -137,10 +144,11 @@ internal sealed class AirlineQueries(SkyBridgeDbContext db) : IAirlineQueries
 
         var index = airports.Select((airport, position) => (airport.Id, position)).ToDictionary(x => x.Id, x => x.position);
         var links = pairs
-            .Select(p => (A: index[p.OriginAirportId], B: index[p.DestinationAirportId]))
-            .Select(l => (Math.Min(l.A, l.B), Math.Max(l.A, l.B)))
+            .Select(p => (From: index[p.OriginAirportId], To: index[p.DestinationAirportId]))
             .Distinct()
-            .Select(l => new[] { l.Item1, l.Item2 })
+            .OrderBy(l => l.From)
+            .ThenBy(l => l.To)
+            .Select(l => new[] { l.From, l.To })
             .ToList();
 
         return new RouteNetworkResponse(
