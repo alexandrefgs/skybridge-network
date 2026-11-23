@@ -490,6 +490,131 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.ToTable("Runways");
                 });
 
+            modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Briefing")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Client")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DestinationAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DistanceNm")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Kind")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("OriginAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Reward")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DestinationAirportId");
+
+                    b.HasIndex("ExpiresAtUtc");
+
+                    b.HasIndex("OriginAirportId");
+
+                    b.ToTable("FreelanceJobs");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJobAircraft", b =>
+                {
+                    b.Property<int>("FreelanceJobId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AircraftTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("FreelanceJobId", "AircraftTypeId");
+
+                    b.HasIndex("AircraftTypeId");
+
+                    b.ToTable("FreelanceJobAircraft");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJobLeg", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CargoKg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DestinationAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DistanceNm")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FreelanceJobId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OriginAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PassengerCount")
+                        .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("PassengerNames")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DestinationAirportId");
+
+                    b.HasIndex("OriginAirportId");
+
+                    b.HasIndex("FreelanceJobId", "Sequence");
+
+                    b.ToTable("FreelanceJobLeg");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Pilots.Pilot", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CurrentAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FlightMinutes")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("CurrentAirportId");
+
+                    b.ToTable("Pilots");
+                });
+
             modelBuilder.Entity("SkyBridge.Domain.Routes.Route", b =>
                 {
                     b.Property<int>("Id")
@@ -732,6 +857,101 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJob", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("DestinationAirportId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("OriginAirportId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJobAircraft", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Aircraft.AircraftType", null)
+                        .WithMany()
+                        .HasForeignKey("AircraftTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Freelance.FreelanceJob", null)
+                        .WithMany("Aircraft")
+                        .HasForeignKey("FreelanceJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJobLeg", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("DestinationAirportId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Freelance.FreelanceJob", null)
+                        .WithMany("Legs")
+                        .HasForeignKey("FreelanceJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("OriginAirportId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsMany("SkyBridge.Domain.Freelance.DangerousGood", "DangerousGoods", b1 =>
+                        {
+                            b1.Property<int>("FreelanceJobLegId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAddOrUpdate();
+
+                            b1.Property<int>("Class");
+
+                            b1.Property<string>("Name")
+                                .IsRequired();
+
+                            b1.Property<int>("QuantityKg");
+
+                            b1.Property<string>("UnNumber");
+
+                            b1.HasKey("FreelanceJobLegId", "__synthesizedOrdinal");
+
+                            b1.ToTable("FreelanceJobLeg");
+
+                            b1
+                                .ToJson("DangerousGoods")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("FreelanceJobLegId");
+                        });
+
+                    b.Navigation("DangerousGoods");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Pilots.Pilot", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Airports.Airport", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentAirportId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SkyBridge.Infrastructure.Identity.ApplicationUser", null)
+                        .WithOne()
+                        .HasForeignKey("SkyBridge.Domain.Pilots.Pilot", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SkyBridge.Domain.Routes.Route", b =>
                 {
                     b.HasOne("SkyBridge.Domain.Airlines.Airline", null)
@@ -785,6 +1005,13 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SkyBridge.Domain.Airports.Airport", b =>
                 {
                     b.Navigation("Runways");
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJob", b =>
+                {
+                    b.Navigation("Aircraft");
+
+                    b.Navigation("Legs");
                 });
 
             modelBuilder.Entity("SkyBridge.Domain.Routes.Route", b =>

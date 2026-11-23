@@ -32,6 +32,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/airlines/airline.page').then(m => m.AirlinePage)
   },
   {
+    path: 'freelance',
+    title: 'Freelance · SkyBridge',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/freelance/freelance.page').then(m => m.FreelancePage)
+  },
+  {
     path: 'login',
     title: 'Sign in · SkyBridge',
     canActivate: [guestGuard],
@@ -87,6 +93,10 @@ export const routes: Routes = [
       {
         path: 'airports',
         loadComponent: () => import('./features/admin/admin-airports.page').then(m => m.AdminAirportsPage)
+      },
+      {
+        path: 'freelance',
+        loadComponent: () => import('./features/admin/admin-freelance.page').then(m => m.AdminFreelancePage)
       }
     ]
   },

@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using SkyBridge.Domain.Aircraft;
 using SkyBridge.Domain.Airlines;
 using SkyBridge.Domain.Airports;
+using SkyBridge.Domain.Freelance;
+using SkyBridge.Domain.Pilots;
 using SkyBridge.Domain.Routes;
 using SkyBridge.Infrastructure.Identity;
 
@@ -19,6 +21,8 @@ public class SkyBridgeDbContext(DbContextOptions<SkyBridgeDbContext> options)
     public DbSet<Airline> Airlines => Set<Airline>();
     public DbSet<Route> Routes => Set<Route>();
     public DbSet<UserImage> UserImages => Set<UserImage>();
+    public DbSet<Pilot> Pilots => Set<Pilot>();
+    public DbSet<FreelanceJob> FreelanceJobs => Set<FreelanceJob>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
