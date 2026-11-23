@@ -9,6 +9,7 @@
       @if (auth.currentUser(); as user) {
         <a routerLink="/airports" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-airports">Airports</a>
         <a routerLink="/aircraft" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-aircraft">Aircraft</a>
+        <a routerLink="/airlines" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-airlines">Airlines</a>
         @if (auth.isStaff()) {
           <a routerLink="/admin" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-admin">Admin</a>
         }

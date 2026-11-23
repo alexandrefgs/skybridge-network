@@ -24,6 +24,7 @@ export class AdminLayout {
   protected readonly tabs = [
     { path: 'categories', label: 'Categories' },
     { path: 'aircraft-types', label: 'Aircraft types' },
+    { path: 'airlines', label: 'Airlines' },
     { path: 'airports', label: 'Airports' }
   ];
 }

@@ -20,6 +20,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/aircraft/aircraft.page').then(m => m.AircraftPage)
   },
   {
+    path: 'airlines',
+    title: 'Airlines · SkyBridge',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/airlines/airlines.page').then(m => m.AirlinesPage)
+  },
+  {
+    path: 'airlines/:id',
+    title: 'Airline · SkyBridge',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/airlines/airline.page').then(m => m.AirlinePage)
+  },
+  {
     path: 'login',
     title: 'Sign in · SkyBridge',
     canActivate: [guestGuard],
@@ -51,6 +63,14 @@ export const routes: Routes = [
       {
         path: 'aircraft-types',
         loadComponent: () => import('./features/admin/admin-aircraft-types.page').then(m => m.AdminAircraftTypesPage)
+      },
+      {
+        path: 'airlines',
+        loadComponent: () => import('./features/admin/admin-airlines.page').then(m => m.AdminAirlinesPage)
+      },
+      {
+        path: 'airlines/:id',
+        loadComponent: () => import('./features/admin/admin-airline.page').then(m => m.AdminAirlinePage)
       },
       {
         path: 'airports',
