@@ -6,10 +6,11 @@ import { renderSVG } from 'uqr';
 import { TwoFactorSetup } from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { problemMessages } from '../../core/http/problem';
+import { CodeInput } from '../../shared/forms/code-input';
 
 @Component({
   selector: 'sb-security-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CodeInput],
   template: `
     <div class="mx-auto max-w-2xl">
       <h1 class="font-display text-3xl font-bold">Security</h1>
@@ -47,9 +48,8 @@ import { problemMessages } from '../../core/http/problem';
             <form class="space-y-4" [formGroup]="codeForm" (ngSubmit)="disable()" novalidate>
               <p class="text-sm text-muted">To turn off two-factor authentication, enter a code from your authenticator app.</p>
               <div class="max-w-xs">
-                <label class="sb-label" for="disable-code">Verification code</label>
-                <input class="sb-input text-center font-mono text-lg tracking-[0.4em]" id="disable-code"
-                  inputmode="numeric" autocomplete="one-time-code" maxlength="20" formControlName="code">
+                <span class="sb-label">Verification code</span>
+                <sb-code-input formControlName="code" [invalid]="errors().length > 0" data-testid="disable-code" />
               </div>
               @for (error of errors(); track error) {
                 <p class="sb-error">{{ error }}</p>
@@ -66,9 +66,8 @@ import { problemMessages } from '../../core/http/problem';
 
                 <form class="mt-5 space-y-4" [formGroup]="codeForm" (ngSubmit)="enable()" novalidate>
                   <div>
-                    <label class="sb-label" for="enable-code"><span class="font-semibold">2.</span> Enter the 6-digit code from the app</label>
-                    <input class="sb-input max-w-xs text-center font-mono text-lg tracking-[0.4em]" id="enable-code"
-                      inputmode="numeric" autocomplete="one-time-code" maxlength="20" formControlName="code">
+                    <span class="sb-label"><span class="font-semibold">2.</span> Enter the 6-digit code from the app</span>
+                    <sb-code-input class="max-w-xs" formControlName="code" [invalid]="errors().length > 0" data-testid="enable-code" />
                   </div>
                   @for (error of errors(); track error) {
                     <p class="sb-error">{{ error }}</p>
