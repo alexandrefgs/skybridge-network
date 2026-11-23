@@ -18,6 +18,7 @@ public class PilotController(IPilotService pilots) : ControllerBase
     [HttpPost("jumpseat")]
     [ProducesResponseType<PilotResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Jumpseat(JumpseatRequest request, CancellationToken cancellationToken) =>
         this.ToActionResult(await pilots.JumpseatAsync(User.GetUserId(), request, cancellationToken), Ok);
 }

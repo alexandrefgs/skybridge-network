@@ -36,9 +36,10 @@ public sealed record FreelanceJobResponse(
     DateTime ExpiresAtUtc,
     bool Expired,
     IReadOnlyList<string> Aircraft,
-    IReadOnlyList<string> Warnings);
+    IReadOnlyList<string> Warnings,
+    bool Taken);
 
-public sealed record FreelanceJobSearch(string? From, bool IncludeExpired = false, int Page = 1, int PageSize = 20);
+public sealed record FreelanceJobSearch(string? From, bool IncludeExpired = false, int Page = 1, int PageSize = 20, bool IncludeTaken = true);
 
 public sealed record DangerousGoodRequest(
     [Required, MaxLength(DangerousGood.MaxNameLength)] string Name,

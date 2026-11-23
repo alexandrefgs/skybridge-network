@@ -3,6 +3,7 @@ using SkyBridge.Application.Common;
 using SkyBridge.Application.Freelance;
 using SkyBridge.Domain.Aircraft;
 using SkyBridge.Domain.Airports;
+using SkyBridge.Domain.Bookings;
 using SkyBridge.Domain.Freelance;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Persistence;
@@ -22,7 +23,9 @@ internal sealed class FreelanceQueries(SkyBridgeDbContext db, TimeProvider time)
         var query = db.FreelanceJobs.AsNoTracking();
 
         if (!search.IncludeExpired)
-            query = query.Where(j => j.ExpiresAtUtc > now);
+
+        if (!search.IncludeTaken)
+            query = query.Where(j => !db.Bookings.Any(b => b.FreelanceJobId == j.Id && (b.Status == BookingStatus.Active || b.Status == BookingStatus.Completed)));
 
         if (!string.IsNullOrWhiteSpace(search.From))
         {
@@ -60,6 +63,13 @@ internal sealed class FreelanceQueries(SkyBridgeDbContext db, TimeProvider time)
         var airports = await db.Airports.AsNoTracking()
             .Where(a => airportIds.Contains(a.Id))
             .ToDictionaryAsync(a => a.Id, cancellationToken);
+        
+        var taken = (await db.Bookings.AsNoTracking()
+                .Where(b => b.FreelanceJobId != null && jobIds.Contains(b.FreelanceJobId.Value) &&
+                            (b.Status == BookingStatus.Active || b.Status == BookingStatus.Completed))
+                .Select(b => b.FreelanceJobId!.Value)
+                .ToListAsync(cancellationToken))
+            .ToHashSet();
 
         var aircraft = (await db.Set<FreelanceJobAircraft>().AsNoTracking()
                 .Where(a => jobIds.Contains(a.FreelanceJobId))
@@ -98,7 +108,8 @@ internal sealed class FreelanceQueries(SkyBridgeDbContext db, TimeProvider time)
                     DateTime.SpecifyKind(job.ExpiresAtUtc, DateTimeKind.Utc),
                     job.IsExpired(now),
                     types.Select(t => t.IcaoCode).ToList(),
-                    warnings);
+                    warnings,
+                    taken.Contains(job.Id));
             })
             .ToList();
     }

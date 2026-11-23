@@ -63,6 +63,7 @@ export interface FreelanceJob {
   expired: boolean;
   aircraft: string[];
   warnings: string[];
+  taken: boolean;
 }
 
 export interface FreelanceLegInput {

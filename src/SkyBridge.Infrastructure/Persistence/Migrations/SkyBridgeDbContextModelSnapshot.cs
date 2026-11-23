@@ -490,6 +490,67 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.ToTable("Runways");
                 });
 
+            modelBuilder.Entity("SkyBridge.Domain.Bookings.Booking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AircraftTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BookedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CurrentLeg")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FinishedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FreelanceJobId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LegCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LegStartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PilotUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("Source")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime>("StartDeadlineUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("StartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AircraftTypeId");
+
+                    b.HasIndex("FreelanceJobId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Bookings_TakenFreelanceJob")
+                        .HasFilter("[FreelanceJobId] IS NOT NULL AND [Status] IN (1, 2)");
+
+                    b.HasIndex("PilotUserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Bookings_ActivePilot")
+                        .HasFilter("[Status] = 1");
+
+                    b.ToTable("Bookings");
+                });
+
             modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJob", b =>
                 {
                     b.Property<int>("Id")
@@ -853,6 +914,26 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.HasOne("SkyBridge.Domain.Airports.Airport", null)
                         .WithMany("Runways")
                         .HasForeignKey("AirportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Bookings.Booking", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Aircraft.AircraftType", null)
+                        .WithMany()
+                        .HasForeignKey("AircraftTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SkyBridge.Domain.Freelance.FreelanceJob", null)
+                        .WithMany()
+                        .HasForeignKey("FreelanceJobId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SkyBridge.Domain.Pilots.Pilot", null)
+                        .WithMany()
+                        .HasForeignKey("PilotUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

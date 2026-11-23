@@ -38,6 +38,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/freelance/freelance.page').then(m => m.FreelancePage)
   },
   {
+    path: 'flight',
+    title: 'My flight · SkyBridge',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/flights/my-flight.page').then(m => m.MyFlightPage)
+  },
+  {
     path: 'login',
     title: 'Sign in · SkyBridge',
     canActivate: [guestGuard],

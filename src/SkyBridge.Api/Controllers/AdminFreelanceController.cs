@@ -38,6 +38,7 @@ public class AdminFreelanceController(IFreelanceQueries queries, IFreelanceAdmin
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken) =>
-        await admin.DeleteAsync(id, cancellationToken) ? NoContent() : NotFound();
+        this.ToActionResult(await admin.DeleteAsync(id, cancellationToken), _ => NoContent());
 }

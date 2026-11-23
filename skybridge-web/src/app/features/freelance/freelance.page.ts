@@ -2,7 +2,10 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { catchError, of, switchMap, tap } from 'rxjs';
+import { Booking } from '../../core/bookings/booking.models';
+import { BookingService } from '../../core/bookings/booking.service';
 import { FreelanceJob, FreelanceQuery } from '../../core/freelance/freelance.models';
 import { FREELANCE_PAGE_SIZE, FreelanceService } from '../../core/freelance/freelance.service';
 import { PagedResult } from '../../core/http/paged-result';
@@ -14,12 +17,22 @@ import { expiresIn, hasDangerousGoods, maxCargo, maxPassengers, missionLabel, ro
 
 @Component({
   selector: 'sb-freelance-page',
-  imports: [ReactiveFormsModule, CurrencyPipe, DecimalPipe, JobBriefing],
+  imports: [ReactiveFormsModule, RouterLink, CurrencyPipe, DecimalPipe, JobBriefing],
   template: `
     <p class="font-mono text-xs tracking-[0.2em] text-primary">FLIGHTS</p>
     <h1 class="mt-1 font-display text-3xl font-bold">Freelance</h1>
     <p class="mt-1 text-muted">Charter, cargo and special missions. Build your hours here before joining an airline.</p>
 
+    @if (booking(); as active) {
+      <section class="sb-card mt-6 flex flex-wrap items-center justify-between gap-4 border-primary/50" data-testid="active-flight">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-primary">Active flight</p>
+          <p class="mt-1 font-mono font-semibold">{{ active.job ? route(active.job) : '—' }} · {{ active.aircraft }}</p>
+          <p class="text-sm text-muted">Finish or cancel it before taking another job or a jumpseat.</p>
+        </div>
+        <a routerLink="/flight" class="sb-btn-primary w-auto px-5">Go to my flight</a>
+      </section>
+    }
     @if (pilot(); as current) {
       <section class="sb-card mt-6" data-testid="location">
         @if (current.location; as location) {
@@ -31,7 +44,7 @@ import { expiresIn, hasDangerousGoods, maxCargo, maxPassengers, missionLabel, ro
               </p>
               <p class="text-sm text-muted">{{ location.municipality ?? '—' }}, {{ location.countryCode }} · {{ current.flightHours | number: '1.1-1' }} h flown</p>
             </div>
-            @if (!jumpseatOpen()) {
+            @if (!jumpseatOpen() && !booking()) {
               <button type="button" class="sb-btn-secondary w-auto px-4" (click)="jumpseatOpen.set(true)" data-testid="open-jumpseat">Jumpseat</button>
             }
           </div>
@@ -96,6 +109,26 @@ import { expiresIn, hasDangerousGoods, maxCargo, maxPassengers, missionLabel, ro
           @if (expanded() === job.id) {
             <div class="border-t border-line px-5 py-5">
               <sb-job-briefing [job]="job" />
+              <div class="mt-5 border-t border-line pt-4" data-testid="accept">
+                @if (booking()) {
+                  <p class="text-sm text-muted">You already have an active flight.</p>
+                } @else if (pilot()?.location?.code !== job.origin) {
+                  <p class="text-sm text-muted">This job departs from {{ job.origin }}. Take a free jumpseat there to accept it.</p>
+                } @else {
+                  <form class="flex flex-wrap items-center gap-3" (submit)="accept($event, job)" data-testid="accept-form">
+                    <label class="text-sm text-muted" for="accept-aircraft">Aircraft</label>
+                    <select id="accept-aircraft" class="sb-input w-32 font-mono" [formControl]="aircraftControl" data-testid="accept-aircraft">
+                      @for (code of job.aircraft; track code) {
+                        <option [value]="code">{{ code }}</option>
+                      }
+                    </select>
+                    <button type="submit" class="sb-btn-primary w-auto px-5" [disabled]="accepting()" data-testid="accept-job">Accept job</button>
+                  </form>
+                }
+                @if (acceptError(); as message) {
+                  <p class="sb-error mt-3" data-testid="accept-error">{{ message }}</p>
+                }
+              </div>
             </div>
           }
         </article>
@@ -120,9 +153,15 @@ import { expiresIn, hasDangerousGoods, maxCargo, maxPassengers, missionLabel, ro
 export class FreelancePage {
   private readonly pilots = inject(PilotService);
   private readonly jobs = inject(FreelanceService);
+  private readonly bookings = inject(BookingService);
+  private readonly router = inject(Router);
 
   protected readonly airportControl = new FormControl('', { nonNullable: true, validators: [Validators.required] });
+  protected readonly aircraftControl = new FormControl('', { nonNullable: true });
   protected readonly pilot = signal<Pilot | null>(null);
+  protected readonly booking = signal<Booking | null>(null);
+  protected readonly accepting = signal(false);
+  protected readonly acceptError = signal<string | null>(null);
   protected readonly jumpseatOpen = signal(false);
   protected readonly moving = signal(false);
   protected readonly locationError = signal<string | null>(null);
@@ -142,6 +181,7 @@ export class FreelancePage {
 
   constructor() {
     this.pilots.get().pipe(takeUntilDestroyed()).subscribe(pilot => this.setPilot(pilot));
+    this.bookings.current().pipe(takeUntilDestroyed()).subscribe(booking => this.booking.set(booking));
 
     toObservable(this.query)
       .pipe(
@@ -193,6 +233,28 @@ export class FreelancePage {
 
   protected toggle(id: number): void {
     this.expanded.update(current => (current === id ? null : id));
+    this.acceptError.set(null);
+    const job = this.result()?.items.find(j => j.id === id);
+    this.aircraftControl.setValue(job?.aircraft[0] ?? '');
+  }
+
+  protected accept(event: Event, job: FreelanceJob): void {
+    event.preventDefault();
+    const aircraft = this.aircraftControl.value;
+    if (!aircraft) return;
+
+    this.accepting.set(true);
+    this.acceptError.set(null);
+    this.bookings.acceptFreelance(job.id, aircraft).subscribe({
+      next: () => {
+        this.accepting.set(false);
+        this.router.navigateByUrl('/flight');
+      },
+      error: error => {
+        this.accepting.set(false);
+        this.acceptError.set(problemMessages(error)[0]);
+      }
+    });
   }
 
   protected goToPage(page: number): void {

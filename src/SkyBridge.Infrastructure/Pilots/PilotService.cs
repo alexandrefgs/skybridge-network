@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SkyBridge.Application.Bookings;
 using SkyBridge.Application.Common;
 using SkyBridge.Application.Pilots;
 using SkyBridge.Domain.Airports;
@@ -8,7 +9,7 @@ using SkyBridge.Infrastructure.Persistence;
 
 namespace SkyBridge.Infrastructure.Pilots;
 
-internal sealed class PilotService(SkyBridgeDbContext db) : IPilotService
+internal sealed class PilotService(SkyBridgeDbContext db, IBookingService bookings) : IPilotService
 {
     public async Task<PilotResponse> GetAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -19,6 +20,8 @@ internal sealed class PilotService(SkyBridgeDbContext db) : IPilotService
     public async Task<Result<PilotResponse>> JumpseatAsync(Guid userId, JumpseatRequest request, CancellationToken cancellationToken)
     {
         var airports = await AirportCodes.FindAsync(db, [request.Airport], cancellationToken);
+        if (await bookings.HasActiveAsync(userId, cancellationToken))
+            return Result<PilotResponse>.Conflict(nameof(request.Airport), "You can't take a jumpseat during an active flight. Cancel it first.");
         if (!airports.TryGetValue(AirportCodes.Normalize(request.Airport), out var airport))
             return Result<PilotResponse>.Invalid(nameof(request.Airport), $"Airport '{AirportCodes.Normalize(request.Airport)}' was not found.");
 

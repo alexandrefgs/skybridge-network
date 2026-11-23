@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SkyBridge.Application.Common;
 using SkyBridge.Application.Freelance;
+using SkyBridge.Domain.Bookings;
 using SkyBridge.Domain.Freelance;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Persistence;
@@ -41,8 +42,14 @@ internal sealed class FreelanceAdmin(SkyBridgeDbContext db, IFreelanceQueries qu
         return Result<FreelanceJobResponse>.Ok((await queries.GetAsync(job.Id, cancellationToken))!);
     }
 
-    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken) =>
-        await db.FreelanceJobs.Where(j => j.Id == id).ExecuteDeleteAsync(cancellationToken) > 0;
+    public async Task<Result<bool>> DeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        if (await db.Bookings.AnyAsync(b => b.FreelanceJobId == id && b.Status == BookingStatus.Active, cancellationToken))
+            return Result<bool>.Conflict("Job", "A pilot is flying this job. It can be deleted after the flight ends.");
+
+        var deleted = await db.FreelanceJobs.Where(j => j.Id == id).ExecuteDeleteAsync(cancellationToken) > 0;
+        return deleted ? Result<bool>.Ok(true) : Result<bool>.NotFound();
+    }
 
     private async Task<ValidatedJob> ValidateAsync(FreelanceJobRequest request, CancellationToken cancellationToken)
     {

@@ -23,13 +23,15 @@ describe('AdminFreelancePage', () => {
     fixture = TestBed.createComponent(AdminFreelancePage);
     await fixture.whenStable();
     http.expectOne(r => r.url === '/api/aircraft-types').flush(page([{ icaoCode: 'C208' }, { icaoCode: 'PC12' }]));
-    http.expectOne(r => r.url === '/api/admin/freelance').flush(page([medevac, { ...executiveTour, expired: true }]));
+    http.expectOne(r => r.url === '/api/admin/freelance').flush(page([medevac, { ...executiveTour, expired: true, taken: true }]));
     await fixture.whenStable();
   });
 
   afterEach(() => http.verify());
 
-  it('lists jobs with the whole route, expired ones and warnings', () => {
+  it('lists jobs with the whole route, expired, taken and warnings', () => {
+    expect(query('[data-testid="job-taken-8"]').textContent).toContain('Taken');
+    expect(fixture.nativeElement.querySelector('[data-testid="job-taken-7"]')).toBeNull();
     expect(query('[data-testid="job-row-7"]').textContent).toContain('MEDEVAC');
     expect(query('[data-testid="job-row-8"]').textContent).toContain('SBFL → SBGR → SBRJ → SBFL');
     expect(query('[data-testid="job-row-8"]').textContent).toContain('Expired');

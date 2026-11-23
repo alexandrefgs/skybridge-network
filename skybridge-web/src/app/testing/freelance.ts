@@ -1,3 +1,4 @@
+import { Booking } from '../core/bookings/booking.models';
 import { FreelanceJob, FreelanceLeg } from '../core/freelance/freelance.models';
 import { Pilot } from '../core/pilot/pilot.models';
 
@@ -16,7 +17,7 @@ export const medevac: FreelanceJob = {
   distanceNm: 278, client: 'Hospital Santa Catarina',
   briefing: 'A burn patient needs an urgent transfer to a specialist unit in São Paulo.',
   legs: [florianopolisToGuarulhos],
-  reward: 4500, expiresAtUtc: '2026-11-26T12:00:00Z', expired: false, aircraft: ['C208', 'PC12'], warnings: []
+  reward: 4500, expiresAtUtc: '2026-11-26T12:00:00Z', expired: false, aircraft: ['C208', 'PC12'], warnings: [], taken: false
 };
 
 export const executiveTour: FreelanceJob = {
@@ -45,4 +46,11 @@ export const pilotAtFlorianopolis: Pilot = {
     countryCode: 'BR', latitude: -27.67, longitude: -48.55
   },
   flightHours: 0
+};
+
+export const acceptedMedevac: Booking = {
+  id: 31, status: 'Active', source: 'Freelance', aircraft: 'C208',
+  currentLeg: 1, legCount: 1, legInProgress: false,
+  bookedAtUtc: '2026-11-23T12:00:00Z', startDeadlineUtc: '2026-11-26T12:00:00Z',
+  startedAtUtc: null, legStartedAtUtc: null, job: { ...medevac, taken: true }
 };

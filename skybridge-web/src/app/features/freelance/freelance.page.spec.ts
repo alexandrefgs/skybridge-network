@@ -1,7 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { medevac, pilotAtFlorianopolis, executiveTour } from '../../testing/freelance';
+import { Router, provideRouter } from '@angular/router';
+import { acceptedMedevac, medevac, pilotAtFlorianopolis, executiveTour } from '../../testing/freelance';
 import { page } from '../../testing/airlines';
 import { FreelancePage } from './freelance.page';
 
@@ -11,13 +12,14 @@ describe('FreelancePage', () => {
   const query = (id: string) => fixture.nativeElement.querySelector(`[data-testid="${id}"]`) as HTMLElement | null;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(FreelancePage);
   });
 
-  async function start(pilot = pilotAtFlorianopolis) {
+  async function start(pilot = pilotAtFlorianopolis, booking: typeof acceptedMedevac | null = null) {
     await fixture.whenStable();
+    http.expectOne('/api/bookings/current').flush(booking);
     http.expectOne(r => r.url === '/api/freelance' && !r.params.has('from')).flush(page([]));
     http.expectOne('/api/pilot').flush(pilot);
     await fixture.whenStable();
@@ -95,5 +97,64 @@ describe('FreelancePage', () => {
     await fixture.whenStable();
 
     expect(query('location-error')!.textContent).toContain("Airport 'ZZZZ' was not found.");
+  });
+  
+  async function openMedevac() {
+    http.expectOne(r => r.url === '/api/freelance' && r.params.get('from') === 'SBFL').flush(page([medevac]));
+    await fixture.whenStable();
+    (query('job-7')!.querySelector('button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+  }
+
+  it('accepts a job with the chosen aircraft and opens my flight', async () => {
+    await start();
+    await openMedevac();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+    const select = query('accept-aircraft') as HTMLSelectElement;
+    select.value = 'PC12';
+    select.dispatchEvent(new Event('change'));
+    query('accept-form')!.dispatchEvent(new Event('submit'));
+
+    const request = http.expectOne('/api/freelance/7/accept');
+    expect(request.request.body).toEqual({ aircraft: 'PC12' });
+    request.flush(acceptedMedevac);
+    await fixture.whenStable();
+
+    expect(navigate).toHaveBeenCalledWith('/flight');
+  });
+
+  it('shows why the aircraft cannot be used', async () => {
+    await start();
+    await openMedevac();
+
+    query('accept-form')!.dispatchEvent(new Event('submit'));
+    http.expectOne('/api/freelance/7/accept').flush(
+      { errors: { Aircraft: ['C208 is a Turboprop aircraft and needs 25 h. You have 0.0 h.'] } },
+      { status: 400, statusText: 'Bad Request' }
+    );
+    await fixture.whenStable();
+
+    expect(query('accept-error')!.textContent).toContain('needs 25 h');
+  });
+
+  it('asks for a jumpseat when the job departs from elsewhere', async () => {
+    await start();
+    http.expectOne(r => r.url === '/api/freelance').flush(page([{ ...medevac, origin: 'SBGR' }]));
+    await fixture.whenStable();
+    (query('job-7')!.querySelector('button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(query('accept-form')).toBeNull();
+    expect(query('accept')!.textContent).toContain('departs from SBGR');
+  });
+
+  it('shows the active flight and hides accept and jumpseat', async () => {
+    await start(pilotAtFlorianopolis, acceptedMedevac);
+    await openMedevac();
+
+    expect(query('active-flight')!.textContent).toContain('SBFL → SBGR · C208');
+    expect(query('open-jumpseat')).toBeNull();
+    expect(query('accept-form')).toBeNull();
   });
 });

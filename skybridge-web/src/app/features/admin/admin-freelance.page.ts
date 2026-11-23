@@ -65,6 +65,9 @@ import { FreelanceJobForm } from './freelance-job-form';
               <td class="px-4 py-3 font-mono text-xs">{{ job.aircraft.join(' ') }}</td>
               <td class="px-4 py-3 text-right font-mono">{{ job.reward | currency: 'USD' : 'symbol' : '1.0-0' }}</td>
               <td class="whitespace-nowrap px-4 py-3">
+                @if (job.taken) {
+                  <span class="mr-2 rounded border border-primary/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-primary" [attr.data-testid]="'job-taken-' + job.id">Taken</span>
+                }
                 @if (job.expired) {
                   <span class="text-xs uppercase tracking-wide text-muted">Expired</span>
                 } @else {
