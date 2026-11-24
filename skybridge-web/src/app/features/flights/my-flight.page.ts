@@ -6,16 +6,19 @@ import { Observable } from 'rxjs';
 import { Booking } from '../../core/bookings/booking.models';
 import { BookingService } from '../../core/bookings/booking.service';
 import { problemMessages } from '../../core/http/problem';
+import { Pilot } from '../../core/pilot/pilot.models';
+import { PilotService } from '../../core/pilot/pilot.service';
 import { PirepFiled } from '../../core/pireps/pirep.models';
 import { bookingLegs, bookingRoute, currentLeg } from '../../shared/flights/booking-legs';
 import { JobBriefing } from '../../shared/freelance/job-briefing';
 import { expiresIn, missionLabel } from '../../shared/freelance/missions';
 import { durationLabel } from '../../shared/time/utc';
+import { FlightPlanCard } from './flight-plan-card';
 import { PirepForm } from './pirep-form';
 
 @Component({
   selector: 'sb-my-flight-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, JobBriefing, PirepForm],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, JobBriefing, PirepForm, FlightPlanCard],
   template: `
     <p class="font-mono text-xs tracking-[0.2em] text-primary">FLIGHTS</p>
     <h1 class="mt-1 font-display text-3xl font-bold">My flight</h1>
@@ -111,9 +114,12 @@ import { PirepForm } from './pirep-form';
           @if (current.legInProgress) {
             <p class="text-sm text-muted" data-testid="pirep-hint">Land at {{ currentDestination() }} and file the PIREP below to finish this leg.</p>
           } @else {
-            <button type="button" class="sb-btn-primary w-auto px-5" [disabled]="busy()" (click)="startLeg()" data-testid="start-leg">
+            <button type="button" class="sb-btn-primary w-auto px-5" [disabled]="busy() || !current.flightPlan" (click)="startLeg()" data-testid="start-leg">
               Start leg {{ current.currentLeg }}
             </button>
+            @if (!current.flightPlan) {
+              <span class="text-xs text-muted" data-testid="needs-ofp">Import the SimBrief OFP for this leg first.</span>
+            }
           }
 
           <span class="ml-auto">
@@ -134,35 +140,11 @@ import { PirepForm } from './pirep-form';
         }
       </section>
 
-      @if (current.flight; as flight) {
-        <section class="sb-card mt-6" data-testid="flight-plan">
-          <h2 class="mb-4 text-lg font-semibold">Flight plan</h2>
-          <dl class="grid gap-4 font-mono text-sm sm:grid-cols-4">
-            <div>
-              <dt class="text-[10px] tracking-[0.2em] text-muted">FROM</dt>
-              <dd class="mt-1 font-semibold">{{ flight.origin }}</dd>
-              <dd class="font-sans text-xs text-muted">{{ flight.originName }}</dd>
-            </div>
-            <div>
-              <dt class="text-[10px] tracking-[0.2em] text-muted">TO</dt>
-              <dd class="mt-1 font-semibold">{{ flight.destination }}</dd>
-              <dd class="font-sans text-xs text-muted">{{ flight.destinationName }}</dd>
-            </div>
-            <div>
-              <dt class="text-[10px] tracking-[0.2em] text-muted">CRUISE</dt>
-              <dd class="mt-1 font-semibold">{{ flight.flightLevel ? 'FL' + flight.flightLevel : '—' }}</dd>
-            </div>
-            <div>
-              <dt class="text-[10px] tracking-[0.2em] text-muted">DISTANCE</dt>
-              <dd class="mt-1 font-semibold">{{ flight.distanceNm | number }} nm</dd>
-            </div>
-            <div class="sm:col-span-4">
-              <dt class="text-[10px] tracking-[0.2em] text-muted">ROUTE</dt>
-              <dd class="mt-1 break-words" data-testid="ats-route">{{ flight.atsRoute ?? 'DCT' }}</dd>
-            </div>
-          </dl>
-        </section>
-      } @else if (current.job; as job) {
+      <div class="mt-6">
+        <sb-flight-plan-card [booking]="current" [pilot]="pilot()" (imported)="booking.set($event)" (linked)="pilot.set($event)" />
+      </div>
+
+      @if (current.job; as job) {
         <section class="sb-card mt-6">
           <h2 class="mb-4 text-lg font-semibold">Briefing</h2>
           <sb-job-briefing [job]="job" />
@@ -183,6 +165,7 @@ export class MyFlightPage {
   private readonly bookings = inject(BookingService);
 
   protected readonly booking = signal<Booking | null>(null);
+  protected readonly pilot = signal<Pilot | null>(null);
   protected readonly loading = signal(true);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -204,6 +187,7 @@ export class MyFlightPage {
   protected readonly route = bookingRoute;
 
   constructor() {
+    inject(PilotService).get().pipe(takeUntilDestroyed()).subscribe({ next: pilot => this.pilot.set(pilot), error: () => {} });
     this.bookings.current().pipe(takeUntilDestroyed()).subscribe({
       next: booking => {
         this.loading.set(false);
@@ -219,6 +203,7 @@ export class MyFlightPage {
   protected onFiled(result: PirepFiled): void {
     const flightNumber = this.booking()?.flightNumber;
     this.booking.set(result.booking);
+    this.pilot.set(result.pilot);
     if (result.booking) {
       const review = result.pirep.status === 'Pending' ? ' It is waiting for staff review.' : '';
       this.notice.set(`Leg ${result.pirep.leg} filed. You are now at ${result.pirep.destination}.${review}`);
@@ -245,7 +230,7 @@ export class MyFlightPage {
     return expiresIn(deadline);
   }
 
-  private run<T>(request: Observable<T>, done: (value: T) => void): void {
+    private run<T>(request: Observable<T>, done: (value: T) => void): void {
     this.busy.set(true);
     this.error.set(null);
     request.subscribe({

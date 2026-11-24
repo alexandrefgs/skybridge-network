@@ -19,6 +19,10 @@ export class BookingService {
     return this.http.post<Booking>(`/api/bookings/routes/${routeId}`, { aircraft });
   }
 
+  importFlightPlan(): Observable<Booking> {
+    return this.http.post<Booking>('/api/bookings/current/flight-plan', {});
+  }
+
   startLeg(): Observable<Booking> {
     return this.http.post<Booking>('/api/bookings/current/start', {});
   }

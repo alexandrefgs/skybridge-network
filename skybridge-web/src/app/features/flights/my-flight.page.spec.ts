@@ -2,13 +2,23 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { acceptedMedevac, bookedGolFlight, executiveTour, filedPirep, pilotAtFlorianopolis } from '../../testing/freelance';
+import { Booking } from '../../core/bookings/booking.models';
+import {
+  acceptedMedevac,
+  bookedGolFlight,
+  executiveTour,
+  filedPirep,
+  linkedPilot,
+  medevacOfp,
+  pilotAtFlorianopolis
+} from '../../testing/freelance';
 import { MyFlightPage } from './my-flight.page';
 
 describe('MyFlightPage', () => {
   let fixture: ComponentFixture<MyFlightPage>;
   let http: HttpTestingController;
   const query = (id: string) => fixture.nativeElement.querySelector(`[data-testid="${id}"]`) as HTMLElement | null;
+  const ready: Booking = { ...acceptedMedevac, flightPlan: medevacOfp };
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
@@ -18,8 +28,9 @@ describe('MyFlightPage', () => {
 
   afterEach(() => http.verify());
 
-  async function load(booking: typeof acceptedMedevac | null) {
+  async function load(booking: Booking | null, pilot = linkedPilot) {
     await fixture.whenStable();
+    http.expectOne('/api/pilot').flush(pilot);
     http.expectOne('/api/bookings/current').flush(booking);
     await fixture.whenStable();
   }
@@ -43,13 +54,26 @@ describe('MyFlightPage', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="briefing"]')).not.toBeNull();
   });
 
-  it('starts the leg', async () => {
+  it('needs the SimBrief OFP before the leg can start', async () => {
     await load(acceptedMedevac);
-    expect(query('flight-status')!.textContent).toContain('Not started');
 
+    expect((query('start-leg') as HTMLButtonElement).disabled).toBe(true);
+    expect(query('needs-ofp')!.textContent).toContain('Import the SimBrief OFP');
+    expect(query('import-ofp')).not.toBeNull();
+  });
+
+  it('starts the leg once the OFP is imported', async () => {
+    await load(acceptedMedevac);
+
+    query('import-ofp')!.click();
+    http.expectOne('/api/bookings/current/flight-plan').flush(ready);
+    await fixture.whenStable();
+
+    expect(query('flight-status')!.textContent).toContain('Not started');
+    expect(query('needs-ofp')).toBeNull();
     query('start-leg')!.click();
     http.expectOne('/api/bookings/current/start').flush({
-      ...acceptedMedevac, legInProgress: true, startedAtUtc: '2026-11-23T14:05:00Z', legStartedAtUtc: '2026-11-23T14:05:00Z'
+      ...ready, legInProgress: true, startedAtUtc: '2026-11-23T14:05:00Z', legStartedAtUtc: '2026-11-23T14:05:00Z'
     });
     await fixture.whenStable();
 
@@ -57,7 +81,7 @@ describe('MyFlightPage', () => {
     expect(query('flight-status')!.textContent).toContain('14:05 UTC');
     expect(query('start-leg')).toBeNull();
     expect(query('pirep-hint')!.textContent).toContain('Land at SBGR');
-    expect(query('pirep-form')).not.toBeNull();
+    expect((query('pirep-fuel') as HTMLInputElement).value).toBe('350');
   });
 
   it('cancels the flight after confirming', async () => {
@@ -74,7 +98,7 @@ describe('MyFlightPage', () => {
   });
 
   it('shows the error when the leg cannot start', async () => {
-    await load(acceptedMedevac);
+    await load(ready);
 
     query('start-leg')!.click();
     http.expectOne('/api/bookings/current/start').flush(
@@ -85,9 +109,9 @@ describe('MyFlightPage', () => {
 
     expect(query('flight-error')!.textContent).toContain('deadline');
   });
-  
-  const flying = { ...acceptedMedevac, legInProgress: true, startedAtUtc: '2026-11-23T14:05:00Z', legStartedAtUtc: '2026-11-23T14:05:00Z' };
-  const gruPilot = { ...pilotAtFlorianopolis, location: { ...pilotAtFlorianopolis.location!, code: 'SBGR' }, flightHours: 1.5, flightMinutes: 90, balance: 4500 };
+
+  const flying: Booking = { ...ready, legInProgress: true, startedAtUtc: '2026-11-23T14:05:00Z', legStartedAtUtc: '2026-11-23T14:05:00Z' };
+  const gruPilot = { ...linkedPilot, location: { ...pilotAtFlorianopolis.location!, code: 'SBGR' }, flightHours: 1.5, flightMinutes: 90, balance: 4500 };
 
   async function fileLeg(response: object) {
     query('pirep-form')!.dispatchEvent(new Event('submit'));
@@ -100,13 +124,14 @@ describe('MyFlightPage', () => {
 
     await fileLeg({
       pirep: { ...filedPirep, legCount: 3 },
-      booking: { ...flying, legCount: 3, currentLeg: 2, legInProgress: false, legStartedAtUtc: null, job: executiveTour },
+      booking: { ...flying, legCount: 3, currentLeg: 2, legInProgress: false, legStartedAtUtc: null, job: executiveTour, flightPlan: null },
       rewardPaid: null,
       pilot: gruPilot
     });
 
     expect(query('flight-notice')!.textContent).toContain('Leg 1 filed. You are now at SBGR.');
     expect(query('start-leg')!.textContent).toContain('Start leg 2');
+    expect(query('needs-ofp')).not.toBeNull();
     expect(query('pirep-form')).toBeNull();
   });
 
@@ -129,8 +154,8 @@ describe('MyFlightPage', () => {
 
     expect(query('mission-complete')!.textContent).toContain('waiting for staff review');
   });
-  
-  it('shows an airline flight with its flight plan and hourly pay', async () => {
+
+  it('shows an airline flight with its hourly pay and the airline route to plan', async () => {
     await load(bookedGolFlight);
 
     expect(query('flight-number')!.textContent).toContain('GLO1042');
@@ -138,8 +163,8 @@ describe('MyFlightPage', () => {
     expect(query('flight-pay')!.textContent).toContain('$320/h');
     expect(query('leg-1')!.textContent).toContain('SBFL → SBGR');
     expect(query('leg-1')!.textContent).not.toContain('pax');
-    expect(query('flight-plan')!.textContent).toContain('FL360');
-    expect(query('ats-route')!.textContent).toContain('UZ6 PAKOT DCT');
+    expect(query('scheduled-route')!.textContent).toContain('UZ6 PAKOT DCT');
+    expect(query('scheduled-route')!.textContent).toContain('FL360');
   });
 
   it('names the flight when an airline flight is complete', async () => {

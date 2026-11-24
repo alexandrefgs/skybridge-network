@@ -15,6 +15,33 @@ export interface AirlineFlight {
   flightLevel: number | null;
 }
 
+export interface FlightPlan {
+  leg: number;
+  simBriefId: string;
+  generatedAtUtc: string;
+  importedAtUtc: string;
+  airac: string | null;
+  origin: string;
+  destination: string;
+  alternate: string | null;
+  aircraft: string;
+  registration: string | null;
+  callsign: string | null;
+  route: string;
+  cruiseAltitudeFt: number;
+  distanceNm: number;
+  enrouteMinutes: number;
+  blockFuelKg: number;
+  takeoffFuelKg: number;
+  landingFuelKg: number;
+  tripFuelKg: number;
+  passengerCount: number;
+  cargoKg: number;
+  zeroFuelWeightKg: number;
+  takeoffWeightKg: number;
+  landingWeightKg: number;
+}
+
 export interface Booking {
   id: number;
   status: BookingStatus;
@@ -31,4 +58,5 @@ export interface Booking {
   flightNumber: string | null;
   payPerHour: number;
   flight: AirlineFlight | null;
+  flightPlan: FlightPlan | null;
 }

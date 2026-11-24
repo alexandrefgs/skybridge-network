@@ -95,6 +95,11 @@ public class BookingTests(SkyBridgeApiFactory factory)
         var pilot = await PilotAtAsync("SBFL");
         (await AcceptAsync(pilot, job.Id, "C172")).EnsureSuccessStatusCode();
 
+        var withoutPlan = await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/bookings/current/start", pilot);
+        Assert.Equal(HttpStatusCode.BadRequest, withoutPlan.StatusCode);
+        Assert.Contains("Import the SimBrief OFP for leg 1", await withoutPlan.Content.ReadAsStringAsync());
+
+        await _client.ImportMatchingPlanAsync(pilot);
         var started = await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/bookings/current/start", pilot);
         var twice = await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/bookings/current/start", pilot);
 

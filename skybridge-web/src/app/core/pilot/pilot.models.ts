@@ -13,6 +13,7 @@ export interface Pilot {
   flightHours: number;
   flightMinutes: number;
   balance: number;
+  simBriefPilotId: string | null;
 }
 
 export interface PilotTransaction {

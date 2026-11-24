@@ -2,16 +2,19 @@ using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using SkyBridge.Application.Bookings;
 using SkyBridge.Application.Common;
+using SkyBridge.Application.FlightPlans;
 using SkyBridge.Application.Freelance;
 using SkyBridge.Domain.Aircraft;
 using SkyBridge.Domain.Bookings;
+using SkyBridge.Domain.FlightPlans;
+using SkyBridge.Domain.Freelance;
 using SkyBridge.Domain.Routes;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Persistence;
 
 namespace SkyBridge.Infrastructure.Bookings;
 
-internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries freelance, TimeProvider time) : IBookingService
+internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries freelance, ISimBriefClient simBrief, TimeProvider time) : IBookingService
 {
     public async Task<BookingResponse?> GetCurrentAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -79,11 +82,55 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
         return await SaveAsync(booking, "You already have an active flight. Finish or cancel it first.", cancellationToken);
     }
 
+    public async Task<Result<BookingResponse>> ImportFlightPlanAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var booking = await ActiveAsync(userId, cancellationToken);
+        if (booking is null)
+            return Result<BookingResponse>.NotFound();
+        if (booking.LegInProgress)
+            return Invalid("FlightPlan", $"Leg {booking.CurrentLeg} is already in progress. The OFP can only change before the leg starts.");
+
+        var pilotId = await db.Pilots.AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .Select(p => p.SimBriefPilotId)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (pilotId is null)
+            return Invalid("FlightPlan", "Add your SimBrief Pilot ID first.");
+
+        var fetched = await simBrief.FetchLatestAsync(pilotId, cancellationToken);
+        if (fetched.Plan is not { } data)
+            return Invalid("FlightPlan", fetched.Error ?? "SimBrief could not find a flight plan.");
+
+        var leg = await LegAsync(booking, cancellationToken);
+        var aircraft = await db.AircraftTypes.AsNoTracking()
+            .Where(t => t.Id == booking.AircraftTypeId)
+            .Select(t => t.IcaoCode)
+            .FirstAsync(cancellationToken);
+
+        var problems = FlightPlan.Problems(data, leg.Origin, leg.Destination, aircraft, booking.BookedAtUtc);
+        if (problems.Count > 0)
+            return new Result<BookingResponse>(ResultStatus.Invalid, null, new() { ["FlightPlan"] = [.. problems] });
+
+        var now = Now();
+        var plan = await db.FlightPlans.FirstOrDefaultAsync(p => p.BookingId == booking.Id && p.LegSequence == booking.CurrentLeg, cancellationToken);
+        if (plan is null)
+            db.FlightPlans.Add(FlightPlan.Create(booking.Id, booking.CurrentLeg, data, now));
+        else
+            plan.Replace(data, now);
+
+        await db.SaveChangesAsync(cancellationToken);
+        return Result<BookingResponse>.Ok(await ToResponseAsync(booking, cancellationToken));
+    }
+
     public async Task<Result<BookingResponse>> StartLegAsync(Guid userId, CancellationToken cancellationToken)
     {
         var booking = await ActiveAsync(userId, cancellationToken);
         if (booking is null)
             return Result<BookingResponse>.NotFound();
+
+        if (!booking.LegInProgress &&
+            !await db.FlightPlans.AnyAsync(p => p.BookingId == booking.Id && p.LegSequence == booking.CurrentLeg, cancellationToken))
+            return Invalid("FlightPlan", $"Import the SimBrief OFP for leg {booking.CurrentLeg} before starting it.");
 
         try
         {
@@ -175,6 +222,8 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
 
         var job = booking.FreelanceJobId is { } jobId ? await freelance.GetAsync(jobId, cancellationToken) : null;
         var flight = booking.Source == BookingSource.Airline ? await FlightAsync(booking, cancellationToken) : null;
+        var plan = await db.FlightPlans.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.BookingId == booking.Id && p.LegSequence == booking.CurrentLeg, cancellationToken);
 
         return new BookingResponse(
             booking.Id,
@@ -191,7 +240,59 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
             job,
             booking.FlightNumber,
             booking.PayPerHour,
-            flight);
+            flight,
+            plan is null ? null : ToResponse(plan));
+    }
+
+    private static FlightPlanResponse ToResponse(FlightPlan plan) => new(
+        plan.LegSequence,
+        plan.SimBriefId,
+        Utc(plan.GeneratedAtUtc),
+        Utc(plan.ImportedAtUtc),
+        plan.Airac,
+        plan.Origin,
+        plan.Destination,
+        plan.Alternate,
+        plan.Aircraft,
+        plan.Registration,
+        plan.Callsign,
+        plan.Route,
+        plan.CruiseAltitudeFt,
+        plan.DistanceNm,
+        plan.EnrouteMinutes,
+        plan.BlockFuelKg,
+        plan.TakeoffFuelKg,
+        plan.LandingFuelKg,
+        plan.TripFuelKg,
+        plan.PassengerCount,
+        plan.CargoKg,
+        plan.ZeroFuelWeightKg,
+        plan.TakeoffWeightKg,
+        plan.LandingWeightKg);
+
+    private async Task<(string Origin, string Destination)> LegAsync(Booking booking, CancellationToken cancellationToken)
+    {
+        int originId, destinationId;
+        if (booking.Source == BookingSource.Airline)
+        {
+            originId = booking.OriginAirportId!.Value;
+            destinationId = booking.DestinationAirportId!.Value;
+        }
+        else
+        {
+            var leg = await db.Set<FreelanceJobLeg>().AsNoTracking()
+                .Where(l => l.FreelanceJobId == booking.FreelanceJobId && l.Sequence == booking.CurrentLeg)
+                .Select(l => new { l.OriginAirportId, l.DestinationAirportId })
+                .FirstAsync(cancellationToken);
+            originId = leg.OriginAirportId;
+            destinationId = leg.DestinationAirportId;
+        }
+
+        var ids = new[] { originId, destinationId };
+        var airports = await db.Airports.AsNoTracking()
+            .Where(a => ids.Contains(a.Id))
+            .ToDictionaryAsync(a => a.Id, AirportCodes.Display, cancellationToken);
+        return (airports[originId], airports[destinationId]);
     }
 
     private async Task<AirlineFlightResponse> FlightAsync(Booking booking, CancellationToken cancellationToken)

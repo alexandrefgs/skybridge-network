@@ -40,6 +40,12 @@ describe('BookingService', () => {
     expect(request.request.body).toEqual({ aircraft: 'A320' });
   });
 
+  it('imports the latest SimBrief OFP', () => {
+    service.importFlightPlan().subscribe();
+
+    expect(http.expectOne('/api/bookings/current/flight-plan').request.method).toBe('POST');
+  });
+
   it('starts the leg and cancels the flight', () => {
     service.startLeg().subscribe();
     service.cancel().subscribe();

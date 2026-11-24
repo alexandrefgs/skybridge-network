@@ -598,6 +598,111 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.ToTable("Bookings");
                 });
 
+            modelBuilder.Entity("SkyBridge.Domain.FlightPlans.FlightPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Airac")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Aircraft")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("Alternate")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int>("BlockFuelKg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Callsign")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("CargoKg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CruiseAltitudeFt")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Destination")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int>("DistanceNm")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EnrouteMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("GeneratedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ImportedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LandingFuelKg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LandingWeightKg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LegSequence")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int>("PassengerCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Registration")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Route")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("SimBriefId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("TakeoffFuelKg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TakeoffWeightKg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TripFuelKg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ZeroFuelWeightKg")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId", "LegSequence")
+                        .IsUnique();
+
+                    b.ToTable("FlightPlans");
+                });
+
             modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJob", b =>
                 {
                     b.Property<int>("Id")
@@ -718,6 +823,10 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("FlightMinutes")
                         .HasColumnType("int");
+
+                    b.Property<string>("SimBriefPilotId")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
 
                     b.HasKey("UserId");
 
@@ -1116,6 +1225,15 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RouteId")
                         .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.FlightPlans.FlightPlan", b =>
+                {
+                    b.HasOne("SkyBridge.Domain.Bookings.Booking", null)
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SkyBridge.Domain.Freelance.FreelanceJob", b =>

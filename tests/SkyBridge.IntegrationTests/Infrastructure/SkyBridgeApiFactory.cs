@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SkyBridge.Application.Airlines;
 using SkyBridge.Application.Airports;
+using SkyBridge.Application.FlightPlans;
 using Testcontainers.MsSql;
 
 namespace SkyBridge.IntegrationTests.Infrastructure;
@@ -41,6 +42,8 @@ public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsync
             services.AddSingleton<IAirlineSource, FakeAirlineSource>();
             services.RemoveAll<IRplSource>();
             services.AddSingleton<IRplSource, FakeRplSource>();
+            services.RemoveAll<ISimBriefClient>();
+            services.AddSingleton<ISimBriefClient, FakeSimBriefClient>();
         });
     }
 

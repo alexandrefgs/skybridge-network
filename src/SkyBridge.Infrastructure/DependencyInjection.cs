@@ -13,6 +13,7 @@ using SkyBridge.Infrastructure.Aircraft;
 using SkyBridge.Infrastructure.Airlines;
 using SkyBridge.Application.Auth;
 using SkyBridge.Application.Bookings;
+using SkyBridge.Application.FlightPlans;
 using SkyBridge.Application.Freelance;
 using SkyBridge.Application.Pilots;
 using SkyBridge.Application.Pireps;
@@ -21,6 +22,7 @@ using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Auth;
 using SkyBridge.Infrastructure.Identity;
 using SkyBridge.Infrastructure.Bookings;
+using SkyBridge.Infrastructure.FlightPlans;
 using SkyBridge.Infrastructure.Freelance;
 using SkyBridge.Infrastructure.Persistence;
 using SkyBridge.Infrastructure.Pireps;
@@ -114,6 +116,12 @@ public static class DependencyInjection
         {
             client.BaseAddress = new Uri("https://portal.cgna.decea.mil.br/files/abas/");
             client.Timeout = TimeSpan.FromMinutes(1);
+        });
+
+        services.AddHttpClient<ISimBriefClient, SimBriefClient>(client =>
+        {
+            client.BaseAddress = new Uri("https://www.simbrief.com/");
+            client.Timeout = TimeSpan.FromSeconds(20);
         });
 
         services.AddHealthChecks().AddDbContextCheck<SkyBridgeDbContext>();

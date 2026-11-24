@@ -21,6 +21,14 @@ describe('PilotService', () => {
     expect(http.expectOne('/api/pilot').request.method).toBe('GET');
   });
 
+  it('links the SimBrief pilot ID', () => {
+    service.linkSimBrief('123456').subscribe();
+
+    const request = http.expectOne('/api/pilot/simbrief');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ pilotId: '123456' });
+  });
+
   it('moves the pilot with a jumpseat', () => {
     service.jumpseat('SBFL').subscribe();
 

@@ -56,4 +56,26 @@ public class PilotTests
         Assert.Throws<ArgumentOutOfRangeException>(() => PilotTransaction.Create(Guid.NewGuid(), 0, "x", null, now));
         Assert.Throws<ArgumentException>(() => PilotTransaction.Create(Guid.NewGuid(), 10, " ", null, now));
     }
+    
+    [Theory]
+    [InlineData(" 123456 ", "123456")]
+    [InlineData("", null)]
+    [InlineData(null, null)]
+    public void LinkSimBrief_StoresOrClearsThePilotId(string? input, string? expected)
+    {
+        var pilot = Pilot.Create(Guid.NewGuid());
+        pilot.LinkSimBrief("42");
+
+        pilot.LinkSimBrief(input);
+
+        Assert.Equal(expected, pilot.SimBriefPilotId);
+    }
+
+    [Theory]
+    [InlineData("12345678")]
+    [InlineData("abc")]
+    public void LinkSimBrief_RejectsInvalidIds(string input)
+    {
+        Assert.Throws<ArgumentException>(() => Pilot.Create(Guid.NewGuid()).LinkSimBrief(input));
+    }
 }

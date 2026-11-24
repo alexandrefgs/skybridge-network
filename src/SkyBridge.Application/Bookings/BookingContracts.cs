@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SkyBridge.Application.FlightPlans;
 using SkyBridge.Application.Freelance;
 
 namespace SkyBridge.Application.Bookings;
@@ -18,7 +19,8 @@ public sealed record BookingResponse(
     FreelanceJobResponse? Job,
     string? FlightNumber,
     int PayPerHour,
-    AirlineFlightResponse? Flight);
+    AirlineFlightResponse? Flight,
+    FlightPlanResponse? FlightPlan);
 
 public sealed record AirlineFlightResponse(
     int? RouteId,

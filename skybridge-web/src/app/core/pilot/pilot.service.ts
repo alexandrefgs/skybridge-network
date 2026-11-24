@@ -11,6 +11,10 @@ export class PilotService {
     return this.http.get<Pilot>('/api/pilot');
   }
 
+  linkSimBrief(pilotId: string | null): Observable<Pilot> {
+    return this.http.put<Pilot>('/api/pilot/simbrief', { pilotId });
+  }
+
   jumpseat(airport: string): Observable<Pilot> {
     return this.http.post<Pilot>('/api/pilot/jumpseat', { airport });
   }

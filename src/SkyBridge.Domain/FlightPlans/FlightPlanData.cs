@@ -1,0 +1,25 @@
+namespace SkyBridge.Domain.FlightPlans;
+
+public sealed record FlightPlanData(
+    string SimBriefId,
+    DateTime GeneratedAtUtc,
+    string? Airac,
+    string Origin,
+    string Destination,
+    string? Alternate,
+    string Aircraft,
+    string? Registration,
+    string? Callsign,
+    string Route,
+    int CruiseAltitudeFt,
+    int DistanceNm,
+    int EnrouteMinutes,
+    int BlockFuelKg,
+    int TakeoffFuelKg,
+    int LandingFuelKg,
+    int TripFuelKg,
+    int PassengerCount,
+    int CargoKg,
+    int ZeroFuelWeightKg,
+    int TakeoffWeightKg,
+    int LandingWeightKg);

@@ -1,4 +1,4 @@
-import { Booking } from '../core/bookings/booking.models';
+import { Booking, FlightPlan } from '../core/bookings/booking.models';
 import { Pirep } from '../core/pireps/pirep.models';
 import { FreelanceJob, FreelanceLeg } from '../core/freelance/freelance.models';
 import { Pilot } from '../core/pilot/pilot.models';
@@ -48,7 +48,8 @@ export const pilotAtFlorianopolis: Pilot = {
   },
   flightHours: 0,
   flightMinutes: 0,
-  balance: 0
+  balance: 0,
+  simBriefPilotId: null
 };
 
 export const acceptedMedevac: Booking = {
@@ -56,7 +57,7 @@ export const acceptedMedevac: Booking = {
   currentLeg: 1, legCount: 1, legInProgress: false,
   bookedAtUtc: '2026-11-23T12:00:00Z', startDeadlineUtc: '2026-11-26T12:00:00Z',
   startedAtUtc: null, legStartedAtUtc: null, job: { ...medevac, taken: true },
-  flightNumber: null, payPerHour: 0, flight: null
+    flightNumber: null, payPerHour: 0, flight: null, flightPlan: null
 };
 
 export const bookedGolFlight: Booking = {
@@ -70,7 +71,16 @@ export const bookedGolFlight: Booking = {
     origin: 'SBFL', originName: 'Hercílio Luz International Airport',
     destination: 'SBGR', destinationName: 'São Paulo/Guarulhos International Airport',
     distanceNm: 278, atsRoute: 'UZ6 PAKOT DCT', flightLevel: 360
-  }
+  },
+  flightPlan: null
+};
+
+export const golOfp: FlightPlan = {
+  leg: 1, simBriefId: '98765432', generatedAtUtc: '2026-11-23T12:30:00Z', importedAtUtc: '2026-11-23T12:35:00Z', airac: '2611',
+  origin: 'SBFL', destination: 'SBGR', alternate: 'SBKP', aircraft: 'B738', registration: 'PR-GXA', callsign: 'GLO1042',
+  route: 'PAKOT UZ6 BUXUK', cruiseAltitudeFt: 36000, distanceNm: 285, enrouteMinutes: 62,
+  blockFuelKg: 8000, takeoffFuelKg: 7800, landingFuelKg: 4600, tripFuelKg: 3200,
+  passengerCount: 150, cargoKg: 2000, zeroFuelWeightKg: 60000, takeoffWeightKg: 67800, landingWeightKg: 64600
 };
 
 export const filedPirep: Pirep = {
@@ -80,3 +90,7 @@ export const filedPirep: Pirep = {
   fuelUsedKg: 180, landingRateFpm: 160, remarks: null,
   status: 'Accepted', flag: null, reviewNote: null, filedAtUtc: '2026-11-23T15:45:00Z', reviewedAtUtc: null
 };
+
+export const medevacOfp: FlightPlan = { ...golOfp, aircraft: 'C208', registration: 'PR-MED', callsign: null, blockFuelKg: 600, landingFuelKg: 250 };
+
+export const linkedPilot: Pilot = { ...pilotAtFlorianopolis, simBriefPilotId: '123456' };

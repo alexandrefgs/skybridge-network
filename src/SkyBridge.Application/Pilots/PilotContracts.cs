@@ -11,7 +11,9 @@ public sealed record PilotLocation(
     double Latitude,
     double Longitude);
 
-public sealed record PilotResponse(PilotLocation? Location, decimal FlightHours, int FlightMinutes, int Balance);
+public sealed record PilotResponse(PilotLocation? Location, decimal FlightHours, int FlightMinutes, int Balance, string? SimBriefPilotId);
+
+public sealed record SimBriefLinkRequest([RegularExpression(@"^\s*\d{0,7}\s*$", ErrorMessage = "The SimBrief Pilot ID has 1 to 7 digits.")] string? PilotId);
 
 public sealed record PilotTransactionResponse(int Id, int Amount, string Description, DateTime CreatedAtUtc);
 

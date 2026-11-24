@@ -174,6 +174,7 @@ public class PirepTests(SkyBridgeApiFactory factory)
 
     private async Task StartAsync(string token)
     {
+        await _client.ImportMatchingPlanAsync(token);
         var response = await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/bookings/current/start", token);
         response.EnsureSuccessStatusCode();
         var booking = (await response.Content.ReadFromJsonAsync<BookingResponse>())!;

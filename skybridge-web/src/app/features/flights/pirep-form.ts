@@ -101,6 +101,8 @@ export class PirepForm implements OnInit {
   ngOnInit(): void {
     const started = this.booking().legStartedAtUtc;
     if (started) this.form.controls.departed.setValue(toUtcInput(new Date(started)));
+    const plan = this.booking().flightPlan;
+    if (plan) this.form.controls.fuel.setValue(Math.max(0, plan.blockFuelKg - plan.landingFuelKg));
   }
 
   protected submit(): void {

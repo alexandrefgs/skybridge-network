@@ -25,7 +25,14 @@ public class BookingsController(IBookingService bookings) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> BookRoute(int routeId, AcceptJobRequest request, CancellationToken cancellationToken) =>
         this.ToActionResult(await bookings.BookRouteAsync(User.GetUserId(), routeId, request, cancellationToken), Ok);
-
+    
+    [HttpPost("current/flight-plan")]
+    [ProducesResponseType<BookingResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ImportFlightPlan(CancellationToken cancellationToken) =>
+        this.ToActionResult(await bookings.ImportFlightPlanAsync(User.GetUserId(), cancellationToken), Ok);
+    
     [HttpPost("current/start")]
     [ProducesResponseType<BookingResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]

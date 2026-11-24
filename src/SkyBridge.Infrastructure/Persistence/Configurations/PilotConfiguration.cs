@@ -12,6 +12,7 @@ internal sealed class PilotConfiguration : IEntityTypeConfiguration<Pilot>
     {
         builder.HasKey(p => p.UserId);
         builder.Ignore(p => p.FlightHours);
+        builder.Property(p => p.SimBriefPilotId).HasMaxLength(7);
 
         builder.HasOne<ApplicationUser>()
             .WithOne()
