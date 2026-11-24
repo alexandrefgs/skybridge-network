@@ -141,7 +141,7 @@ import { PirepForm } from './pirep-form';
       </section>
 
       <div class="mt-6">
-        <sb-flight-plan-card [booking]="current" [pilot]="pilot()" (imported)="booking.set($event)" (linked)="pilot.set($event)" />
+        <sb-flight-plan-card [booking]="current" [pilot]="pilot()" (imported)="booking.set($event)" />
       </div>
 
       @if (current.job; as job) {

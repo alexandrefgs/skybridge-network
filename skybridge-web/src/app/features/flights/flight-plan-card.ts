@@ -1,18 +1,17 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Booking } from '../../core/bookings/booking.models';
 import { BookingService } from '../../core/bookings/booking.service';
 import { problemMessages } from '../../core/http/problem';
 import { Pilot } from '../../core/pilot/pilot.models';
-import { PilotService } from '../../core/pilot/pilot.service';
 import { currentLeg } from '../../shared/flights/booking-legs';
 import { simBriefDispatchUrl } from '../../shared/flights/simbrief';
 import { durationLabel } from '../../shared/time/utc';
 
 @Component({
   selector: 'sb-flight-plan-card',
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe],
+  imports: [RouterLink, DecimalPipe, DatePipe],
   template: `
     <section class="sb-card" data-testid="ofp">
       <div class="flex flex-wrap items-baseline justify-between gap-3">
@@ -20,24 +19,20 @@ import { durationLabel } from '../../shared/time/utc';
           <p class="font-mono text-[10px] tracking-[0.2em] text-primary">SIMBRIEF OFP · LEG {{ booking().currentLeg }}</p>
           <h2 class="mt-1 text-lg font-semibold">Flight plan</h2>
         </div>
-        @if (pilotId() && !editing()) {
+        @if (pilotId()) {
           <p class="text-xs text-muted" data-testid="simbrief-id">
             Pilot ID <span class="font-mono text-foreground">{{ pilotId() }}</span> ·
-            <button type="button" class="hover:text-primary" (click)="edit()" data-testid="change-simbrief">change</button>
+            <a routerLink="/account/profile" class="hover:text-primary">change</a>
           </p>
         }
       </div>
 
-      @if (!pilotId() || editing()) {
-        <form class="mt-4 flex flex-wrap items-end gap-3" (submit)="link($event)" data-testid="simbrief-form">
-          <div>
-            <label class="sb-label" for="simbrief-id">SimBrief Pilot ID</label>
-            <input id="simbrief-id" class="sb-input w-40 font-mono" inputmode="numeric" maxlength="7" placeholder="123456"
-              [formControl]="pilotIdControl" data-testid="simbrief-input">
-          </div>
-          <button type="submit" class="sb-btn-primary w-auto px-5" [disabled]="busy() || pilotIdControl.invalid" data-testid="save-simbrief">Save</button>
-          <p class="w-full text-xs text-muted">It's the number in SimBrief → Account Settings. An OFP is required before every leg.</p>
-        </form>
+      @if (!pilotId()) {
+        <p class="mt-4 text-sm text-muted" data-testid="needs-simbrief">
+          Add your SimBrief Pilot ID in
+          <a routerLink="/account/profile" class="text-primary hover:underline" data-testid="simbrief-settings-link">Settings</a>
+          to plan and import the OFP for this leg.
+        </p>
       } @else if (booking().flightPlan; as plan) {
         <dl class="mt-4 grid gap-4 font-mono text-sm sm:grid-cols-4" data-testid="ofp-details">
           <div>
@@ -117,19 +112,12 @@ import { durationLabel } from '../../shared/time/utc';
 })
 export class FlightPlanCard {
   private readonly bookings = inject(BookingService);
-  private readonly pilots = inject(PilotService);
 
   readonly booking = input.required<Booking>();
   readonly pilot = input<Pilot | null>(null);
   readonly imported = output<Booking>();
-  readonly linked = output<Pilot>();
 
-  protected readonly pilotIdControl = new FormControl('', {
-    nonNullable: true,
-    validators: [Validators.required, Validators.pattern(/^\d{1,7}$/)]
-  });
   protected readonly busy = signal(false);
-  protected readonly editing = signal(false);
   protected readonly errors = signal<string[]>([]);
   protected readonly pilotId = computed(() => this.pilot()?.simBriefPilotId ?? null);
   protected readonly dispatchUrl = computed(() => simBriefDispatchUrl(this.booking()));
@@ -138,30 +126,6 @@ export class FlightPlanCard {
     return leg ? `${leg.origin} → ${leg.destination}` : '';
   });
   protected readonly ete = durationLabel;
-
-  protected edit(): void {
-    this.pilotIdControl.setValue(this.pilotId() ?? '');
-    this.editing.set(true);
-  }
-
-  protected link(event: Event): void {
-    event.preventDefault();
-    if (this.pilotIdControl.invalid) return;
-
-    this.busy.set(true);
-    this.errors.set([]);
-    this.pilots.linkSimBrief(this.pilotIdControl.value.trim()).subscribe({
-      next: pilot => {
-        this.busy.set(false);
-        this.editing.set(false);
-        this.linked.emit(pilot);
-      },
-      error: error => {
-        this.busy.set(false);
-        this.errors.set(problemMessages(error));
-      }
-    });
-  }
 
   protected import(): void {
     this.busy.set(true);

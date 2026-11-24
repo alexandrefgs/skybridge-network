@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AuthService } from '../../core/auth/auth.service';
 import { ImageResizer } from '../../shared/images/image-resizer';
+import { pilotAtFlorianopolis } from '../../testing/freelance';
 import { aUser } from '../../testing/users';
 import { ProfilePage } from './profile.page';
 
@@ -33,6 +34,8 @@ describe('ProfilePage', () => {
     auth.currentUser.set(aUser());
     fixture = TestBed.createComponent(ProfilePage);
     await fixture.whenStable();
+    http.expectOne('/api/pilot').flush(pilotAtFlorianopolis);
+    await fixture.whenStable();
   });
 
   afterEach(() => http.verify());
@@ -43,6 +46,7 @@ describe('ProfilePage', () => {
     expect(query<HTMLInputElement>('#lastName')?.value).toBe('Silva');
     expect(query<HTMLInputElement>('#email')?.disabled).toBe(true);
     expect(byId('remove-avatar')).toBeNull();
+    expect(byId('simbrief-form')).not.toBeNull();
   });
 
   it('saves the name', async () => {

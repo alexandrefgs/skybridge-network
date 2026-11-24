@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { Booking } from '../../core/bookings/booking.models';
 import { Pilot } from '../../core/pilot/pilot.models';
 import { bookedGolFlight, golOfp, linkedPilot, pilotAtFlorianopolis } from '../../testing/freelance';
@@ -12,7 +13,7 @@ describe('FlightPlanCard', () => {
   const query = (id: string) => fixture.nativeElement.querySelector(`[data-testid="${id}"]`) as HTMLElement | null;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(FlightPlanCard);
   });
@@ -25,22 +26,12 @@ describe('FlightPlanCard', () => {
     await fixture.whenStable();
   }
 
-  it('asks for the SimBrief pilot ID first', async () => {
-    let linked: Pilot | null = null;
-    fixture.componentInstance.linked.subscribe(pilot => (linked = pilot));
+  it('sends the pilot to Settings to add the SimBrief pilot ID', async () => {
     await render(bookedGolFlight, pilotAtFlorianopolis);
+
     expect(query('import-ofp')).toBeNull();
-
-    const input = query('simbrief-input') as HTMLInputElement;
-    input.value = '123456';
-    input.dispatchEvent(new Event('input'));
-    query('simbrief-form')!.dispatchEvent(new Event('submit'));
-
-    const request = http.expectOne('/api/pilot/simbrief');
-    expect(request.request.body).toEqual({ pilotId: '123456' });
-    request.flush(linkedPilot);
-
-    expect(linked).toEqual(linkedPilot);
+    expect(query('plan-simbrief')).toBeNull();
+    expect(query('simbrief-settings-link')!.getAttribute('href')).toBe('/account/profile');
   });
 
   it('opens SimBrief prefilled and imports the OFP', async () => {
