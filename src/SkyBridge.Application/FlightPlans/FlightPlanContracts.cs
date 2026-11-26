@@ -1,3 +1,5 @@
+using SkyBridge.Domain.FlightPlans;
+
 namespace SkyBridge.Application.FlightPlans;
 
 public sealed record FlightPlanResponse(
@@ -24,4 +26,5 @@ public sealed record FlightPlanResponse(
     int CargoKg,
     int ZeroFuelWeightKg,
     int TakeoffWeightKg,
-    int LandingWeightKg);
+    int LandingWeightKg,
+    FlightPlanDetails? Details);

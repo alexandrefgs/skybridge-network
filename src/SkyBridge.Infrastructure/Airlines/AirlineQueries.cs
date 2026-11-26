@@ -117,13 +117,13 @@ internal sealed class AirlineQueries(SkyBridgeDbContext db) : IAirlineQueries
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return new PagedResult<RouteResponse>(await ToResponsesAsync(rows, cancellationToken), page, pageSize, total);
+        return new PagedResult<RouteResponse>(await ToResponsesAsync(airlineId, rows, cancellationToken), page, pageSize, total);
     }
 
     public async Task<RouteResponse?> GetRouteAsync(int airlineId, int routeId, CancellationToken cancellationToken)
     {
         var row = await RouteRows(airlineId).FirstOrDefaultAsync(r => r.Route.Id == routeId, cancellationToken);
-        return row is null ? null : (await ToResponsesAsync([row], cancellationToken))[0];
+        return row is null ? null : (await ToResponsesAsync(airlineId, [row], cancellationToken))[0];
     }
 
     public async Task<RouteNetworkResponse?> GetNetworkAsync(int airlineId, CancellationToken cancellationToken)
@@ -164,24 +164,32 @@ internal sealed class AirlineQueries(SkyBridgeDbContext db) : IAirlineQueries
         join destination in db.Airports on route.DestinationAirportId equals destination.Id
         select new RouteRow { Route = route, Origin = origin, Destination = destination };
 
-    private async Task<List<RouteResponse>> ToResponsesAsync(List<RouteRow> rows, CancellationToken cancellationToken)
+    private async Task<List<RouteResponse>> ToResponsesAsync(int airlineId, List<RouteRow> rows, CancellationToken cancellationToken)
     {
         var ids = rows.Select(r => r.Route.Id).ToList();
-        var aircraft = (await db.Set<RouteAircraft>().AsNoTracking()
+        var scheduled = (await db.Set<RouteAircraft>().AsNoTracking()
                 .Where(a => ids.Contains(a.RouteId))
                 .Join(db.AircraftTypes, a => a.AircraftTypeId, t => t.Id,
-                    (a, t) => new { a.RouteId, t.IcaoCode, t.RangeNm, t.MinRunwayFt, t.RequiresPavedRunway })
+                    (a, t) => new { a.RouteId, t.Id, t.IcaoCode, t.Family, t.RangeNm, t.MinRunwayFt, t.RequiresPavedRunway })
                 .ToListAsync(cancellationToken))
             .GroupBy(a => a.RouteId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Select(a => new AircraftLimits(a.IcaoCode, a.RangeNm, a.MinRunwayFt, a.RequiresPavedRunway))
-                    .OrderBy(a => a.IcaoCode, StringComparer.Ordinal)
-                    .ToList());
+            .ToDictionary(g => g.Key, g => g.OrderBy(a => a.IcaoCode, StringComparer.Ordinal).ToList());
+
+        var fleet = await db.Set<AirlineAircraft>().AsNoTracking()
+            .Where(f => f.AirlineId == airlineId)
+            .Join(db.AircraftTypes, f => f.AircraftTypeId, t => t.Id, (f, t) => new { t.Id, t.IcaoCode, t.Family })
+            .ToListAsync(cancellationToken);
 
         return rows.Select(r =>
             {
-                var types = aircraft.GetValueOrDefault(r.Route.Id, []);
+                var types = scheduled.GetValueOrDefault(r.Route.Id) ?? [];
+                var bookable = AircraftFamilies.Bookable(
+                    types.Select(t => new FamilyMember(t.Id, t.Family)),
+                    fleet.Select(t => new FamilyMember(t.Id, t.Family)));
+                var variants = fleet
+                    .Where(t => bookable.Contains(t.Id) && types.All(s => s.Id != t.Id))
+                    .Select(t => t.IcaoCode)
+                    .Order(StringComparer.Ordinal);
                 var origin = Runways(r.Origin);
                 var destination = Runways(r.Destination);
                 return new RouteResponse(
@@ -192,7 +200,9 @@ internal sealed class AirlineQueries(SkyBridgeDbContext db) : IAirlineQueries
                     types.Select(t => t.IcaoCode).ToList(),
                     r.Route.AtsRoute,
                     r.Route.FlightLevel,
-                    RouteChecks.Warnings(r.Route.DistanceNm, origin, destination, types));
+                    RouteChecks.Warnings(r.Route.DistanceNm, origin, destination,
+                        types.Select(t => new AircraftLimits(t.IcaoCode, t.RangeNm, t.MinRunwayFt, t.RequiresPavedRunway))),
+                    [.. types.Select(t => t.IcaoCode), .. variants]);
             })
             .ToList();
     }

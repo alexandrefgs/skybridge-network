@@ -88,6 +88,15 @@ public class AircraftTests(SkyBridgeApiFactory factory)
         Assert.All(types, t => Assert.True(t.ServiceCeilingFt > 0));
         Assert.All(types, t => Assert.True(t.MinRunwayFt >= 6000 && t.RequiresPavedRunway));
     }
+    
+    [Fact]
+    public async Task GetTypes_SearchesByFamily()
+    {
+        var types = (await GetAsPilotAsync<PagedResult<AircraftTypeResponse>>("/api/aircraft-types?q=Boeing 737")).Items;
+
+        Assert.Equal(new[] { "B38M", "B737", "B738", "B739" }, types.Select(t => t.IcaoCode).Order(StringComparer.Ordinal));
+        Assert.All(types, t => Assert.Equal("Boeing 737", t.Family));
+    }
 
     [Fact]
     public async Task GetTypes_SearchesByManufacturer()
@@ -120,6 +129,19 @@ public class AircraftTests(SkyBridgeApiFactory factory)
         Assert.Equal("Jet", type.EngineType);
         Assert.Equal(41000, type.ServiceCeilingFt);
         Assert.Equal((5000, true), (type.MinRunwayFt, type.RequiresPavedRunway));
+        Assert.Null(type.Family);
+    }
+
+    [Fact]
+    public async Task CreateType_StoresTheFamily()
+    {
+        var token = await _client.LoginAsAdminAsync();
+
+        var response = await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/admin/aircraft-types", token,
+            NewType(NewCode()) with { Family = "  Test Family  " });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal("Test Family", (await response.Content.ReadFromJsonAsync<AircraftTypeResponse>())!.Family);
     }
 
     [Fact]
@@ -193,5 +215,5 @@ public class AircraftTests(SkyBridgeApiFactory factory)
     private sealed record TypePayload(
         string IcaoCode, string Manufacturer, string Model, string Category, string EngineType,
         int EngineCount, int RangeNm, int CruiseSpeedKts, int ServiceCeilingFt, int Seats, int MaxCargoKg,
-        int MinRunwayFt, bool RequiresPavedRunway);
+        int MinRunwayFt, bool RequiresPavedRunway, string? Family = null);
 }

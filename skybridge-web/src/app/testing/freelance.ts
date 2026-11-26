@@ -1,4 +1,4 @@
-import { Booking, FlightPlan } from '../core/bookings/booking.models';
+import { Booking, FlightPlan, FlightPlanDetails } from '../core/bookings/booking.models';
 import { Pirep } from '../core/pireps/pirep.models';
 import { FreelanceJob, FreelanceLeg } from '../core/freelance/freelance.models';
 import { Pilot } from '../core/pilot/pilot.models';
@@ -80,7 +80,36 @@ export const golOfp: FlightPlan = {
   origin: 'SBFL', destination: 'SBGR', alternate: 'SBKP', aircraft: 'B738', registration: 'PR-GXA', callsign: 'GLO1042',
   route: 'PAKOT UZ6 BUXUK', cruiseAltitudeFt: 36000, distanceNm: 285, enrouteMinutes: 62,
   blockFuelKg: 8000, takeoffFuelKg: 7800, landingFuelKg: 4600, tripFuelKg: 3200,
-  passengerCount: 150, cargoKg: 2000, zeroFuelWeightKg: 60000, takeoffWeightKg: 67800, landingWeightKg: 64600
+  passengerCount: 150, cargoKg: 2000, zeroFuelWeightKg: 60000, takeoffWeightKg: 67800, landingWeightKg: 64600,
+  details: null
+};
+
+const fix = (ident: string, airway: string | null, stage: string, altitudeFt: number, elapsedMinutes: number, fuelOnboardKg: number, extra: object = {}) => ({
+  ident, name: null, type: 'wpt', airway, stage, sidStar: false, altitudeFt, distanceNm: 40, trackMag: 52, windDirection: 290, windSpeedKts: 25,
+  oatC: -40, groundSpeedKts: 440, elapsedMinutes, fuelUsedKg: 8000 - 200 - fuelOnboardKg, fuelOnboardKg, latitude: -27, longitude: -48, ...extra
+});
+
+export const golOfpDetails: FlightPlanDetails = {
+  departure: { code: 'SBFL', name: 'Hercilio Luz', runway: '14', elevationFt: 16, transitionAltitudeFt: 7000, transitionLevelFt: 8000,
+    metar: 'SBFL 241900Z 36010KT CAVOK 27/20 Q1012', taf: null },
+  arrival: { code: 'SBGR', name: 'Guarulhos', runway: '10L', elevationFt: 2461, transitionAltitudeFt: 6000, transitionLevelFt: 7000,
+    metar: 'SBGR 241900Z 10008KT 9999 FEW030 24/16 Q1015', taf: 'TAF SBGR 241700Z 2418/2524 10008KT 9999 FEW030' },
+  alternate: { code: 'SBKP', name: 'Viracopos', runway: '15', distanceNm: 48, cruiseAltitudeFt: 15000, burnKg: 1200, enrouteMinutes: 18,
+    route: 'DCT', metar: null },
+  fuel: { taxiKg: 200, tripKg: 3200, contingencyKg: 160, alternateKg: 1200, reserveKg: 1100, extraKg: 140, minTakeoffKg: 5800,
+    takeoffKg: 7800, blockKg: 8000, landingKg: 4600, averageFlowKgPerHour: 2600 },
+  performance: { costIndex: '30', sid: 'PUN04A', star: 'BUXUK1A', stepClimbs: 'SBFL/0360', averageWindDirection: 290,
+    averageWindSpeedKts: 25, averageWindComponentKts: -12, averageTempDeviation: 3, cruiseTasKts: 452, cruiseMach: '0.78',
+    climbProfile: '250/280/78', cruiseProfile: 'CI 30', descentProfile: '78/280/250' },
+  atcFlightPlan: '(FPL-GLO1042-IS\n-B738/M-SDE3FGHIRWY/LB1\n-SBFL2000\n-N0452F360 PAKOT UZ6 BUXUK\n-SBGR0102 SBKP)',
+  navlog: [
+    fix('PAKOT', 'PUN04A', 'CLB', 9000, 4, 7200, { sidStar: true, oatC: 4, groundSpeedKts: 300 }),
+    fix('TOC', 'UZ6', 'CLB', 36000, 21, 6300, { name: 'TOP OF CLIMB', type: 'ltlg' }),
+    fix('ENSUG', 'UZ6', 'CRZ', 36000, 38, 5500),
+    fix('TOD', 'UZ6', 'CRZ', 36000, 46, 5100, { name: 'TOP OF DESCENT', type: 'ltlg' }),
+    fix('BUXUK', 'BUXUK1A', 'DSC', 11000, 55, 4800, { sidStar: true, oatC: 8 }),
+    fix('SBGR', null, 'DSC', 2461, 62, 4600, { name: 'GUARULHOS', type: 'apt', oatC: 24 })
+  ]
 };
 
 export const filedPirep: Pirep = {

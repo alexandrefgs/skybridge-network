@@ -17,7 +17,7 @@ const PAGE_SIZE = 10;
   template: `
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-3">
-        <input class="sb-input w-72" type="search" placeholder="Search ICAO, manufacturer or model" [formControl]="searchControl" data-testid="search">
+        <input class="sb-input w-72" type="search" placeholder="Search ICAO, manufacturer, model or family" [formControl]="searchControl" data-testid="search">
         <select class="sb-input w-56" [formControl]="categoryControl" data-testid="category-filter">
           <option value="">All categories</option>
           @for (category of categories(); track category.code) {
@@ -52,6 +52,14 @@ const PAGE_SIZE = 10;
             <input class="sb-input" id="model" maxlength="60" formControlName="model">
             @if (fieldError('model'); as message) {
               <p class="sb-field-error" data-testid="error-model">{{ message }}</p>
+            }
+          </div>
+          <div class="lg:col-span-2">
+            <label class="sb-label" for="family">Family</label>
+            <input class="sb-input" id="family" maxlength="40" placeholder="Boeing 737" formControlName="family" data-testid="family">
+            <p class="mt-1 text-xs text-muted">Airline routes accept any fleet aircraft of the same family.</p>
+            @if (fieldError('family'); as message) {
+              <p class="sb-field-error" data-testid="error-family">{{ message }}</p>
             }
           </div>
           <div>
@@ -162,7 +170,12 @@ const PAGE_SIZE = 10;
           @for (type of result()?.items ?? []; track type.icaoCode) {
             <tr>
               <td class="px-4 py-3 font-mono font-semibold">{{ type.icaoCode }}</td>
-              <td class="px-4 py-3"><span class="text-muted">{{ type.manufacturer }}</span> {{ type.model }}</td>
+              <td class="px-4 py-3">
+                <span class="text-muted">{{ type.manufacturer }}</span> {{ type.model }}
+                @if (type.family) {
+                  <span class="block text-xs text-muted">{{ type.family }} family</span>
+                }
+              </td>
               <td class="px-4 py-3 text-muted">{{ categoryName(type.category) }}</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.rangeNm | number }} nm</td>
               <td class="px-4 py-3 text-right font-mono">{{ type.serviceCeilingFt | number }} ft</td>
@@ -232,7 +245,8 @@ export class AdminAircraftTypesPage {
     seats: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(1000)]),
     maxCargoKg: this.fb.control<number | null>(null, [Validators.required, Validators.min(0), Validators.max(200000)]),
     minRunwayFt: this.fb.control<number | null>(null, [Validators.required, Validators.min(500), Validators.max(15000)]),
-    requiresPavedRunway: [false]
+    requiresPavedRunway: [false],
+    family: ['', Validators.maxLength(40)]
   });
 
   constructor() {
@@ -284,7 +298,8 @@ export class AdminAircraftTypesPage {
       seats: type.seats,
       maxCargoKg: type.maxCargoKg,
       minRunwayFt: type.minRunwayFt,
-      requiresPavedRunway: type.requiresPavedRunway
+      requiresPavedRunway: type.requiresPavedRunway,
+      family: type.family ?? ''
     });
     this.formErrors.set([]);
     this.notice.set(null);
@@ -301,7 +316,8 @@ export class AdminAircraftTypesPage {
       return;
     }
     const editing = this.editing();
-    const value = this.form.getRawValue() as AircraftType;
+    const raw = this.form.getRawValue();
+    const value = { ...raw, family: raw.family.trim() || null } as AircraftType;
     const request$ = editing === 'new' ? this.admin.createType(value) : this.admin.updateType(editing!, value);
 
     this.saving.set(true);

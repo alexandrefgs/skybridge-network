@@ -5,6 +5,8 @@ namespace SkyBridge.Domain.Aircraft;
 
 public sealed partial class AircraftType
 {
+    public const int MaxFamilyLength = 40;
+
     private AircraftType() { }
 
     public int Id { get; private set; }
@@ -21,6 +23,7 @@ public sealed partial class AircraftType
     public int MaxCargoKg { get; private set; }
     public int MinRunwayFt { get; private set; }
     public bool RequiresPavedRunway { get; private set; }
+    public string? Family { get; private set; }
 
     public static AircraftType Create(AircraftTypeData data)
     {
@@ -48,6 +51,9 @@ public sealed partial class AircraftType
         ArgumentOutOfRangeException.ThrowIfLessThan(data.Seats, 1);
         ArgumentOutOfRangeException.ThrowIfNegative(data.MaxCargoKg);
         ArgumentOutOfRangeException.ThrowIfLessThan(data.MinRunwayFt, 1);
+        var family = string.IsNullOrWhiteSpace(data.Family) ? null : data.Family.Trim();
+        if (family?.Length > MaxFamilyLength)
+            throw new ArgumentException($"Family has up to {MaxFamilyLength} characters.", nameof(data));
 
         IcaoCode = icao;
         Manufacturer = data.Manufacturer.Trim();
@@ -62,6 +68,7 @@ public sealed partial class AircraftType
         MaxCargoKg = data.MaxCargoKg;
         MinRunwayFt = data.MinRunwayFt;
         RequiresPavedRunway = data.RequiresPavedRunway;
+        Family = family;
     }
 
     public bool CanFly(int distanceNm) => distanceNm <= RangeNm;

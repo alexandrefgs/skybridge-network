@@ -7,7 +7,7 @@ import { AdminAircraftTypesPage } from './admin-aircraft-types.page';
 const c172: AircraftType = {
   icaoCode: 'C172', manufacturer: 'Cessna', model: '172 Skyhawk', category: 'SinglePiston', engineType: 'Piston',
     engineCount: 1, rangeNm: 640, cruiseSpeedKts: 124, serviceCeilingFt: 14000, seats: 4, maxCargoKg: 54,
-  minRunwayFt: 1700, requiresPavedRunway: false
+  minRunwayFt: 1700, requiresPavedRunway: false, family: null
 };
 
 describe('AdminAircraftTypesPage', () => {
@@ -52,12 +52,13 @@ describe('AdminAircraftTypesPage', () => {
     type(element, 'seats', '4');
     type(element, 'maxCargoKg', '50');
     type(element, 'minRunwayFt', '1900');
+    type(element, 'family', '  Cessna 172/182 ');
     element.querySelector<HTMLButtonElement>('[data-testid="type-form"] button[type="submit"]')!.click();
 
     const request = http.expectOne('/api/admin/aircraft-types');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toMatchObject({ icaoCode: 'C182', model: '182 Skylane', rangeNm: 915, serviceCeilingFt: 18100, maxCargoKg: 50, category: 'SinglePiston' });
-    expect(request.request.body).toMatchObject({ minRunwayFt: 1900, requiresPavedRunway: false });
+    expect(request.request.body).toMatchObject({ minRunwayFt: 1900, requiresPavedRunway: false, family: 'Cessna 172/182' });
     request.flush({ ...c172, icaoCode: 'C182' });
     await fixture.whenStable();
 
@@ -83,7 +84,7 @@ describe('AdminAircraftTypesPage', () => {
     element.querySelector<HTMLButtonElement>('[data-testid="type-form"] button[type="submit"]')!.click();
 
     const update = http.expectOne('/api/admin/aircraft-types/C172');
-    expect(update.request.body).toMatchObject({ minRunwayFt: 1700, requiresPavedRunway: true });
+    expect(update.request.body).toMatchObject({ minRunwayFt: 1700, requiresPavedRunway: true, family: null });
     update.flush(c172);
     await fixture.whenStable();
     http.expectOne(r => r.url === '/api/aircraft-types').flush({ items: [c172], page: 1, pageSize: 10, totalCount: 1 });

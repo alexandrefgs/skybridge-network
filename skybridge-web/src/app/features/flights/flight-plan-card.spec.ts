@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Booking } from '../../core/bookings/booking.models';
 import { Pilot } from '../../core/pilot/pilot.models';
-import { bookedGolFlight, golOfp, linkedPilot, pilotAtFlorianopolis } from '../../testing/freelance';
+import { bookedGolFlight, golOfp, golOfpDetails, linkedPilot, pilotAtFlorianopolis } from '../../testing/freelance';
 import { FlightPlanCard } from './flight-plan-card';
 
 describe('FlightPlanCard', () => {
@@ -73,5 +73,24 @@ describe('FlightPlanCard', () => {
     fixture.componentRef.setInput('booking', { ...bookedGolFlight, flightPlan: golOfp, legInProgress: true });
     await fixture.whenStable();
     expect(query('reimport-ofp')).toBeNull();
+  });
+  
+  it('opens the full flight plan', async () => {
+    await render({ ...bookedGolFlight, flightPlan: { ...golOfp, details: golOfpDetails } }, linkedPilot);
+    expect(query('full-plan')).toBeNull();
+
+    query('toggle-full-plan')!.click();
+    await fixture.whenStable();
+
+    expect(query('plan-departure')!.textContent).toContain('RWY 14');
+    expect(query('navlog')!.querySelectorAll('tbody tr').length).toBe(6);
+    expect(query('toggle-full-plan')!.textContent).toContain('Hide');
+  });
+
+  it('asks to import again when the OFP has no full plan', async () => {
+    await render({ ...bookedGolFlight, flightPlan: golOfp }, linkedPilot);
+
+    expect(query('toggle-full-plan')).toBeNull();
+    expect(query('no-full-plan')!.textContent).toContain('Import the OFP again');
   });
 });

@@ -56,7 +56,8 @@ public sealed record RouteResponse(
     IReadOnlyList<string> Aircraft,
     string? AtsRoute,
     int? FlightLevel,
-    IReadOnlyList<string> Warnings);
+    IReadOnlyList<string> Warnings,
+    IReadOnlyList<string> BookableAircraft);
 
 public sealed record RouteSearch(string? Query, int Page = 1, int PageSize = 20, string? From = null, string? To = null);
 

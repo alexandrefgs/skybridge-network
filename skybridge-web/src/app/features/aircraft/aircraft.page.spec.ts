@@ -13,13 +13,13 @@ const categories: AircraftCategory[] = [
 const b77w: AircraftType = {
   icaoCode: 'B77W', manufacturer: 'Boeing', model: '777-300ER', category: 'Heavy', engineType: 'Jet',
     engineCount: 2, rangeNm: 7370, cruiseSpeedKts: 490, serviceCeilingFt: 43100, seats: 396, maxCargoKg: 25000,
-  minRunwayFt: 8500, requiresPavedRunway: true
+  minRunwayFt: 8500, requiresPavedRunway: true, family: 'Boeing 777'
 };
 
 const c172: AircraftType = {
   icaoCode: 'C172', manufacturer: 'Cessna', model: '172 Skyhawk', category: 'SinglePiston', engineType: 'Piston',
     engineCount: 1, rangeNm: 640, cruiseSpeedKts: 124, serviceCeilingFt: 14000, seats: 4, maxCargoKg: 54,
-  minRunwayFt: 1700, requiresPavedRunway: false
+  minRunwayFt: 1700, requiresPavedRunway: false, family: null
 };
 
 describe('AircraftPage', () => {
@@ -52,6 +52,8 @@ describe('AircraftPage', () => {
     expect(element.querySelector('[data-testid="runway-B77W"]')!.textContent).toContain('8,500 ft');
     expect(element.querySelector('[data-testid="runway-B77W"]')!.textContent).not.toContain('any');
     expect(element.querySelector('[data-testid="runway-C172"]')!.textContent).toContain('any');
+    expect(element.querySelector('[data-testid="family-B77W"]')!.textContent).toContain('Boeing 777 family');
+    expect(element.querySelector('[data-testid="family-C172"]')).toBeNull();
   });
 
   it('filters by category when a category is clicked', async () => {

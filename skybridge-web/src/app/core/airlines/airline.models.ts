@@ -40,6 +40,7 @@ export interface AirlineRoute {
   atsRoute: string | null;
   flightLevel: number | null;
   warnings: string[];
+  bookableAircraft: string[];
 }
 
 export interface NetworkAirport {

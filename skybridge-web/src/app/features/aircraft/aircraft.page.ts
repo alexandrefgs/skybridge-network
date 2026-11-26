@@ -44,7 +44,7 @@ import { problemMessages } from '../../core/http/problem';
         @if (query().category) {
           <button type="button" class="text-sm text-muted transition-colors hover:text-primary" (click)="setCategory(null)">Show all</button>
         }
-        <input class="sb-input w-72" type="search" placeholder="Search ICAO, manufacturer or model" [formControl]="searchControl" data-testid="search">
+        <input class="sb-input w-72" type="search" placeholder="Search ICAO, manufacturer, model or family" [formControl]="searchControl" data-testid="search">
       </div>
     </div>
 
@@ -74,6 +74,9 @@ import { problemMessages } from '../../core/http/problem';
               <td class="px-4 py-3 font-mono font-semibold">{{ type.icaoCode }}</td>
               <td class="px-4 py-3">
                 <span class="text-muted">{{ type.manufacturer }}</span> {{ type.model }}
+                @if (type.family) {
+                  <span class="block text-xs text-muted" [attr.data-testid]="'family-' + type.icaoCode">{{ type.family }} family</span>
+                }
               </td>
               <td class="px-4 py-3 text-muted">{{ categoryName(type.category) }}</td>
               <td class="px-4 py-3 text-muted">{{ type.engineCount }} × {{ type.engineType }}</td>

@@ -12,6 +12,7 @@ internal sealed class AircraftTypeConfiguration : IEntityTypeConfiguration<Aircr
         builder.Property(t => t.IcaoCode).HasMaxLength(4).IsRequired();
         builder.Property(t => t.Manufacturer).HasMaxLength(60).IsRequired();
         builder.Property(t => t.Model).HasMaxLength(60).IsRequired();
+        builder.Property(t => t.Family).HasMaxLength(AircraftType.MaxFamilyLength);
 
         builder.HasIndex(t => t.IcaoCode).IsUnique();
 

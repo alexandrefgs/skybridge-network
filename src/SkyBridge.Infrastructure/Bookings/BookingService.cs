@@ -5,6 +5,7 @@ using SkyBridge.Application.Common;
 using SkyBridge.Application.FlightPlans;
 using SkyBridge.Application.Freelance;
 using SkyBridge.Domain.Aircraft;
+using SkyBridge.Domain.Airlines;
 using SkyBridge.Domain.Bookings;
 using SkyBridge.Domain.FlightPlans;
 using SkyBridge.Domain.Freelance;
@@ -60,12 +61,18 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
         if (!airline.IsActive)
             return Invalid("Route", $"{airline.Name} is not operating at the moment.");
 
-        var allowed = await db.Set<RouteAircraft>().AsNoTracking()
+        var scheduled = await db.Set<RouteAircraft>().AsNoTracking()
             .Where(a => a.RouteId == routeId)
-            .Select(a => a.AircraftTypeId)
+            .Join(db.AircraftTypes, a => a.AircraftTypeId, t => t.Id, (a, t) => new FamilyMember(t.Id, t.Family))
             .ToListAsync(cancellationToken);
-        if (allowed.Count == 0)
+        if (scheduled.Count == 0)
             return Invalid("Aircraft", "No aircraft is assigned to this route yet.");
+
+        var fleet = await db.Set<AirlineAircraft>().AsNoTracking()
+            .Where(f => f.AirlineId == airline.Id)
+            .Join(db.AircraftTypes, f => f.AircraftTypeId, t => t.Id, (f, t) => new FamilyMember(t.Id, t.Family))
+            .ToListAsync(cancellationToken);
+        var allowed = AircraftFamilies.Bookable(scheduled, fleet).ToList();
 
         var check = await CheckAsync(userId, route.OriginAirportId, "flight", allowed, request.Aircraft, cancellationToken);
         if (check.Error is not null)
@@ -268,7 +275,8 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
         plan.CargoKg,
         plan.ZeroFuelWeightKg,
         plan.TakeoffWeightKg,
-        plan.LandingWeightKg);
+        plan.LandingWeightKg,
+        plan.ReadDetails());
 
     private async Task<(string Origin, string Destination)> LegAsync(Booking booking, CancellationToken cancellationToken)
     {

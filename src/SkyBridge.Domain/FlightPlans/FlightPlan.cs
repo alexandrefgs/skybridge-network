@@ -1,8 +1,12 @@
+using System.Text.Json;
+
 namespace SkyBridge.Domain.FlightPlans;
 
 public sealed class FlightPlan
 {
     public const int MaxRouteLength = 2000;
+
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     private FlightPlan() { }
 
@@ -32,6 +36,7 @@ public sealed class FlightPlan
     public int ZeroFuelWeightKg { get; private set; }
     public int TakeoffWeightKg { get; private set; }
     public int LandingWeightKg { get; private set; }
+    public string? DetailsJson { get; private set; }
 
     public static FlightPlan Create(int bookingId, int legSequence, FlightPlanData data, DateTime nowUtc)
     {
@@ -73,7 +78,11 @@ public sealed class FlightPlan
         ZeroFuelWeightKg = Math.Max(0, data.ZeroFuelWeightKg);
         TakeoffWeightKg = Math.Max(0, data.TakeoffWeightKg);
         LandingWeightKg = Math.Max(0, data.LandingWeightKg);
+        DetailsJson = data.Details is null ? null : JsonSerializer.Serialize(data.Details, Json);
     }
+
+    public FlightPlanDetails? ReadDetails() =>
+        DetailsJson is null ? null : JsonSerializer.Deserialize<FlightPlanDetails>(DetailsJson, Json);
 
     public static IReadOnlyList<string> Problems(FlightPlanData data, string origin, string destination, string aircraft, DateTime bookedAtUtc)
     {

@@ -8,10 +8,11 @@ import { Pilot } from '../../core/pilot/pilot.models';
 import { currentLeg } from '../../shared/flights/booking-legs';
 import { simBriefDispatchUrl } from '../../shared/flights/simbrief';
 import { durationLabel } from '../../shared/time/utc';
+import { FlightPlanDetailsView } from './flight-plan-details';
 
 @Component({
   selector: 'sb-flight-plan-card',
-  imports: [RouterLink, DecimalPipe, DatePipe],
+  imports: [RouterLink, DecimalPipe, DatePipe, FlightPlanDetailsView],
   template: `
     <section class="sb-card" data-testid="ofp">
       <div class="flex flex-wrap items-baseline justify-between gap-3">
@@ -75,6 +76,20 @@ import { durationLabel } from '../../shared/time/utc';
             <dd class="mt-1 font-semibold">{{ plan.passengerCount | number }} pax · {{ plan.cargoKg | number }} kg</dd>
           </div>
         </dl>
+        <div class="mt-4">
+          @if (plan.details; as details) {
+            <button type="button" class="text-sm font-medium text-primary hover:underline" (click)="expanded.set(!expanded())" data-testid="toggle-full-plan">
+              {{ expanded() ? 'Hide full flight plan ▴' : 'Show full flight plan ▾' }}
+            </button>
+            @if (expanded()) {
+              <div class="mt-4">
+                <sb-flight-plan-details [details]="details" />
+              </div>
+            }
+          } @else {
+            <p class="text-xs text-muted" data-testid="no-full-plan">Import the OFP again to see the full flight plan.</p>
+          }
+        </div>
         <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4 text-xs text-muted">
           <span>OFP {{ plan.simBriefId }} · AIRAC {{ plan.airac ?? '—' }} · generated {{ plan.generatedAtUtc | date: 'dd MMM HH:mm' : 'UTC' }}Z</span>
           @if (!booking().legInProgress) {
@@ -118,6 +133,7 @@ export class FlightPlanCard {
   readonly imported = output<Booking>();
 
   protected readonly busy = signal(false);
+  protected readonly expanded = signal(false);
   protected readonly errors = signal<string[]>([]);
   protected readonly pilotId = computed(() => this.pilot()?.simBriefPilotId ?? null);
   protected readonly dispatchUrl = computed(() => simBriefDispatchUrl(this.booking()));

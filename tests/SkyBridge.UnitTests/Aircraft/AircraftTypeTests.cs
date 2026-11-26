@@ -56,4 +56,17 @@ public class AircraftTypeTests
         Assert.Equal(RunwayFit.Ok, type.CheckRunway(6365, 6365));
         Assert.Equal(RunwayFit.TooShort, type.CheckRunway(2500, null));
     }
+    
+    [Fact]
+    public void Create_TrimsTheFamily_AndTreatsBlankAsNone()
+    {
+        Assert.Equal("Boeing 737", AircraftType.Create(Boeing738() with { Family = "  Boeing 737 " }).Family);
+        Assert.Null(AircraftType.Create(Boeing738() with { Family = "   " }).Family);
+    }
+
+    [Fact]
+    public void Create_RejectsALongFamily()
+    {
+        Assert.Throws<ArgumentException>(() => AircraftType.Create(Boeing738() with { Family = new string('x', AircraftType.MaxFamilyLength + 1) }));
+    }
 }

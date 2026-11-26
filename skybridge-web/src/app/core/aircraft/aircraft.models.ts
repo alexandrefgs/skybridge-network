@@ -32,6 +32,7 @@ export interface AircraftType {
   maxCargoKg: number;
   minRunwayFt: number;
   requiresPavedRunway: boolean;
+  family: string | null;
 }
 
 export interface AircraftTypeQuery {

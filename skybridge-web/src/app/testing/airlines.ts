@@ -19,7 +19,8 @@ export const golDetail: AirlineDetail = {
 export const flnGru: AirlineRoute = {
   id: 10, origin: 'SBFL', originIata: 'FLN', originName: 'Hercílio Luz International Airport',
   destination: 'SBGR', destinationIata: 'GRU', destinationName: 'Guarulhos International Airport',
-    distanceNm: 278, aircraft: ['B738', 'B38M'], atsRoute: 'UZ10 BUXUK', flightLevel: 330, warnings: []
+    distanceNm: 278, aircraft: ['B738', 'B38M'], atsRoute: 'UZ10 BUXUK', flightLevel: 330, warnings: [],
+  bookableAircraft: ['B738', 'B38M', 'B739']
 };
 
 export const page = <T>(items: T[], totalCount = items.length, pageSize = 15) => ({ items, page: 1, pageSize, totalCount });

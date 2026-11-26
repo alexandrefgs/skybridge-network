@@ -19,7 +19,42 @@ public static class AircraftCatalogSeed
         AircraftCategory.Create(Cat.Heavy, "Heavy (wide-body)", 600, 450)
     ];
 
-    public static IReadOnlyList<AircraftTypeData> Types { get; } =
+    public static IReadOnlyDictionary<string, string> Families { get; } = new Dictionary<string, string>
+    {
+        ["E50P"] = "Embraer Phenom",
+        ["E55P"] = "Embraer Phenom",
+        ["C68A"] = "Cessna Citation",
+        ["C700"] = "Cessna Citation",
+        ["AT76"] = "ATR 42/72",
+        ["DH8D"] = "Dash 8",
+        ["E175"] = "Embraer E-Jet",
+        ["E190"] = "Embraer E-Jet",
+        ["E195"] = "Embraer E-Jet",
+        ["CRJ9"] = "Bombardier CRJ",
+        ["A319"] = "Airbus A320",
+        ["A320"] = "Airbus A320",
+        ["A20N"] = "Airbus A320",
+        ["A21N"] = "Airbus A320",
+        ["B737"] = "Boeing 737",
+        ["B738"] = "Boeing 737",
+        ["B38M"] = "Boeing 737",
+        ["B739"] = "Boeing 737",
+        ["A332"] = "Airbus A330",
+        ["A339"] = "Airbus A330",
+        ["A359"] = "Airbus A350",
+        ["A388"] = "Airbus A380",
+        ["B772"] = "Boeing 777",
+        ["B77W"] = "Boeing 777",
+        ["B788"] = "Boeing 787",
+        ["B789"] = "Boeing 787",
+        ["B748"] = "Boeing 747"
+    };
+
+    public static IReadOnlyList<AircraftTypeData> Types { get; } = Catalog()
+        .Select(t => t with { Family = Families.GetValueOrDefault(t.IcaoCode) })
+        .ToList();
+
+    private static AircraftTypeData[] Catalog() =>
     [
         new("C152", "Cessna", "152", Cat.SinglePiston, Eng.Piston, 1, 415, 107, 14700, 2, 50, 1500, false),
         new("C172", "Cessna", "172 Skyhawk", Cat.SinglePiston, Eng.Piston, 1, 640, 124, 14000, 4, 54, 1700, false),

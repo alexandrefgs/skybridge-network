@@ -13,4 +13,5 @@ public sealed record AircraftTypeData(
     int Seats,
     int MaxCargoKg,
     int MinRunwayFt,
-    bool RequiresPavedRunway);
+    bool RequiresPavedRunway,
+    string? Family = null);

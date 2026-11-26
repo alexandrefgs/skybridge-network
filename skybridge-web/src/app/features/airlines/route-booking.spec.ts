@@ -28,6 +28,13 @@ describe('RouteBooking', () => {
     expect((query('route-aircraft') as HTMLSelectElement).value).toBe('B738');
   });
 
+  it('offers the same family from the airline fleet', () => {
+    const options = [...(query('route-aircraft') as HTMLSelectElement).options].map(option => option.value);
+
+    expect(options).toEqual(['B738', 'B38M', 'B739']);
+    expect(query('family-hint')!.textContent).toContain('B739');
+  });
+
   it('books the route with the chosen aircraft and opens my flight', async () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     const select = query('route-aircraft') as HTMLSelectElement;

@@ -46,4 +46,25 @@ public class FlightPlanTests
 
         Assert.Equal(("11111111", 9000, Now.AddMinutes(5)), (plan.SimBriefId, plan.BlockFuelKg, plan.ImportedAtUtc));
     }
+    
+    [Fact]
+    public void Details_AreStoredAndReadBack()
+    {
+        var details = new FlightPlanDetails(
+            new FlightPlanAirport("SBFL", "Hercilio Luz", "14", 16, 7000, 8000, "METAR", null),
+            new FlightPlanAirport("SBGR", "Guarulhos", "10L", 2461, 6000, 7000, null, "TAF"),
+            null,
+            new FlightPlanFuel(200, 3200, 160, 1200, 1100, 140, 5800, 7800, 8000, 4600, 2600),
+            new FlightPlanPerformance("30", "PUN04A", "BUXUK1A", null, 290, 25, -12, 3, 452, "0.78", null, "CI 30", null),
+            "(FPL-GLO1042)",
+            [new NavlogFix("TOC", "TOP OF CLIMB", "ltlg", "UZ6", "CLB", false, 36000, 90, 142, 290, 25, -52, 470, 21, 1500, 6300, -27.1, -48.2)]);
+
+        var plan = FlightPlan.Create(7, 1, Data() with { Details = details }, Now);
+        var read = plan.ReadDetails()!;
+
+        Assert.Equal(details.Departure, read.Departure);
+        Assert.Equal(details.Fuel, read.Fuel);
+        Assert.Equal(details.Navlog[0], read.Navlog[0]);
+        Assert.Null(FlightPlan.Create(7, 2, Data(), Now).ReadDetails());
+    }
 }

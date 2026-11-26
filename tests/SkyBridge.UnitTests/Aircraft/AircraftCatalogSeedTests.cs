@@ -21,4 +21,15 @@ public class AircraftCatalogSeedTests
         Assert.Equal(types.Count, types.Select(t => t.IcaoCode).Distinct().Count());
         Assert.All(Enum.GetValues<AircraftCategoryCode>(), category => Assert.Contains(types, t => t.Category == category));
     }
+    
+    [Fact]
+    public void Families_GroupTheAirlinerVariants()
+    {
+        var types = AircraftCatalogSeed.Types.ToDictionary(t => t.IcaoCode);
+
+        Assert.All(AircraftCatalogSeed.Families.Keys, code => Assert.True(types.ContainsKey(code), code));
+        Assert.All(new[] { "B737", "B738", "B38M", "B739" }, code => Assert.Equal("Boeing 737", types[code].Family));
+        Assert.All(new[] { "A319", "A320", "A20N", "A21N" }, code => Assert.Equal("Airbus A320", types[code].Family));
+        Assert.Null(types["C172"].Family);
+    }
 }

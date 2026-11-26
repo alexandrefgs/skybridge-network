@@ -38,7 +38,8 @@ internal sealed class AircraftCatalog(SkyBridgeDbContext db) : IAircraftCatalog
         if (!string.IsNullOrWhiteSpace(search.Query))
         {
             var term = search.Query.Trim();
-            query = query.Where(t => t.IcaoCode.Contains(term) || t.Manufacturer.Contains(term) || t.Model.Contains(term));
+            query = query.Where(t => t.IcaoCode.Contains(term) || t.Manufacturer.Contains(term) || t.Model.Contains(term) ||
+            (t.Family != null && t.Family.Contains(term)));
         }
 
         var total = await query.CountAsync(cancellationToken);

@@ -22,4 +22,5 @@ public sealed record FlightPlanData(
     int CargoKg,
     int ZeroFuelWeightKg,
     int TakeoffWeightKg,
-    int LandingWeightKg);
+    int LandingWeightKg,
+    FlightPlanDetails? Details = null);

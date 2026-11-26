@@ -5,6 +5,7 @@ using SkyBridge.Application.FlightPlans;
 using SkyBridge.Application.Freelance;
 using SkyBridge.Application.Pilots;
 using SkyBridge.Application.Pireps;
+using SkyBridge.Domain.FlightPlans;
 using SkyBridge.Domain.Freelance;
 using SkyBridge.IntegrationTests.Infrastructure;
 
@@ -89,6 +90,30 @@ public class SimBriefTests(SkyBridgeApiFactory factory)
         var during = await _client.SendAuthorizedAsync(HttpMethod.Post, ImportUrl, pilot);
 
         Assert.Contains("already in progress", await TextAsync(during));
+    }
+
+    [Fact]
+    public async Task Import_KeepsTheFullFlightPlan()
+    {
+        var pilot = await BookAsync(roundTrip: false);
+        var pilotId = await _client.LinkSimBriefAsync(pilot);
+        var details = new FlightPlanDetails(
+            new FlightPlanAirport("SBFL", "Hercilio Luz", "14", 16, 7000, 8000, "SBFL CAVOK", null),
+            new FlightPlanAirport("SBGR", "Guarulhos", "10L", 2461, 6000, 7000, null, null),
+            null,
+            new FlightPlanFuel(10, 70, 5, 0, 30, 5, 100, 110, 120, 40, 35),
+            new FlightPlanPerformance(null, null, null, null, 290, 15, -8, 2, 120, null, null, null, null),
+            "(FPL-N172SB-VG)",
+            [new NavlogFix("TOC", "TOP OF CLIMB", "ltlg", "DCT", "CLB", false, 9000, 30, 30, 290, 15, 2, 110, 16, 20, 100, -27.4, -48.4)]);
+        FakeSimBriefClient.Latest[pilotId] = new SimBriefResult(FakeSimBriefClient.Plan("SBFL", "SBGR", "C172") with { Details = details }, null);
+
+        await _client.SendAuthorizedAsync(HttpMethod.Post, ImportUrl, pilot);
+        var current = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/bookings/current", pilot);
+
+        var plan = (await current.Content.ReadFromJsonAsync<BookingResponse>())!.FlightPlan!;
+        Assert.Equal("14", plan.Details!.Departure.Runway);
+        Assert.Equal("(FPL-N172SB-VG)", plan.Details.AtcFlightPlan);
+        Assert.Equal(("TOC", 9000, 16), (plan.Details.Navlog[0].Ident, plan.Details.Navlog[0].AltitudeFt, plan.Details.Navlog[0].ElapsedMinutes));
     }
 
     [Fact]

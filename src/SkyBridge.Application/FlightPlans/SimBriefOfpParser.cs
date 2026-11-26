@@ -82,8 +82,102 @@ public static class SimBriefOfpParser
             Weight("weights", "cargo"),
             Weight("weights", "est_zfw"),
             Weight("weights", "est_tow"),
-            Weight("weights", "est_ldw")), null);
+            Weight("weights", "est_ldw"),
+            Details(root, pounds, blockFuel, takeoffFuel, landingFuel, trip)), null);
     }
+
+    private static FlightPlanDetails Details(XElement root, bool pounds, int block, int takeoff, int landing, int trip)
+    {
+        int Kg(XElement? element, string field) => ToKg(Number(Value(element, field)), pounds);
+        int Int(XElement? element, string field) => (int)Math.Round(Number(Value(element, field)));
+
+        var fuel = root.Element("fuel");
+        var general = root.Element("general");
+        var alternate = root.Element("alternate");
+
+        var navlog = (root.Element("navlog")?.Elements("fix") ?? [])
+            .Select(fix => new NavlogFix(
+                Value(fix, "ident") ?? "",
+                Value(fix, "name"),
+                Value(fix, "type") ?? "wpt",
+                Value(fix, "via_airway"),
+                Value(fix, "stage"),
+                Value(fix, "is_sid_star") == "1",
+                Int(fix, "altitude_feet"),
+                Int(fix, "distance"),
+                Int(fix, "track_mag"),
+                Int(fix, "wind_dir"),
+                Int(fix, "wind_spd"),
+                Int(fix, "oat"),
+                Int(fix, "groundspeed"),
+                (int)Math.Round(Number(Value(fix, "time_total")) / 60),
+                Kg(fix, "fuel_totalused"),
+                Kg(fix, "fuel_plan_onboard"),
+                Number(Value(fix, "pos_lat")),
+                Number(Value(fix, "pos_long"))))
+            .Where(fix => fix.Ident.Length > 0)
+            .ToList();
+
+        var procedures = navlog.Where(f => f.SidStar && f.Airway is not null).ToList();
+        var sid = procedures.FirstOrDefault(f => f.Stage == "CLB")?.Airway;
+        var star = procedures.LastOrDefault(f => f.Stage == "DSC")?.Airway;
+
+        return new FlightPlanDetails(
+            Airport(root.Element("origin")),
+            Airport(root.Element("destination")),
+            Value(alternate, "icao_code") is { } alternateCode
+                ? new FlightPlanAlternate(
+                    alternateCode,
+                    Value(alternate, "name"),
+                    Value(alternate, "plan_rwy"),
+                    Int(alternate, "distance"),
+                    Int(alternate, "cruise_altitude"),
+                    Kg(alternate, "burn"),
+                    (int)Math.Round(Number(Value(alternate, "ete")) / 60),
+                    Value(alternate, "route"),
+                    Value(alternate, "metar"))
+                : null,
+            new FlightPlanFuel(
+                Kg(fuel, "taxi"),
+                trip,
+                Kg(fuel, "contingency"),
+                Kg(fuel, "alternate_burn"),
+                Kg(fuel, "reserve"),
+                Kg(fuel, "extra"),
+                Kg(fuel, "min_takeoff"),
+                takeoff,
+                block,
+                landing,
+                Kg(fuel, "avg_fuel_flow")),
+            new FlightPlanPerformance(
+                Value(general, "costindex"),
+                sid,
+                star,
+                Value(general, "stepclimb_string"),
+                Int(general, "avg_wind_dir"),
+                Int(general, "avg_wind_spd"),
+                Int(general, "avg_wind_comp"),
+                Int(general, "avg_temp_dev"),
+                Int(general, "cruise_tas"),
+                Value(general, "cruise_mach"),
+                Value(general, "climb_profile"),
+                Value(general, "cruise_profile"),
+                Value(general, "descent_profile")),
+            Value(root.Element("atc"), "flightplan_text"),
+            navlog);
+
+        FlightPlanAirport Airport(XElement? airport) => new(
+            Value(airport, "icao_code") ?? "",
+            Value(airport, "name"),
+            Value(airport, "plan_rwy"),
+            Int(airport, "elevation"),
+            Int(airport, "trans_alt"),
+            Int(airport, "trans_level"),
+            Value(airport, "metar"),
+            Value(airport, "taf"));
+    }
+
+    private static string? Value(XElement? element, string field) => Clean(element?.Element(field)?.Value);
 
     private static int ToKg(double value, bool pounds) =>
         (int)Math.Round(pounds ? value * KgPerLb : value, MidpointRounding.AwayFromZero);

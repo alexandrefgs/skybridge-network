@@ -259,6 +259,10 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<int>("EngineType")
                         .HasColumnType("int");
 
+                    b.Property<string>("Family")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<string>("IcaoCode")
                         .IsRequired()
                         .HasMaxLength(4)
@@ -639,6 +643,9 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(8)
                         .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("DetailsJson")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DistanceNm")
                         .HasColumnType("int");

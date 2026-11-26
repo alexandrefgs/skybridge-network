@@ -26,10 +26,16 @@ import { Booking } from '../../core/bookings/booking.models';
       <form class="mt-5 flex flex-wrap items-center gap-3" (submit)="book($event)" data-testid="route-booking-form">
         <label class="text-sm text-muted" for="route-aircraft">Aircraft</label>
         <select id="route-aircraft" class="sb-input w-32 font-mono" [formControl]="aircraft" data-testid="route-aircraft">
-          @for (code of route().aircraft; track code) {
+          @for (code of route().bookableAircraft; track code) {
             <option [value]="code">{{ code }}</option>
           }
         </select>
+        @if (variants().length) {
+          <p class="text-xs text-muted" data-testid="family-hint">
+            Scheduled with <span class="font-mono text-foreground">{{ route().aircraft.join(', ') }}</span>.
+            The same family also works: <span class="font-mono text-foreground">{{ variants().join(', ') }}</span>.
+          </p>
+        }
         <button type="submit" class="sb-btn-primary w-auto px-5" [disabled]="saving()" data-testid="confirm-booking">Book flight</button>
         <p class="w-full text-xs text-muted">You have 24 hours to start the flight. Pay is per flight hour, by aircraft category.</p>
       </form>
@@ -52,11 +58,12 @@ export class RouteBooking {
   protected readonly aircraft = new FormControl('', { nonNullable: true });
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly variants = computed(() => this.route().bookableAircraft.filter(code => !this.route().aircraft.includes(code)));
   protected readonly flightNumber = computed(() => `${this.airlineCode() ?? 'SKB'}${1000 + (this.route().id % 9000)}`);
 
   constructor() {
     effect(() => {
-      this.aircraft.setValue(this.route().aircraft[0] ?? '');
+      this.aircraft.setValue(this.route().aircraft[0] ?? this.route().bookableAircraft[0] ?? '');
       this.error.set(null);
     });
   }

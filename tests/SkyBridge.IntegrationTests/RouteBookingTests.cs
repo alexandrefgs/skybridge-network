@@ -82,6 +82,21 @@ public class RouteBookingTests(SkyBridgeApiFactory factory)
     }
 
     [Fact]
+    public async Task BookRoute_AllowsTheSameFamilyFromTheAirlineFleet()
+    {
+        var (_, route) = await CreateRouteAsync(["B737"], fleet: ["B737", "B738", "A320"]);
+        var pilot = await PilotAtAsync("SBFL");
+
+        var sameFamily = await BookAsync(pilot, route.Id, "B738");
+        var otherFamily = await BookAsync(pilot, route.Id, "A320");
+
+        Assert.Equal(new[] { "B737" }, route.Aircraft);
+        Assert.Equal(new[] { "B737", "B738" }, route.BookableAircraft);
+        Assert.Contains("needs 300 h", await TextAsync(sameFamily, HttpStatusCode.BadRequest));
+        Assert.Contains("A320 is not allowed on this flight", await TextAsync(otherFamily, HttpStatusCode.BadRequest));
+    }
+
+    [Fact]
     public async Task BookRoute_Returns409_WithAnotherActiveFlight()
     {
         var (_, route) = await CreateRouteAsync(["C172"]);
@@ -115,7 +130,7 @@ public class RouteBookingTests(SkyBridgeApiFactory factory)
         rebook.EnsureSuccessStatusCode();
     }
 
-    private async Task<(string Icao, RouteResponse Route)> CreateRouteAsync(IReadOnlyList<string> aircraft, bool active = true)
+    private async Task<(string Icao, RouteResponse Route)> CreateRouteAsync(IReadOnlyList<string> aircraft, bool active = true, IReadOnlyList<string>? fleet = null)
     {
         var admin = await _client.LoginAsAdminAsync();
         (await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/admin/airports/import", admin)).EnsureSuccessStatusCode();
@@ -125,6 +140,8 @@ public class RouteBookingTests(SkyBridgeApiFactory factory)
             new AirlineRequest($"Route Test {icao}", null, icao, null, "Brazil", active));
         created.EnsureSuccessStatusCode();
         var airline = (await created.Content.ReadFromJsonAsync<AirlineDetailResponse>())!;
+        if (fleet is not null)
+            (await _client.SendAuthorizedAsync(HttpMethod.Put, $"/api/admin/airlines/{airline.Id}/fleet", admin, new FleetRequest(fleet))).EnsureSuccessStatusCode();
 
         var route = await _client.SendAuthorizedAsync(HttpMethod.Post, $"/api/admin/airlines/{airline.Id}/routes", admin,
             new RouteRequest("SBFL", "SBGR", aircraft));
