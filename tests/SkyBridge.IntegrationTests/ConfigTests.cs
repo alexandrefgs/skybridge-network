@@ -15,5 +15,7 @@ public class ConfigTests(SkyBridgeApiFactory factory)
         var config = await client.GetFromJsonAsync<ClientConfigResponse>("/api/config/client");
 
         Assert.Equal("test-carto-key", config!.CartoApiKey);
+        Assert.Equal(("privacy@skybridge.test", "https://discord.gg/skybridge"), (config.ContactEmail, config.DiscordUrl));
+        Assert.Null(config.InstagramUrl);
     }
 }

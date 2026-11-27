@@ -29,6 +29,14 @@ describe('PilotService', () => {
     expect(request.request.params.get('pageSize')).toBe('10');
   });
 
+  it('links the VATSIM and IVAO ids', () => {
+    service.linkNetworks(1234567, null).subscribe();
+
+    const request = http.expectOne('/api/pilot/networks');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ vatsimId: 1234567, ivaoId: null });
+  });
+
   it('links the SimBrief pilot ID', () => {
     service.linkSimBrief('123456').subscribe();
 

@@ -22,6 +22,12 @@ public class PilotController(IPilotService pilots) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Jumpseat(JumpseatRequest request, CancellationToken cancellationToken) =>
         this.ToActionResult(await pilots.JumpseatAsync(User.GetUserId(), request, cancellationToken), Ok);
+
+    [HttpPut("networks")]
+    [ProducesResponseType<PilotResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> LinkNetworks(NetworksRequest request, CancellationToken cancellationToken) =>
+        Ok(await pilots.LinkNetworksAsync(User.GetUserId(), request, cancellationToken));
     
     [HttpPut("simbrief")]
     [ProducesResponseType<PilotResponse>(StatusCodes.Status200OK)]

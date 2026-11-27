@@ -33,6 +33,8 @@ describe('App', () => {
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('Create account');
     expect(fixture.nativeElement.querySelector('[data-testid="nav-about"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-public-operations"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="site-footer"]')).not.toBeNull();
   });
 
   it('loads the pilot profile when signed in', async () => {

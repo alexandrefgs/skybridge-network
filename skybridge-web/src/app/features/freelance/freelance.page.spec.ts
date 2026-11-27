@@ -26,7 +26,7 @@ describe('FreelancePage', () => {
   }
 
   it('asks a new pilot where to start and moves there', async () => {
-        await start({ location: null, flightHours: 0, flightMinutes: 0, balance: 0, simBriefPilotId: null });
+        await start({ location: null, flightHours: 0, flightMinutes: 0, balance: 0, simBriefPilotId: null, vatsimId: null, ivaoId: null });
 
     expect(query('location')!.textContent).toContain('Choose where your career starts');
     const input = query('jumpseat-airport') as HTMLInputElement;

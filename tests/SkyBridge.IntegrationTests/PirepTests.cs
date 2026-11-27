@@ -7,6 +7,7 @@ using SkyBridge.Application.Common;
 using SkyBridge.Application.Freelance;
 using SkyBridge.Application.Pilots;
 using SkyBridge.Application.Pireps;
+using SkyBridge.Application.Public;
 using SkyBridge.Domain.Freelance;
 using SkyBridge.Infrastructure.Persistence;
 using SkyBridge.IntegrationTests.Infrastructure;
@@ -73,6 +74,23 @@ public class PirepTests(SkyBridgeApiFactory factory)
         Assert.Equal(("SBGR", "SBFL"), (month.Flights.Items[0].Origin, month.Flights.Items[0].Destination));
         Assert.Equal(("all", 2, 1), (all.Period, all.Flights.TotalCount, all.Flights.Items.Count));
         Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+    }
+
+    [Fact]
+    public async Task PublicFlights_ShowTheLatestAcceptedLegs()
+    {
+        var job = await CreateJobAsync(reward: 300);
+        var pilot = await PilotAtAsync("SBFL");
+        await AcceptAndStartAsync(pilot, job.Id);
+        var filed = await FileAsync(pilot, minutes: 140);
+
+        var response = await _client.GetAsync("/api/public/flights?count=4");
+
+        response.EnsureSuccessStatusCode();
+        var latest = (await response.Content.ReadFromJsonAsync<List<PublicFlightResponse>>())![0];
+        Assert.Equal((filed.Pirep.Id, "SBFL", "SBGR", "C172", "AirTaxi", 140), (latest.Id, latest.Origin, latest.Destination, latest.Aircraft, latest.Mission, latest.FlightMinutes));
+        Assert.Null(latest.FlightNumber);
+        Assert.Equal("Ana S.", latest.Pilot);
     }
 
     [Fact]

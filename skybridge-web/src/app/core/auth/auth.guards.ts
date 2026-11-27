@@ -6,7 +6,7 @@ export const authGuard: CanActivateFn = () =>
   inject(AuthService).accessToken() ? true : inject(Router).createUrlTree(['/login']);
 
 export const guestGuard: CanActivateFn = () =>
-  inject(AuthService).accessToken() ? inject(Router).createUrlTree(['/']) : true;
+  inject(AuthService).accessToken() ? inject(Router).createUrlTree(['/cockpit']) : true;
 
 export const staffGuard: CanActivateFn = () =>
   inject(AuthService).isStaff() ? true : inject(Router).createUrlTree(['/']);

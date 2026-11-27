@@ -49,7 +49,9 @@ export const pilotAtFlorianopolis: Pilot = {
   flightHours: 0,
   flightMinutes: 0,
   balance: 0,
-  simBriefPilotId: null
+  simBriefPilotId: null,
+  vatsimId: null,
+  ivaoId: null
 };
 
 export const acceptedMedevac: Booking = {

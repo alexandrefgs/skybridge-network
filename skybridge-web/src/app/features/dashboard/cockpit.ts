@@ -11,13 +11,17 @@ import { PirepService } from '../../core/pireps/pirep.service';
 import { bookingRoute } from '../../shared/flights/booking-legs';
 import { PirepStatusBadge } from '../../shared/flights/pirep-status';
 import { durationLabel } from '../../shared/time/utc';
+import { NETWORK_PROMPT_KEY, NetworkPrompt } from './network-prompt';
 
 const RECENT = 5;
 
 @Component({
   selector: 'sb-cockpit',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, PirepStatusBadge],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, PirepStatusBadge, NetworkPrompt],
   template: `
+    @if (askNetworks()) {
+      <sb-network-prompt (saved)="pilot.set($event); askNetworks.set(false)" (dismissed)="askNetworks.set(false)" />
+    }
     <p class="font-mono text-xs tracking-[0.2em] text-primary">COCKPIT</p>
     <h1 class="mt-2 font-display text-4xl font-bold">Welcome, {{ firstName() }}.</h1>
     <p class="mt-2 text-muted" data-testid="location">
@@ -134,17 +138,32 @@ export class Cockpit {
   protected readonly booking = signal<Booking | null>(null);
   protected readonly logbook = signal<Logbook | null>(null);
   protected readonly transactions = signal<PilotTransaction[]>([]);
+  protected readonly askNetworks = signal(false);
   protected readonly time = durationLabel;
   protected readonly route = bookingRoute;
   protected readonly abs = Math.abs;
 
   constructor() {
     const ignore = () => undefined;
-    inject(PilotService).get().pipe(takeUntilDestroyed()).subscribe({ next: pilot => this.pilot.set(pilot), error: ignore });
+    inject(PilotService).get().pipe(takeUntilDestroyed()).subscribe({
+      next: pilot => {
+        this.pilot.set(pilot);
+        this.askNetworks.set(pilot.vatsimId === null && pilot.ivaoId === null && !postponed());
+      },
+      error: ignore
+    });
     inject(PilotService).transactions(1, RECENT).pipe(takeUntilDestroyed())
       .subscribe({ next: page => this.transactions.set(page.items), error: ignore });
     inject(BookingService).current().pipe(takeUntilDestroyed()).subscribe({ next: booking => this.booking.set(booking), error: ignore });
     inject(PirepService).logbook('all', 1, RECENT).pipe(takeUntilDestroyed())
       .subscribe({ next: logbook => this.logbook.set(logbook), error: ignore });
+  }
+}
+
+function postponed(): boolean {
+  try {
+    return localStorage.getItem(NETWORK_PROMPT_KEY) === 'later';
+  } catch {
+    return false;
   }
 }

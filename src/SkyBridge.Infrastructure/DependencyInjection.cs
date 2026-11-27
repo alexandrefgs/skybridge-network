@@ -18,6 +18,7 @@ using SkyBridge.Application.Freelance;
 using SkyBridge.Application.Pilots;
 using SkyBridge.Application.Pireps;
 using SkyBridge.Application.Profile;
+using SkyBridge.Application.Public;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Auth;
 using SkyBridge.Infrastructure.Identity;
@@ -28,6 +29,7 @@ using SkyBridge.Infrastructure.Persistence;
 using SkyBridge.Infrastructure.Pireps;
 using SkyBridge.Infrastructure.Pilots;
 using SkyBridge.Infrastructure.Profile;
+using SkyBridge.Infrastructure.Public;
 
 namespace SkyBridge.Infrastructure;
 
@@ -123,6 +125,24 @@ public static class DependencyInjection
             client.BaseAddress = new Uri("https://www.simbrief.com/");
             client.Timeout = TimeSpan.FromSeconds(20);
         });
+        
+        services.AddMemoryCache();
+
+        services.AddHttpClient(OnlineNetworks.Vatsim, client =>
+        {
+            client.BaseAddress = new Uri("https://data.vatsim.net/");
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
+
+        services.AddHttpClient(OnlineNetworks.Ivao, client =>
+        {
+            client.BaseAddress = new Uri("https://api.ivao.aero/");
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
+
+        services.AddSingleton<IOnlineNetworks, OnlineNetworks>();
+        
+        services.AddScoped<IPublicQueries, PublicQueries>();
 
         services.AddHealthChecks().AddDbContextCheck<SkyBridgeDbContext>();
 

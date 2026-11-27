@@ -34,7 +34,7 @@ describe('ProfilePage', () => {
     auth.currentUser.set(aUser());
     fixture = TestBed.createComponent(ProfilePage);
     await fixture.whenStable();
-    http.expectOne('/api/pilot').flush(pilotAtFlorianopolis);
+    http.match('/api/pilot').forEach(request => request.flush(pilotAtFlorianopolis));
     await fixture.whenStable();
   });
 
@@ -47,6 +47,7 @@ describe('ProfilePage', () => {
     expect(query<HTMLInputElement>('#email')?.disabled).toBe(true);
     expect(byId('remove-avatar')).toBeNull();
     expect(byId('simbrief-form')).not.toBeNull();
+    expect(byId('network-form')).not.toBeNull();
   });
 
   it('saves the name', async () => {

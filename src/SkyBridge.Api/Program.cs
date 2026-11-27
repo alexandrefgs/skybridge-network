@@ -11,6 +11,7 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.Configure<MapOptions>(builder.Configuration.GetSection(MapOptions.SectionName));
+builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection(SiteOptions.SectionName));
 
 var app = builder.Build();
 

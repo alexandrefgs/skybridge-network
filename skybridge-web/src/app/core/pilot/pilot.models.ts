@@ -14,6 +14,8 @@ export interface Pilot {
   flightMinutes: number;
   balance: number;
   simBriefPilotId: string | null;
+  vatsimId: number | null;
+  ivaoId: number | null;
 }
 
 export interface PilotTransaction {

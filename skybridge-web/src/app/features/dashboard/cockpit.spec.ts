@@ -12,9 +12,10 @@ describe('Cockpit', () => {
   let fixture: ComponentFixture<Cockpit>;
   let http: HttpTestingController;
   const query = (id: string) => fixture.nativeElement.querySelector(`[data-testid="${id}"]`) as HTMLElement | null;
-  const veteran: Pilot = { ...pilotAtFlorianopolis, flightMinutes: 185, flightHours: 3.1, balance: 4500 };
+  const veteran: Pilot = { ...pilotAtFlorianopolis, flightMinutes: 185, flightHours: 3.1, balance: 4500, vatsimId: 1234567 };
 
   beforeEach(() => {
+    localStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(Cockpit);
@@ -67,5 +68,37 @@ describe('Cockpit', () => {
     expect(query('location')!.textContent).toContain('Pick your first airport');
     expect(query('recent-flights')!.textContent).toContain('Your flights will show up here.');
     expect(query('recent-transactions')!.textContent).toContain('No payments yet.');
+  });
+  
+  it('asks a pilot without network ids for the VATSIM CID or IVAO VID', async () => {
+    await load({ ...veteran, vatsimId: null }, null);
+    expect(query('network-prompt')).not.toBeNull();
+
+    const input = query('prompt-ivao') as HTMLInputElement;
+    input.value = '654321';
+    input.dispatchEvent(new Event('input'));
+    (query('network-prompt')!.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    const request = http.expectOne('/api/pilot/networks');
+    expect(request.request.body).toEqual({ vatsimId: null, ivaoId: 654321 });
+    request.flush({ ...veteran, vatsimId: null, ivaoId: 654321 });
+    await fixture.whenStable();
+
+    expect(query('network-prompt')).toBeNull();
+  });
+
+  it('lets the pilot answer later and does not ask again', async () => {
+    await load({ ...veteran, vatsimId: null }, null);
+
+    query('prompt-later')!.click();
+    await fixture.whenStable();
+
+    expect(query('network-prompt')).toBeNull();
+    expect(localStorage.getItem('sb-network-prompt')).toBe('later');
+  });
+
+  it('does not ask a pilot who already linked a network', async () => {
+    await load(veteran, null);
+
+    expect(query('network-prompt')).toBeNull();
   });
 });

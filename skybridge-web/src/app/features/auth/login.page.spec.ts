@@ -101,6 +101,6 @@ describe('LoginPage', () => {
       requiresTwoFactor: false, accessToken: 'jwt', expiresAtUtc: new Date(Date.now() + 3600_000).toISOString(), twoFactorToken: null
     });
 
-    expect(navigate).toHaveBeenCalledWith('/');
+    expect(navigate).toHaveBeenCalledWith('/cockpit');
   });
 });

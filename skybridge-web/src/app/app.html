@@ -16,6 +16,9 @@
         }
         <sb-user-menu class="ml-2" [user]="user" (signedOut)="logout()" />
       } @else if (!auth.isSignedIn()) {
+        <a routerLink="/about" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-public-about">About</a>
+        <a routerLink="/operations" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-public-operations">Operations</a>
+        <a routerLink="/flights" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-public-flights">Flights</a>
         <a routerLink="/login" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground">Sign in</a>
         <a routerLink="/register" class="rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground transition-colors hover:bg-primary-hover">Create account</a>
       }
@@ -41,6 +44,8 @@
   </div>
 </header>
 
-<main class="mx-auto max-w-7xl px-6 py-10">
+<main class="mx-auto min-h-[60vh] max-w-7xl px-6 py-10">
   <router-outlet />
 </main>
+
+<sb-site-footer />

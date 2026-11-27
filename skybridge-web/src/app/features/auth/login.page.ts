@@ -108,7 +108,7 @@ export class LoginPage {
         this.step.set('twoFactor');
         setTimeout(() => this.codeInput()?.focus());
       } else {
-        void this.router.navigateByUrl('/');
+        void this.router.navigateByUrl('/cockpit');
       }
     });
   }
@@ -121,7 +121,7 @@ export class LoginPage {
     }
     this.run(
       this.auth.loginWithTwoFactor(this.twoFactorToken, this.twoFactor.getRawValue().code),
-      () => void this.router.navigateByUrl('/'),
+      () => void this.router.navigateByUrl('/cockpit'),
       () => {
         if (!this.useRecoveryCode()) {
           this.twoFactor.reset();

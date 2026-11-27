@@ -89,7 +89,7 @@ export class RegisterPage {
       .register(this.form.getRawValue())
       .pipe(finalize(() => this.busy.set(false)))
       .subscribe({
-        next: () => void this.router.navigateByUrl('/'),
+        next: () => void this.router.navigateByUrl('/cockpit'),
         error: error => this.errors.set(problemMessages(error))
       });
   }

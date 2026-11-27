@@ -78,4 +78,24 @@ public class PilotTests
     {
         Assert.Throws<ArgumentException>(() => Pilot.Create(Guid.NewGuid()).LinkSimBrief(input));
     }
+    
+    [Fact]
+    public void LinkNetworks_StoresAndClearsTheIds()
+    {
+        var pilot = Pilot.Create(Guid.NewGuid());
+
+        pilot.LinkNetworks(1234567, 654321);
+        Assert.Equal((1234567, 654321), (pilot.VatsimId!.Value, pilot.IvaoId!.Value));
+
+        pilot.LinkNetworks(null, null);
+        Assert.Equal((null, null), (pilot.VatsimId, pilot.IvaoId));
+    }
+
+    [Theory]
+    [InlineData(0, null)]
+    [InlineData(null, 100_000_000)]
+    public void LinkNetworks_RejectsInvalidIds(int? vatsimId, int? ivaoId)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Pilot.Create(Guid.NewGuid()).LinkNetworks(vatsimId, ivaoId));
+    }
 }

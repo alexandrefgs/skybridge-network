@@ -44,9 +44,9 @@ describe('auth guards', () => {
     expect(run(staffGuard)).toBe(true);
   });
 
-  it('guestGuard redirects signed in pilots home', () => {
+  it('guestGuard sends signed in pilots to the cockpit', () => {
     setup(true);
     const result = run(guestGuard) as UrlTree;
-    expect(result.toString()).toBe('/');
+    expect(result.toString()).toBe('/cockpit');
   });
 });

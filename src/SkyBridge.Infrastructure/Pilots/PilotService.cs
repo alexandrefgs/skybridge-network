@@ -35,7 +35,21 @@ internal sealed class PilotService(SkyBridgeDbContext db, IBookingService bookin
         pilot.MoveTo(airport.Id);
         await db.SaveChangesAsync(cancellationToken);
 
-        return Result<PilotResponse>.Ok(new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.FlightMinutes, pilot.Balance, pilot.SimBriefPilotId));
+        return Result<PilotResponse>.Ok(new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.FlightMinutes, pilot.Balance, pilot.SimBriefPilotId, pilot.VatsimId, pilot.IvaoId));
+    }
+
+    public async Task<PilotResponse> LinkNetworksAsync(Guid userId, NetworksRequest request, CancellationToken cancellationToken)
+    {
+        var pilot = await db.Pilots.FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+        if (pilot is null)
+        {
+            pilot = Pilot.Create(userId);
+            db.Pilots.Add(pilot);
+        }
+
+        pilot.LinkNetworks(request.VatsimId, request.IvaoId);
+        await db.SaveChangesAsync(cancellationToken);
+        return await ToResponseAsync(pilot, cancellationToken);
     }
 
     public async Task<PilotResponse> LinkSimBriefAsync(Guid userId, SimBriefLinkRequest request, CancellationToken cancellationToken)
@@ -73,10 +87,10 @@ internal sealed class PilotService(SkyBridgeDbContext db, IBookingService bookin
     private async Task<PilotResponse> ToResponseAsync(Pilot? pilot, CancellationToken cancellationToken)
     {
         if (pilot?.CurrentAirportId is not { } airportId)
-        return new PilotResponse(null, pilot?.FlightHours ?? 0, pilot?.FlightMinutes ?? 0, pilot?.Balance ?? 0, pilot?.SimBriefPilotId);
+        return new PilotResponse(null, pilot?.FlightHours ?? 0, pilot?.FlightMinutes ?? 0, pilot?.Balance ?? 0, pilot?.SimBriefPilotId, pilot?.VatsimId, pilot?.IvaoId);
 
         var airport = await db.Airports.AsNoTracking().FirstAsync(a => a.Id == airportId, cancellationToken);
-        return new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.FlightMinutes, pilot.Balance, pilot.SimBriefPilotId);
+        return new PilotResponse(ToLocation(airport), pilot.FlightHours, pilot.FlightMinutes, pilot.Balance, pilot.SimBriefPilotId, pilot.VatsimId, pilot.IvaoId);
     }
 
     private static PilotLocation ToLocation(Airport airport) =>

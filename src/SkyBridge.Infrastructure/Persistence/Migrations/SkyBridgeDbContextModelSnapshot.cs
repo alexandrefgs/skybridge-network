@@ -831,9 +831,15 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<int>("FlightMinutes")
                         .HasColumnType("int");
 
+                    b.Property<int?>("IvaoId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SimBriefPilotId")
                         .HasMaxLength(7)
                         .HasColumnType("nvarchar(7)");
+
+                    b.Property<int?>("VatsimId")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 

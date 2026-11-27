@@ -11,9 +11,13 @@ public sealed record PilotLocation(
     double Latitude,
     double Longitude);
 
-public sealed record PilotResponse(PilotLocation? Location, decimal FlightHours, int FlightMinutes, int Balance, string? SimBriefPilotId);
+public sealed record PilotResponse(PilotLocation? Location, decimal FlightHours, int FlightMinutes, int Balance, string? SimBriefPilotId, int? VatsimId, int? IvaoId);
 
 public sealed record SimBriefLinkRequest([RegularExpression(@"^\s*\d{0,7}\s*$", ErrorMessage = "The SimBrief Pilot ID has 1 to 7 digits.")] string? PilotId);
+
+public sealed record NetworksRequest(
+    [Range(1, 99_999_999, ErrorMessage = "The VATSIM CID has 1 to 8 digits.")] int? VatsimId,
+    [Range(1, 99_999_999, ErrorMessage = "The IVAO VID has 1 to 8 digits.")] int? IvaoId);
 
 public sealed record PilotTransactionResponse(int Id, int Amount, string Description, DateTime CreatedAtUtc);
 

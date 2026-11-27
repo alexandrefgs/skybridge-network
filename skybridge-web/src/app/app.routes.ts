@@ -4,8 +4,30 @@ import { authGuard, guestGuard, staffGuard } from './core/auth/auth.guards';
 export const routes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
     title: 'SkyBridge Network',
-    loadComponent: () => import('./features/home/home.page').then(m => m.HomePage)
+    loadComponent: () => import('./features/public/landing.page').then(m => m.LandingPage)
+  },
+  {
+    path: 'about',
+    title: 'About · SkyBridge',
+    loadComponent: () => import('./features/public/about.page').then(m => m.AboutPage)
+  },
+  {
+    path: 'operations',
+    title: 'Operations · SkyBridge',
+    loadComponent: () => import('./features/public/operations.page').then(m => m.OperationsPage)
+  },
+  {
+    path: 'flights',
+    title: 'Flights · SkyBridge',
+    loadComponent: () => import('./features/public/flights.page').then(m => m.FlightsPage)
+  },
+  {
+    path: 'cockpit',
+    title: 'Cockpit · SkyBridge',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/dashboard/cockpit.page').then(m => m.CockpitPage)
   },
   {
     path: 'airports',

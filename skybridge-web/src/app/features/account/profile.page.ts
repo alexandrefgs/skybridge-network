@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { problemMessages } from '../../core/http/problem';
 import { Avatar } from '../../shared/avatar/avatar';
 import { ImageResizer } from '../../shared/images/image-resizer';
+import { NetworkSettings } from './network-settings';
 import { SimBriefSettings } from './simbrief-settings';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -13,7 +14,7 @@ const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
 
 @Component({
   selector: 'sb-profile-page',
-  imports: [ReactiveFormsModule, Avatar, SimBriefSettings],
+    imports: [ReactiveFormsModule, Avatar, SimBriefSettings, NetworkSettings],
   template: `
     @if (auth.currentUser(); as user) {
       <section class="overflow-hidden rounded-xl border border-line bg-surface">
@@ -82,6 +83,7 @@ const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
       </form>
 
       <sb-simbrief-settings />
+      <sb-network-settings />
     }
   `
 })

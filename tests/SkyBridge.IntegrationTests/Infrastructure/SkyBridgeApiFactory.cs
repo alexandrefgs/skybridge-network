@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using SkyBridge.Application.Airlines;
 using SkyBridge.Application.Airports;
 using SkyBridge.Application.FlightPlans;
+using SkyBridge.Application.Public;
 using Testcontainers.MsSql;
 
 namespace SkyBridge.IntegrationTests.Infrastructure;
@@ -33,6 +34,8 @@ public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseSetting("Seed:AdminEmail", AdminEmail);
         builder.UseSetting("Seed:AdminPassword", AdminPassword);
         builder.UseSetting("Maps:CartoApiKey", "test-carto-key");
+        builder.UseSetting("Site:ContactEmail", "privacy@skybridge.test");
+        builder.UseSetting("Site:DiscordUrl", "https://discord.gg/skybridge");
 
         builder.ConfigureTestServices(services =>
         {
@@ -42,6 +45,8 @@ public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsync
             services.AddSingleton<IAirlineSource, FakeAirlineSource>();
             services.RemoveAll<IRplSource>();
             services.AddSingleton<IRplSource, FakeRplSource>();
+            services.RemoveAll<IOnlineNetworks>();
+            services.AddSingleton<IOnlineNetworks, FakeOnlineNetworks>();
             services.RemoveAll<ISimBriefClient>();
             services.AddSingleton<ISimBriefClient, FakeSimBriefClient>();
         });
