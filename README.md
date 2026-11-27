@@ -272,13 +272,7 @@ flowchart LR
 
 O passo a passo completo, do servidor zerado até o site no ar (DNS, firewall, segredos, SSH, atualização e restauração de backup), está em **[docs/deploy.md](docs/deploy.md)**.
 
-Para atualizar o site depois de um push:
-
-```bash
-cd /opt/skybridge
-git pull
-docker compose up -d --build
-```
+A cada push na `main`, o GitHub Actions testa tudo, monta a imagem e, se passar, **atualiza o site sozinho** por SSH, com uma chave que só consegue rodar o script de deploy. No fim, ele confere se o `/health` voltou `Healthy`.
 
 ---
 
@@ -304,7 +298,8 @@ skybridge-network/
 │   ├── brand/                     # logo
 │   ├── screenshots/               # prints do README
 │   └── deploy.md                  # guia de deploy na VPS
-├── .github/workflows/ci.yml       # CI: testes da API, do front e build da imagem
+├── .github/workflows/ci.yml       # CI e deploy: testes, build da imagem e atualização da VPS
+├── deploy/skybridge-deploy.sh     # script que o deploy automático roda na VPS
 ├── Dockerfile                     # imagem de produção (Angular + .NET)
 ├── docker-compose.yml             # caddy, app, db e backup
 ├── Caddyfile                      # HTTPS e redirecionamento do www
@@ -421,7 +416,7 @@ npm test
 
 Toda funcionalidade nova entra com testes.
 
-A cada push na `main`, o **GitHub Actions** roda três jobs: testes da API, testes e build do front, e o build da imagem Docker de produção.
+A cada push na `main`, o **GitHub Actions** roda os testes da API, os testes e o build do front e o build da imagem Docker de produção. Se tudo passar, faz o **deploy** na VPS.
 
 ---
 
@@ -475,7 +470,7 @@ A cada push na `main`, o **GitHub Actions** roda três jobs: testes da API, test
 - [ ] Limite de tamanho dos logs e monitoramento do `/health`
 - [ ] E-mail de contato `@flyskybridge.tech`
 - [ ] Envio de e-mails: "Esqueci a senha" e confirmação de cadastro
-- [ ] Deploy automático depois do CI
+- [x] Deploy automático depois do CI
 
 ### 💡 Depois
 - [ ] App ACARS para o simulador (FSUIPC / XPUIPC)

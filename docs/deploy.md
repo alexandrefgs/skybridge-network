@@ -232,14 +232,49 @@ Se um dia perder a chave do PC, dá para entrar pelo **terminal do navegador** n
 
 ---
 
-## Atualizar o site depois de um push
+## Deploy automático
 
-Na VPS:
+A cada push na `main`, o GitHub Actions roda os testes, monta a imagem e, se tudo passar, entra na VPS e atualiza o site sozinho. No fim, ele espera o `/health` responder `Healthy`.
+
+A VPS aceita o GitHub com uma chave SSH própria, que **só consegue rodar o script de deploy**: ela não abre terminal, não faz túnel e não executa nenhum outro comando.
+
+### Configuração (uma vez só)
+
+**1. Instale o script de deploy** (na VPS):
 
 ```bash
-cd /opt/skybridge
-git pull
-docker compose up -d --build
+install -m 755 /opt/skybridge/deploy/skybridge-deploy.sh /usr/local/bin/skybridge-deploy
+```
+
+Se um dia o `deploy/skybridge-deploy.sh` mudar no repositório, rode esse comando de novo.
+
+**2. Crie a chave do GitHub e libere só o deploy** (na VPS):
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-deploy" -f /root/.ssh/github_actions -N ""
+echo "command=\"/usr/local/bin/skybridge-deploy\",restrict $(cat /root/.ssh/github_actions.pub)" >> /root/.ssh/authorized_keys
+```
+
+**3. Cadastre os segredos no GitHub**, em **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret | Valor | Como pegar (na VPS) |
+|---|---|---|
+| `DEPLOY_HOST` | IP da VPS | o IP do painel da Hostinger |
+| `DEPLOY_KNOWN_HOSTS` | Impressão digital da VPS | `echo "IP_DA_VPS $(cut -d' ' -f1,2 /etc/ssh/ssh_host_ed25519_key.pub)"` |
+| `DEPLOY_SSH_KEY` | Chave privada do GitHub | `cat /root/.ssh/github_actions` (do `-----BEGIN` ao `-----END`, inclusive) |
+
+**4. Apague a chave privada da VPS** depois de cadastrar o segredo. Ela só precisa existir no GitHub:
+
+```bash
+shred -u /root/.ssh/github_actions
+```
+
+### Atualizar na mão
+
+Se precisar atualizar sem passar pelo GitHub (por exemplo, com o Actions fora do ar), na VPS:
+
+```bash
+skybridge-deploy
 ```
 
 As migrations novas são aplicadas sozinhas na subida. O banco, as chaves e os certificados ficam em volumes do Docker e não se perdem.
