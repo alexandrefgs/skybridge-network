@@ -10,12 +10,13 @@ import { durationLabel } from '../time/utc';
   imports: [DatePipe],
   template: `
     @let item = flight();
-    <article class="flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface" [attr.data-testid]="'public-flight-' + item.id">
+    <article class="group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface transition duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-xl hover:shadow-primary/10 motion-reduce:transform-none" [attr.data-testid]="'public-flight-' + item.id">
       <div class="relative h-32 overflow-hidden bg-gradient-to-br from-primary/40 via-surface-2 to-background">
-        <svg class="absolute -right-4 -top-2 h-40 w-40 rotate-12 text-foreground/10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" aria-hidden="true"></div>
+        <svg class="absolute -right-4 -top-2 h-40 w-40 rotate-12 text-foreground/10 transition duration-500 group-hover:-translate-y-3 group-hover:translate-x-3 group-hover:text-foreground/20 motion-reduce:transform-none" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" />
         </svg>
-        <p class="absolute bottom-3 left-4 font-mono text-3xl font-bold tracking-wider">{{ item.aircraft }}</p>
+        <p class="absolute bottom-3 left-4 font-mono text-3xl font-bold tracking-wider transition-colors group-hover:text-white">{{ item.aircraft }}</p>
         <p class="absolute right-4 top-3 rounded-full border border-foreground/20 px-2 py-0.5 font-mono text-[10px] tracking-widest text-foreground/80">
           {{ item.arrivedAtUtc | date: 'dd MMM' : 'UTC' }}
         </p>
