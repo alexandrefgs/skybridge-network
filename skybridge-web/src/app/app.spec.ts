@@ -52,6 +52,7 @@ describe('App', () => {
     expect(fixture.nativeElement.textContent).toContain('Create account');
     expect(fixture.nativeElement.querySelector('[data-testid="nav-about"]')).toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="nav-public-operations"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-public-live"]').getAttribute('href')).toBe('/live');
     expect(fixture.nativeElement.querySelector('[data-testid="site-footer"]')).not.toBeNull();
   });
 
@@ -69,6 +70,7 @@ describe('App', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="user-name"]').textContent).toContain('Ana Silva');
     expect(fixture.nativeElement.querySelector('[data-testid="nav-about"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="nav-pilot"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-live"]').getAttribute('href')).toBe('/live');
     expect(fixture.nativeElement.querySelector('[data-testid="nav-admin"]')).toBeNull();
   });
 

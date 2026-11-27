@@ -33,6 +33,7 @@ import { NavItem } from './nav-dropdown';
             }
             <li><a routerLink="/freelance" routerLinkActive="text-primary" class="block py-3 text-lg font-medium" (click)="close()" data-testid="m-freelance">Freelance</a></li>
             <li><a routerLink="/airlines" routerLinkActive="text-primary" class="block py-3 text-lg font-medium" (click)="close()">Airlines</a></li>
+            <li><a routerLink="/live" routerLinkActive="text-primary" class="block py-3 text-lg font-medium" (click)="close()" data-testid="m-live">Live map</a></li>
             @if (auth.isStaff()) {
               <li><a routerLink="/admin" routerLinkActive="text-primary" class="block py-3 text-lg font-medium" (click)="close()" data-testid="m-admin">Admin</a></li>
             }
@@ -76,6 +77,7 @@ export class MobileMenu {
     { label: 'About', link: '/about' },
     { label: 'Operations', link: '/operations' },
     { label: 'Flights', link: '/flights' },
+    { label: 'Live map', link: '/live' },
     { label: 'Staff', link: '/staff' },
     { label: 'Regulations', link: '/regulations' }
   ];

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { PublicFlight, PublicStats } from './public.models';
+import { LiveMap, PublicFlight, PublicStats } from './public.models';
 
 @Injectable({ providedIn: 'root' })
 export class PublicService {
@@ -13,5 +13,9 @@ export class PublicService {
 
   flights(count = 4): Observable<PublicFlight[]> {
     return this.http.get<PublicFlight[]>('/api/public/flights', { params: { count } });
+  }
+  
+  live(): Observable<LiveMap> {
+    return this.http.get<LiveMap>('/api/public/live');
   }
 }
