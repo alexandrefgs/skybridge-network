@@ -21,6 +21,11 @@ public class PublicController(IPublicQueries queries, IStaffDirectory staff) : C
     public async Task<IActionResult> Flights([FromQuery] int count = 4, CancellationToken cancellationToken = default) =>
         Ok(await queries.GetRecentFlightsAsync(count, cancellationToken));
 
+    [HttpGet("live")]
+    [ProducesResponseType<LiveMapResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Live(CancellationToken cancellationToken) =>
+        Ok(await queries.GetLiveMapAsync(cancellationToken));
+
     [HttpGet("staff")]
     [ProducesResponseType<IReadOnlyList<PublicStaffResponse>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Staff(CancellationToken cancellationToken) =>

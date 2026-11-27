@@ -12,28 +12,29 @@ internal sealed class OnlineNetworks(IHttpClientFactory http, IMemoryCache cache
 
     public async Task<OnlinePilots> GetOnlinePilotsAsync(CancellationToken cancellationToken)
     {
-        var vatsim = ReadAsync(Vatsim, "v3/vatsim-data.json", NetworkFeedParser.VatsimPilotIds, cancellationToken);
-        var ivao = ReadAsync(Ivao, "v2/tracker/whazzup", NetworkFeedParser.IvaoPilotIds, cancellationToken);
+        var vatsim = ReadAsync(Vatsim, "v3/vatsim-data.json", NetworkFeedParser.VatsimPilots, cancellationToken);
+        var ivao = ReadAsync(Ivao, "v2/tracker/whazzup", NetworkFeedParser.IvaoPilots, cancellationToken);
         return new OnlinePilots(await vatsim, await ivao);
     }
 
-    private async Task<IReadOnlySet<int>?> ReadAsync(string network, string path, Func<string, IReadOnlySet<int>?> parse, CancellationToken cancellationToken)
+    private async Task<IReadOnlyDictionary<int, NetworkPilot>?> ReadAsync(
+        string network, string path, Func<string, IReadOnlyDictionary<int, NetworkPilot>?> parse, CancellationToken cancellationToken)
     {
-        if (cache.TryGetValue(network, out IReadOnlySet<int>? cached))
+        if (cache.TryGetValue(network, out IReadOnlyDictionary<int, NetworkPilot>? cached))
             return cached;
 
-        IReadOnlySet<int>? ids = null;
+        IReadOnlyDictionary<int, NetworkPilot>? pilots = null;
         try
         {
             var json = await http.CreateClient(network).GetStringAsync(path, cancellationToken);
-            ids = parse(json);
+            pilots = parse(json);
         }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
         {
             logger.LogWarning("Could not read the {Network} feed: {Message}", network, exception.Message);
         }
 
-        cache.Set(network, ids, CacheFor);
-        return ids;
+        cache.Set(network, pilots, CacheFor);
+        return pilots;
     }
 }

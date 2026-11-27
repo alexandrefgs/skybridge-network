@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SkyBridge.Application.Public;
+using SkyBridge.Domain.Airports;
 using SkyBridge.Domain.Bookings;
 using SkyBridge.Domain.Freelance;
 using SkyBridge.Domain.Pireps;
@@ -38,8 +39,8 @@ internal sealed class PublicQueries(SkyBridgeDbContext db, IOnlineNetworks netwo
         return new PublicStatsResponse(
             totalFlights,
             monthFlights,
-            online.Vatsim is { } vatsim ? linked.Count(p => p.VatsimId is { } id && vatsim.Contains(id)) : null,
-            online.Ivao is { } ivao ? linked.Count(p => p.IvaoId is { } id && ivao.Contains(id)) : null,
+            online.Vatsim is { } vatsim ? linked.Count(p => p.VatsimId is { } id && vatsim.ContainsKey(id)) : null,
+            online.Ivao is { } ivao ? linked.Count(p => p.IvaoId is { } id && ivao.ContainsKey(id)) : null,
             aircraft,
             destinations,
             pilots,
@@ -98,6 +99,116 @@ internal sealed class PublicQueries(SkyBridgeDbContext db, IOnlineNetworks netwo
             })
             .ToList();
     }
+
+    public async Task<LiveMapResponse> GetLiveMapAsync(CancellationToken cancellationToken)
+    {
+        var now = time.GetUtcNow().UtcDateTime;
+        var online = await networks.GetOnlinePilotsAsync(cancellationToken);
+        var linked = await db.Pilots.AsNoTracking()
+            .Where(p => p.VatsimId != null || p.IvaoId != null)
+            .Select(p => new { p.UserId, p.VatsimId, p.IvaoId })
+            .ToListAsync(cancellationToken);
+
+        var tracked = new List<(Guid UserId, string Network, NetworkPilot Pilot)>();
+        foreach (var pilot in linked)
+        {
+            if (pilot.VatsimId is { } vatsimId && online.Vatsim?.GetValueOrDefault(vatsimId) is { HasPosition: true } onVatsim)
+                tracked.Add((pilot.UserId, "VATSIM", onVatsim));
+            if (pilot.IvaoId is { } ivaoId && online.Ivao?.GetValueOrDefault(ivaoId) is { HasPosition: true } onIvao)
+                tracked.Add((pilot.UserId, "IVAO", onIvao));
+        }
+
+        if (tracked.Count == 0)
+            return new LiveMapResponse(now, online.Vatsim is not null, online.Ivao is not null, []);
+
+        var userIds = tracked.Select(t => t.UserId).Distinct().ToList();
+        var names = await db.Users.AsNoTracking()
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => ShortName(u.FirstName, u.LastName), cancellationToken);
+        var bookings = (await db.Bookings.AsNoTracking()
+                .Where(b => userIds.Contains(b.PilotUserId) && b.Status == BookingStatus.Active)
+                .ToListAsync(cancellationToken))
+            .GroupBy(b => b.PilotUserId)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        var jobIds = bookings.Values.Where(b => b.FreelanceJobId != null).Select(b => b.FreelanceJobId!.Value).Distinct().ToList();
+        var kinds = await db.Set<FreelanceJob>().AsNoTracking()
+            .Where(j => jobIds.Contains(j.Id))
+            .ToDictionaryAsync(j => j.Id, j => j.Kind, cancellationToken);
+        var legs = await db.Set<FreelanceJobLeg>().AsNoTracking()
+            .Where(l => jobIds.Contains(l.FreelanceJobId))
+            .Select(l => new { l.FreelanceJobId, l.Sequence, l.OriginAirportId, l.DestinationAirportId })
+            .ToListAsync(cancellationToken);
+        var typeIds = bookings.Values.Select(b => b.AircraftTypeId).Distinct().ToList();
+        var types = await db.AircraftTypes.AsNoTracking()
+            .Where(t => typeIds.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id, cancellationToken);
+
+        var routes = new Dictionary<Guid, (int Origin, int Destination)>();
+        foreach (var booking in bookings.Values)
+        {
+            if (booking.Source == BookingSource.Airline && booking is { OriginAirportId: { } origin, DestinationAirportId: { } destination })
+                routes[booking.PilotUserId] = (origin, destination);
+            else if (legs.FirstOrDefault(l => l.FreelanceJobId == booking.FreelanceJobId && l.Sequence == booking.CurrentLeg) is { } leg)
+                routes[booking.PilotUserId] = (leg.OriginAirportId, leg.DestinationAirportId);
+        }
+
+        var airportIds = routes.Values.SelectMany(r => new[] { r.Origin, r.Destination }).Distinct().ToList();
+        var airportsById = await db.Airports.AsNoTracking()
+            .Where(a => airportIds.Contains(a.Id))
+            .ToDictionaryAsync(a => a.Id, cancellationToken);
+        var planCodes = tracked
+            .Where(t => !routes.ContainsKey(t.UserId))
+            .SelectMany(t => new[] { t.Pilot.Departure, t.Pilot.Arrival })
+            .OfType<string>()
+            .ToList();
+        var airportsByCode = planCodes.Count == 0
+            ? new Dictionary<string, Airport>()
+            : await AirportCodes.FindAsync(db, planCodes, cancellationToken);
+
+        var flights = tracked.Select(t =>
+            {
+                var booking = bookings.GetValueOrDefault(t.UserId);
+                var type = booking is null ? null : types.GetValueOrDefault(booking.AircraftTypeId);
+                var (origin, destination) = routes.TryGetValue(t.UserId, out var route)
+                    ? (airportsById.GetValueOrDefault(route.Origin), airportsById.GetValueOrDefault(route.Destination))
+                    : (Find(airportsByCode, t.Pilot.Departure), Find(airportsByCode, t.Pilot.Arrival));
+                var mission = booking switch
+                {
+                    null => null,
+                    { Source: BookingSource.Airline } => "Airline",
+                    { FreelanceJobId: { } jobId } when kinds.TryGetValue(jobId, out var kind) => kind.ToString(),
+                    _ => "Freelance"
+                };
+
+                return new LiveFlightResponse(
+                    t.Network,
+                    t.Pilot.Id,
+                    t.Pilot.Callsign,
+                    names.GetValueOrDefault(t.UserId) ?? "SkyBridge pilot",
+                    t.Pilot.Latitude!.Value,
+                    t.Pilot.Longitude!.Value,
+                    t.Pilot.AltitudeFt,
+                    t.Pilot.GroundSpeedKt,
+                    t.Pilot.Heading,
+                    type?.IcaoCode ?? t.Pilot.Aircraft,
+                    type is null ? null : $"{type.Manufacturer} {type.Model}",
+                    mission,
+                    booking?.Source == BookingSource.Airline ? booking.AirlineName : null,
+                    Live(origin),
+                    Live(destination));
+            })
+            .OrderBy(f => f.Callsign, StringComparer.Ordinal)
+            .ToList();
+
+        return new LiveMapResponse(now, online.Vatsim is not null, online.Ivao is not null, flights);
+    }
+
+    private static Airport? Find(Dictionary<string, Airport> airports, string? code) =>
+        code is not null && airports.TryGetValue(code, out var airport) ? airport : null;
+
+    private static LiveAirportResponse? Live(Airport? airport) =>
+        airport is null ? null : new LiveAirportResponse(AirportCodes.Display(airport), airport.Name, airport.Latitude, airport.Longitude);
 
     public static string ShortName(string firstName, string lastName)
     {

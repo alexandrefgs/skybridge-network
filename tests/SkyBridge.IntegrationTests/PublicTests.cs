@@ -27,8 +27,8 @@ public class PublicTests(SkyBridgeApiFactory factory)
     {
         var vatsimId = Random.Shared.Next(1_000_000, 9_999_999);
         var ivaoId = Random.Shared.Next(100_000, 999_999);
-        FakeOnlineNetworks.Vatsim[vatsimId] = 0;
-        FakeOnlineNetworks.Ivao[ivaoId] = 0;
+        FakeOnlineNetworks.Vatsim[vatsimId] = FakeOnlineNetworks.Pilot(vatsimId);
+        FakeOnlineNetworks.Ivao[ivaoId] = FakeOnlineNetworks.Pilot(ivaoId);
         var before = await StatsAsync();
 
         var pilot = await _client.RegisterPilotAsync();
