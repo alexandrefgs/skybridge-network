@@ -484,3 +484,6 @@ $RECYCLE.BIN/
 downloads/
 node_modules/
 skybridge-web/.angular/
+
+# Database backups
+backups/
