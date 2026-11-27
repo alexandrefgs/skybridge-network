@@ -94,6 +94,22 @@ public class PirepTests(SkyBridgeApiFactory factory)
     }
 
     [Fact]
+    public async Task PublicFlights_KeepAFreelanceLabel_WhenTheJobWasDeleted()
+    {
+        var job = await CreateJobAsync(reward: 300);
+        var pilot = await PilotAtAsync("SBFL");
+        await AcceptAndStartAsync(pilot, job.Id);
+        var filed = await FileAsync(pilot, minutes: 140);
+        var deleted = await _client.SendAuthorizedAsync(HttpMethod.Delete, $"/api/admin/freelance/{job.Id}", await _client.LoginAsAdminAsync());
+
+        var response = await _client.GetAsync("/api/public/flights?count=12");
+
+        deleted.EnsureSuccessStatusCode();
+        var flight = (await response.Content.ReadFromJsonAsync<List<PublicFlightResponse>>())!.Single(f => f.Id == filed.Pirep.Id);
+        Assert.Equal(("Freelance", null), (flight.Mission, flight.FlightNumber));
+    }
+
+    [Fact]
     public async Task File_TooFast_WaitsForStaff_ThenApprovalPaysTheReward()
     {
         var job = await CreateJobAsync(reward: 500);

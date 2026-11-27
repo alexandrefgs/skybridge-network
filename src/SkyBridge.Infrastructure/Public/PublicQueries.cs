@@ -78,7 +78,8 @@ internal sealed class PublicQueries(SkyBridgeDbContext db, IOnlineNetworks netwo
                 var origin = airports[p.OriginAirportId];
                 var destination = airports[p.DestinationAirportId];
                 var type = types[p.AircraftTypeId];
-                var mission = booking?.FreelanceJobId is { } jobId && missions.TryGetValue(jobId, out var kind) ? kind.ToString() : null;
+                var mission = booking?.Source != BookingSource.Freelance ? null
+                : booking.FreelanceJobId is { } jobId && missions.TryGetValue(jobId, out var kind) ? kind.ToString() : "Freelance";
                 return new PublicFlightResponse(
                     p.Id,
                     booking?.Source == BookingSource.Airline ? booking.FlightNumber : null,

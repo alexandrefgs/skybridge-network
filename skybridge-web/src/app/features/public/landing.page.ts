@@ -5,6 +5,7 @@ import { interval, startWith } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { PublicFlight, PublicStats } from '../../core/public/public.models';
 import { PublicService } from '../../core/public/public.service';
+import { missionCode } from '../../shared/freelance/missions';
 
 interface BoardRow {
   id: number | null;
@@ -230,7 +231,7 @@ export class LandingPage {
   protected readonly board = computed<BoardRow[]>(() => {
     const rows: BoardRow[] = this.flights().map(f => ({
       id: f.id,
-      flight: (f.flightNumber ?? f.mission ?? 'VFR').toUpperCase(),
+      flight: f.flightNumber ?? missionCode(f.mission),
       origin: f.origin,
       destination: f.destination,
       detail: `${f.pilot} · ${f.aircraft}`,

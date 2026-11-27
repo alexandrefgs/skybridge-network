@@ -45,6 +45,12 @@ describe('LandingPage', () => {
     expect(query('board')!.querySelectorAll('li').length).toBe(5);
   });
 
+  it('labels a freelance flight whose job no longer exists', async () => {
+    await load(publicStats, [{ ...publicFlights[1], mission: 'Freelance' }]);
+
+    expect(query('board-flight-97')!.textContent).toContain('FREELANCE');
+  });
+
   it('sends signed in pilots to the cockpit', async () => {
     signInAs(['Pilot']);
     await load();

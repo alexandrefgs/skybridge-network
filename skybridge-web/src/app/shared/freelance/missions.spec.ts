@@ -1,5 +1,5 @@
 import { executiveTour, medevac } from '../../testing/freelance';
-import { expiresIn, hasDangerousGoods, hazardLabel, maxCargo, maxPassengers, missionLabel, routeOf } from './missions';
+import { expiresIn, hasDangerousGoods, hazardLabel, maxCargo, maxPassengers, missionCode, missionLabel, routeOf } from './missions';
 
 describe('missions', () => {
   const now = Date.parse('2026-11-23T12:00:00Z');
@@ -8,6 +8,13 @@ describe('missions', () => {
     expect(missionLabel('Medevac')).toBe('MEDEVAC');
     expect(missionLabel('OrganTransport')).toBe('Organ transport');
     expect(hazardLabel('FlammableLiquids')).toBe('Class 3 · Flammable liquids');
+  });
+
+  it('gives every mission a short code for the arrivals board', () => {
+    expect(missionCode('Medevac')).toBe('MEDEVAC');
+    expect(missionCode('AirTaxi')).toBe('AIR TAXI');
+    expect(missionCode('Freelance')).toBe('FREELANCE');
+    expect(missionCode(null)).toBe('FREELANCE');
   });
 
   it('formats the time left', () => {

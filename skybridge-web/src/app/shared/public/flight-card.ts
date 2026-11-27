@@ -50,7 +50,7 @@ export class FlightCard {
   protected readonly operation = computed(() => {
     const flight = this.flight();
     if (flight.airline) return flight.airline;
-    return flight.mission ? `${missionLabel(flight.mission as FreelanceJobKind)} · freelance` : 'Freelance';
+    return flight.mission && flight.mission !== 'Freelance' ? `${missionLabel(flight.mission as FreelanceJobKind)} · freelance` : 'Freelance';
   });
   protected readonly duration = computed(() => durationLabel(this.flight().flightMinutes));
 }

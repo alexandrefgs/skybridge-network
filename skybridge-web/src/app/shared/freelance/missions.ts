@@ -31,6 +31,25 @@ export function missionLabel(kind: FreelanceJobKind): string {
   return MISSION_KINDS.find(k => k.value === kind)?.label ?? kind;
 }
 
+const MISSION_CODES: Record<string, string> = {
+  Passengers: 'PAX',
+  Cargo: 'CARGO',
+  Charter: 'CHARTER',
+  Executive: 'EXEC',
+  Medevac: 'MEDEVAC',
+  Repatriation: 'REPAT',
+  Humanitarian: 'HUMANITAR',
+  Ferry: 'FERRY',
+  OrganTransport: 'ORGAN',
+  AirTaxi: 'AIR TAXI',
+  SportsTeam: 'SPORTS',
+  Skydiving: 'SKYDIVING'
+};
+
+export function missionCode(kind: string | null): string {
+  return (kind && MISSION_CODES[kind]) || 'FREELANCE';
+}
+
 export function hazardLabel(hazard: DangerousGoodClass): string {
   const entry = HAZARD_CLASSES.find(h => h.value === hazard);
   return entry ? `Class ${entry.code} · ${entry.label}` : hazard;
