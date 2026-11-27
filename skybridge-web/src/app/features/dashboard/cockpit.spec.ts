@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component, input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Booking } from '../../core/bookings/booking.models';
@@ -7,6 +8,12 @@ import { Pilot } from '../../core/pilot/pilot.models';
 import { emptyLogbook, monthLogbook, transactions } from '../../testing/dashboard';
 import { acceptedMedevac, bookedGolFlight, golOfp, pilotAtFlorianopolis } from '../../testing/freelance';
 import { Cockpit } from './cockpit';
+import { LiveCard } from './live-card';
+
+@Component({ selector: 'sb-live-card', template: '' })
+class LiveCardStub {
+  readonly pilot = input<Pilot | null>(null);
+}
 
 describe('Cockpit', () => {
   let fixture: ComponentFixture<Cockpit>;
@@ -16,7 +23,8 @@ describe('Cockpit', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] })
+      .overrideComponent(Cockpit, { remove: { imports: [LiveCard] }, add: { imports: [LiveCardStub] } });
     http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(Cockpit);
     fixture.componentRef.setInput('firstName', 'Alexandre');
@@ -46,6 +54,13 @@ describe('Cockpit', () => {
     expect(query('active-flight')!.textContent).toContain('No active flight.');
     expect(query('recent-transactions')!.textContent).toContain('+$4,500');
     expect(query('recent-flights')!.querySelectorAll('tbody tr').length).toBe(3);
+  });
+  
+  it('shows the pilots in the air with the pilot ids', async () => {
+    await load(veteran, null);
+
+    const card = fixture.debugElement.query(e => e.name === 'sb-live-card').componentInstance as LiveCardStub;
+    expect(card.pilot()?.vatsimId).toBe(1234567);
   });
 
   it('shows the active flight and what it needs next', async () => {

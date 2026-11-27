@@ -22,4 +22,10 @@ describe('PublicService', () => {
     expect(http.expectOne('/api/public/stats').request.method).toBe('GET');
     expect(http.expectOne(r => r.url === '/api/public/flights').request.params.get('count')).toBe('4');
   });
+
+  it('loads the live map', () => {
+    service.live().subscribe();
+
+    expect(http.expectOne('/api/public/live').request.method).toBe('GET');
+  });
 });

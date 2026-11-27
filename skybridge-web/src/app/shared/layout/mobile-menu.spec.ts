@@ -39,6 +39,7 @@ describe('MobileMenu', () => {
 
     expect(query('mobile-menu')!.textContent).toContain('Operations');
     expect(query('mobile-menu')!.textContent).toContain('Regulations');
+    expect(query('mobile-menu')!.textContent).toContain('Live map');
     expect(query('m-register')!.getAttribute('href')).toBe('/register');
     expect(query('mobile-menu-toggle')!.getAttribute('aria-expanded')).toBe('true');
   });
@@ -56,6 +57,7 @@ describe('MobileMenu', () => {
     expect(query('mobile-menu')!.textContent).toContain('Bia Costa');
     expect(query('mobile-menu')!.textContent).toContain('Cockpit');
     expect(query('m-admin')).not.toBeNull();
+    expect(query('m-live')!.getAttribute('href')).toBe('/live');
 
     query('m-logout')!.click();
     await fixture.whenStable();

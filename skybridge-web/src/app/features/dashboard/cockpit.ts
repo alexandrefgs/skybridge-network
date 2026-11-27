@@ -11,13 +11,14 @@ import { PirepService } from '../../core/pireps/pirep.service';
 import { bookingRoute } from '../../shared/flights/booking-legs';
 import { PirepStatusBadge } from '../../shared/flights/pirep-status';
 import { durationLabel } from '../../shared/time/utc';
+import { LiveCard } from './live-card';
 import { NETWORK_PROMPT_KEY, NetworkPrompt } from './network-prompt';
 
 const RECENT = 5;
 
 @Component({
   selector: 'sb-cockpit',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, PirepStatusBadge, NetworkPrompt],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, PirepStatusBadge, NetworkPrompt, LiveCard],
   template: `
     @if (askNetworks()) {
       <sb-network-prompt (saved)="pilot.set($event); askNetworks.set(false)" (dismissed)="askNetworks.set(false)" />
@@ -56,6 +57,8 @@ const RECENT = 5;
         </dd>
       </div>
     </dl>
+
+    <sb-live-card class="mt-6 block" [pilot]="pilot()" />
 
     <div class="mt-6 grid gap-6 lg:grid-cols-2">
       <section class="sb-card p-6" data-testid="active-flight">

@@ -39,6 +39,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/public/flights.page').then(m => m.FlightsPage)
   },
   {
+    path: 'live',
+    title: 'Live map · SkyBridge',
+    loadComponent: () => import('./features/public/live.page').then(m => m.LivePage)
+  },
+  {
     path: 'cockpit',
     title: 'Cockpit · SkyBridge',
     canActivate: [authGuard],

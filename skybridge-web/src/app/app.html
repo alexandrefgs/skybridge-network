@@ -12,6 +12,7 @@
           <sb-nav-dropdown label="Pilot" testId="nav-pilot" [items]="pilotItems" />
           <a routerLink="/freelance" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-freelance">Freelance</a>
           <a routerLink="/airlines" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-airlines">Airlines</a>
+          <a routerLink="/live" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-live">Live<span class="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle"></span></a>
           @if (auth.isStaff()) {
             <a routerLink="/admin" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-admin">Admin</a>
           }
@@ -20,6 +21,7 @@
           <a routerLink="/about" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-public-about">About</a>
           <a routerLink="/operations" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-public-operations">Operations</a>
           <a routerLink="/flights" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-public-flights">Flights</a>
+          <a routerLink="/live" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-public-live">Live<span class="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle"></span></a>
           <a routerLink="/staff" routerLinkActive="text-primary" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground" data-testid="nav-public-staff">Staff</a>
           <a routerLink="/login" class="rounded-md px-3 py-1.5 text-muted transition-colors hover:text-foreground">Sign in</a>
           <a routerLink="/register" class="rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground transition-colors hover:bg-primary-hover">Create account</a>

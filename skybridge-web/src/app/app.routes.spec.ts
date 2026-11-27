@@ -14,7 +14,7 @@ describe('routes', () => {
     expect(route?.canActivate).toEqual([authGuard, staffGuard]);
   });
   
-  it.each(['', 'about', 'operations', 'flights'])('keeps /%s open to visitors', path => {
+  it.each(['', 'about', 'operations', 'flights', 'live'])('keeps /%s open to visitors', path => {
     expect(routes.find(r => r.path === path)?.canActivate).toBeUndefined();
   });
 });
