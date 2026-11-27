@@ -14,6 +14,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/public/about.page').then(m => m.AboutPage)
   },
   {
+    path: 'staff',
+    title: 'Staff · SkyBridge',
+    loadComponent: () => import('./features/public/staff.page').then(m => m.StaffPage)
+  },
+  {
     path: 'operations',
     title: 'Operations · SkyBridge',
     loadComponent: () => import('./features/public/operations.page').then(m => m.OperationsPage)
@@ -141,6 +146,10 @@ export const routes: Routes = [
       {
         path: 'pireps',
         loadComponent: () => import('./features/admin/admin-pireps.page').then(m => m.AdminPirepsPage)
+      },
+      {
+        path: 'staff',
+        loadComponent: () => import('./features/admin/admin-staff.page').then(m => m.AdminStaffPage)
       }
     ]
   },

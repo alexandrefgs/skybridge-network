@@ -19,6 +19,7 @@ using SkyBridge.Application.Pilots;
 using SkyBridge.Application.Pireps;
 using SkyBridge.Application.Profile;
 using SkyBridge.Application.Public;
+using SkyBridge.Application.Staff;
 using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Auth;
 using SkyBridge.Infrastructure.Identity;
@@ -30,6 +31,7 @@ using SkyBridge.Infrastructure.Pireps;
 using SkyBridge.Infrastructure.Pilots;
 using SkyBridge.Infrastructure.Profile;
 using SkyBridge.Infrastructure.Public;
+using SkyBridge.Infrastructure.Staff;
 
 namespace SkyBridge.Infrastructure;
 
@@ -143,6 +145,8 @@ public static class DependencyInjection
         services.AddSingleton<IOnlineNetworks, OnlineNetworks>();
         
         services.AddScoped<IPublicQueries, PublicQueries>();
+        
+        services.AddScoped<IStaffDirectory, StaffDirectory>();
 
         services.AddHealthChecks().AddDbContextCheck<SkyBridgeDbContext>();
 

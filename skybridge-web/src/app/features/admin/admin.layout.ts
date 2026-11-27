@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'sb-admin-layout',
@@ -9,7 +10,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
     <h1 class="mt-1 font-display text-3xl font-bold">Admin</h1>
 
     <nav class="mt-6 flex gap-1 border-b border-line text-sm" data-testid="admin-tabs">
-      @for (tab of tabs; track tab.path) {
+      @for (tab of tabs(); track tab.path) {
         <a [routerLink]="tab.path" routerLinkActive="!border-primary !text-foreground"
           class="-mb-px border-b-2 border-transparent px-4 py-2 text-muted transition-colors hover:text-foreground">{{ tab.label }}</a>
       }
@@ -21,12 +22,20 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   `
 })
 export class AdminLayout {
-  protected readonly tabs = [
+  private readonly auth = inject(AuthService);
+
+  private readonly allTabs = [
     { path: 'categories', label: 'Categories' },
     { path: 'aircraft-types', label: 'Aircraft types' },
     { path: 'airlines', label: 'Airlines' },
     { path: 'airports', label: 'Airports' },
     { path: 'freelance', label: 'Freelance' },
-    { path: 'pireps', label: 'PIREPs' }
+    { path: 'pireps', label: 'PIREPs' },
+    { path: 'staff', label: 'Staff', adminOnly: true }
   ];
+
+  protected readonly tabs = computed(() => {
+    const isAdmin = this.auth.roles().includes('Admin');
+    return this.allTabs.filter(tab => !tab.adminOnly || isAdmin);
+  });
 }

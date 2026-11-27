@@ -10,6 +10,7 @@ using SkyBridge.Domain.Freelance;
 using SkyBridge.Domain.Pilots;
 using SkyBridge.Domain.Pireps;
 using SkyBridge.Domain.Routes;
+using SkyBridge.Domain.Staff;
 using SkyBridge.Infrastructure.Identity;
 
 namespace SkyBridge.Infrastructure.Persistence;
@@ -30,6 +31,7 @@ public class SkyBridgeDbContext(DbContextOptions<SkyBridgeDbContext> options)
     public DbSet<Pirep> Pireps => Set<Pirep>();
     public DbSet<FlightPlan> FlightPlans => Set<FlightPlan>();
     public DbSet<PilotTransaction> PilotTransactions => Set<PilotTransaction>();
+    public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -1017,6 +1017,33 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.ToTable("RouteAircraft");
                 });
 
+            modelBuilder.Entity("SkyBridge.Domain.Staff.StaffMember", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Department")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("JoinedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("PanelAccess")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("StaffMembers");
+                });
+
             modelBuilder.Entity("SkyBridge.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1412,6 +1439,15 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.HasOne("SkyBridge.Domain.Routes.Route", null)
                         .WithMany("Aircraft")
                         .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SkyBridge.Domain.Staff.StaffMember", b =>
+                {
+                    b.HasOne("SkyBridge.Infrastructure.Identity.ApplicationUser", null)
+                        .WithOne()
+                        .HasForeignKey("SkyBridge.Domain.Staff.StaffMember", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

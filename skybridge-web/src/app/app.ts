@@ -20,6 +20,7 @@ export class App {
     { label: 'About', link: '/about', description: 'Who we are and how SkyBridge works' },
     { label: 'Operations', link: '/operations', description: 'Our numbers, updated every minute' },
     { label: 'Last flights', link: '/flights', description: 'The latest flights of the crew' },
+    { label: 'Staff', link: '/staff', description: 'The team that keeps SkyBridge flying' },
     { label: 'Airports', link: '/airports', description: 'Every airport and its runways' },
     { label: 'Aircraft', link: '/aircraft', description: 'Types, categories and hours to unlock' }
   ];

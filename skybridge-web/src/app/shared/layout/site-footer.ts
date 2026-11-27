@@ -26,6 +26,7 @@ import { ClientConfigService } from '../../core/config/client-config.service';
             <li><a routerLink="/operations" class="hover:text-primary">Our numbers</a></li>
             <li><a routerLink="/flights" class="hover:text-primary">Last flights</a></li>
             <li><a routerLink="/about" class="hover:text-primary">About us</a></li>
+            <li><a routerLink="/staff" class="hover:text-primary">Our staff</a></li>
           </ul>
         </div>
         <div>
