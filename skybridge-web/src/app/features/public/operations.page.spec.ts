@@ -7,8 +7,7 @@ import { OperationsPage } from './operations.page';
 describe('OperationsPage', () => {
   let fixture: ComponentFixture<OperationsPage>;
   let http: HttpTestingController;
-  const digits = (id: string) =>
-    (fixture.nativeElement.querySelector(`[data-testid="${id}"]`) as HTMLElement).textContent!.replace(/\s/g, '');
+  const text = (id: string) => (fixture.nativeElement.querySelector(`[data-testid="${id}"]`) as HTMLElement).textContent!.trim();
 
   beforeEach(async () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
@@ -19,24 +18,26 @@ describe('OperationsPage', () => {
 
   afterEach(() => http.verify());
 
-  it('shows every number with flip digits', async () => {
+  it('shows every number, the radar and the checklist', async () => {
     http.expectOne('/api/public/stats').flush(publicStats);
     await fixture.whenStable();
 
-    expect(digits('total-flights')).toBe('001284');
-    expect(digits('online-vatsim')).toBe('012');
-    expect(digits('online-ivao')).toBe('005');
-    expect(digits('month-flights')).toBe('097');
-    expect(digits('aircraft-count')).toBe('058');
-    expect(digits('destinations')).toBe('214');
-    expect(digits('highlights')).toContain('236pilots');
+    expect(text('total-flights')).toBe('1,284');
+    expect(text('online-vatsim')).toBe('12');
+    expect(text('online-ivao')).toBe('5');
+    expect(text('month-flights')).toBe('97');
+    expect(text('aircraft-count')).toBe('58');
+    expect(text('destinations')).toBe('214');
+    expect(text('checklist')).toContain('236 pilots in the crew');
+    expect(fixture.nativeElement.querySelectorAll('[data-testid="radar-card"] circle.fill-primary').length).toBe(12);
+    expect(text('live')).not.toContain('--:--');
   });
 
-  it('shows dashes for a network that is down', async () => {
+  it('shows a dash for a network that is down', async () => {
     http.expectOne('/api/public/stats').flush({ ...publicStats, onlineIvao: null });
     await fixture.whenStable();
 
-    expect(digits('online-ivao')).toBe('–––');
+    expect(text('online-ivao')).toBe('—');
   });
 
   it('explains when the numbers could not load', async () => {

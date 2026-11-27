@@ -27,14 +27,22 @@ describe('LandingPage', () => {
     await fixture.whenStable();
   }
 
-  it('invites visitors with the numbers, the four ways to fly and the last flights', async () => {
+  it('invites visitors with the numbers, the arrivals board and the four ways to fly', async () => {
     await load();
 
     expect(query('hero-register')!.getAttribute('href')).toBe('/register');
-    expect(query('hero-numbers')!.textContent!.replace(/\s/g, '')).toContain('097');
-    expect(query('hero-numbers')!.textContent!.replace(/\s/g, '')).toContain('017');
+    expect(query('cta-register')!.getAttribute('href')).toBe('/register');
+    expect(query('online-now')!.textContent).toContain('17');
+    expect(query('hero-numbers')!.textContent).toContain('1,284');
+    expect(query('hero-numbers')!.textContent).toContain('97');
+    expect(query('hero-numbers')!.textContent).toContain('214');
+    expect(query('hero-numbers')!.textContent).toContain('236');
     expect(query('ways')!.querySelectorAll('a').length).toBe(4);
-    expect(query('public-flight-98')!.textContent).toContain('GLO1042');
+    expect(query('board-flight-98')!.textContent).toContain('GLO1042');
+    expect(query('board-flight-98')!.textContent).toContain('SBFL');
+    expect(query('board-flight-98')!.textContent).toContain('LANDED');
+    expect(query('board-flight-97')!.textContent).toContain('MEDEVAC');
+    expect(query('board')!.querySelectorAll('li').length).toBe(5);
   });
 
   it('sends signed in pilots to the cockpit', async () => {
@@ -44,10 +52,11 @@ describe('LandingPage', () => {
     expect(query('hero-cockpit')!.getAttribute('href')).toBe('/cockpit');
   });
 
-  it('shows dashes when the networks are down and waits for the first flights', async () => {
+  it('falls back when the networks are down and waits for the first flights', async () => {
     await load({ ...publicStats, onlineVatsim: null, onlineIvao: null }, []);
 
-    expect(query('hero-numbers')!.textContent).toContain('–');
+    expect(query('online-now')!.textContent).toContain('Flying live on VATSIM');
+    expect(query('board')!.querySelectorAll('li').length).toBe(5);
     expect(query('no-public-flights')).not.toBeNull();
   });
 });
