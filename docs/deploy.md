@@ -208,13 +208,17 @@ O erro mais comum é o domínio ainda não apontar para a VPS (volte ao passo 1)
 Faça isso **só depois de confirmar** que você entra na VPS pela chave SSH sem digitar senha. Na VPS:
 
 ```bash
-cat > /etc/ssh/sshd_config.d/99-skybridge.conf <<'EOF'
+cat > /etc/ssh/sshd_config.d/01-skybridge.conf <<'EOF'
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitRootLogin prohibit-password
 EOF
+sshd -t
 systemctl restart ssh
+sshd -T | grep -iE "passwordauthentication|kbdinteractive|permitrootlogin"
 ```
+
+O nome começa com `01-` de propósito: o SSH usa o primeiro valor que encontra, e a Hostinger cria um `50-cloud-init.conf` que liga a senha. O último comando tem que mostrar `passwordauthentication no`.
 
 **Sem fechar a janela atual**, abra outro PowerShell no seu PC e teste:
 
