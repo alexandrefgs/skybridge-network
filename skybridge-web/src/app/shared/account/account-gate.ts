@@ -11,16 +11,41 @@ import { DeleteAccountForm } from './delete-account-form';
 const REACTIVATION_MS = 10 * 60 * 1000;
 
 const PREPARATION_STEPS = [
-  { label: 'Finding your logbook in the archive', at: 0.1 },
-  { label: 'Refuelling and pre-flighting your aircraft', at: 0.35 },
-  { label: 'Checking your licences and ratings', at: 0.6 },
-  { label: 'Updating charts and NOTAMs', at: 0.85 },
+  { label: 'Restoring logbook and flight hours', at: 0.1 },
+  { label: 'Pre-flighting your aircraft', at: 0.35 },
+  { label: 'Verifying licences and ratings', at: 0.6 },
+  { label: 'Loading charts and NOTAMs', at: 0.85 },
   { label: 'Cleared for departure', at: 1 }
 ];
 
 @Component({
   selector: 'sb-account-gate',
   imports: [DatePipe, DeleteAccountForm],
+  styles: `
+    .hud {
+      background-image:
+        linear-gradient(to right, color-mix(in srgb, var(--sb-foreground) 4%, transparent) 1px, transparent 1px),
+        linear-gradient(to bottom, color-mix(in srgb, var(--sb-foreground) 4%, transparent) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .tick { stroke: var(--sb-line); transition: stroke 0.4s; }
+    .tick.lit { stroke: var(--sb-primary); }
+    .spin { transform-origin: 120px 120px; animation: spin 8s linear infinite; }
+    .blink { animation: blink 1s steps(2, start) infinite; }
+    .scan { position: relative; }
+    .scan::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 30%;
+      background: linear-gradient(90deg, transparent, var(--sb-primary), transparent);
+      animation: scan 1.6s ease-in-out infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes blink { to { visibility: hidden; } }
+    @keyframes scan { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+    @media (prefers-reduced-motion: reduce) { .spin, .blink, .scan::after { animation: none; } }
+  `,
   template: `
     @switch (view()) {
       @case ('inactive') {
@@ -39,22 +64,54 @@ const PREPARATION_STEPS = [
       }
       @case ('reactivating') {
         <div class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-background/95 p-6 backdrop-blur" data-testid="gate-reactivating">
-          <div class="w-full max-w-lg rounded-2xl border border-line bg-surface p-8 shadow-2xl">
-            <p class="font-mono text-xs tracking-[0.25em] text-primary">PREPARING YOUR ACCOUNT</p>
-            <p class="mt-4 font-mono text-6xl font-bold tabular-nums" data-testid="countdown">{{ countdown() }}</p>
-            <div class="mt-5 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
-              <div class="h-full rounded-full bg-primary transition-[width] duration-1000 ease-linear" [style.width.%]="progress() * 100"></div>
+          <div class="hud relative w-full max-w-3xl overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
+            <div class="flex items-center justify-between border-b border-line px-6 py-3 font-mono text-[11px] tracking-[0.2em]">
+              <span class="flex items-center gap-2 text-primary"><span class="h-2 w-2 animate-pulse rounded-full bg-primary"></span>ACCOUNT RECOVERY</span>
+              <span class="text-muted">SEQ {{ currentStep() }}/{{ steps().length }}</span>
             </div>
-            <ol class="mt-6 space-y-2 text-sm">
-              @for (step of steps(); track step.label) {
-                <li class="flex items-center gap-3" [class.text-muted]="!step.done">
-                  <span class="grid h-5 w-5 place-items-center rounded-full border text-[10px]"
-                    [class]="step.done ? 'border-primary bg-primary text-primary-foreground' : 'border-line'">{{ step.done ? '✓' : '' }}</span>
-                  {{ step.label }}
-                </li>
-              }
-            </ol>
-            <p class="mt-6 text-xs text-muted">You can leave this page open. We will take you to your cockpit when it is ready.</p>
+
+            <div class="grid items-center gap-8 p-6 sm:grid-cols-[15rem_1fr] sm:p-8">
+              <div class="relative mx-auto h-60 w-60">
+                <svg class="h-full w-full" viewBox="0 0 240 240" aria-hidden="true">
+                  @for (tick of ticks(); track tick.index) {
+                    <line x1="120" y1="6" x2="120" [attr.y2]="tick.index % 5 === 0 ? 20 : 15" [attr.transform]="'rotate(' + tick.index * 6 + ' 120 120)'"
+                      stroke-width="2" stroke-linecap="round" [attr.class]="tick.lit ? 'tick lit' : 'tick'" />
+                  }
+                  <circle cx="120" cy="120" r="88" fill="none" class="stroke-line" stroke-width="2" />
+                  <circle cx="120" cy="120" r="88" fill="none" class="stroke-primary transition-[stroke-dashoffset] duration-1000 ease-linear" stroke-width="4" transform="rotate(-90 120 120)"
+                    stroke-linecap="round" [attr.stroke-dasharray]="ring" [attr.stroke-dashoffset]="ring * (1 - progress())" />
+                  <circle cx="120" cy="120" r="74" fill="none" class="spin stroke-primary/40" stroke-width="1.5" stroke-dasharray="4 10" />
+                </svg>
+                <div class="absolute inset-0 grid place-items-center text-center">
+                  <div>
+                    <p class="font-mono text-[10px] tracking-[0.3em] text-muted">T-MINUS</p>
+                    <p class="font-mono text-5xl font-bold tabular-nums tracking-tight" data-testid="countdown">{{ countdown() }}</p>
+                    <p class="mt-1 font-mono text-xs tabular-nums text-primary" data-testid="percent">{{ percent() }}%</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="min-w-0">
+                <p class="font-mono text-[10px] tracking-[0.3em] text-muted">PREPARING YOUR ACCOUNT</p>
+                <ol class="mt-4 space-y-2.5 font-mono text-xs sm:text-sm">
+                  @for (step of steps(); track step.label) {
+                    <li class="flex items-start gap-3" [class.text-muted]="!step.done && !step.current">
+                      <span class="w-14 shrink-0 text-[11px]" [class.text-primary]="step.done || step.current">
+                        @if (step.done) { [ OK ] } @else if (step.current) { [<span class="blink">..</span>] } @else { [ -- ] }
+                      </span>
+                      <span>{{ step.label }}</span>
+                    </li>
+                  }
+                </ol>
+                <div class="mt-6">
+                  <div class="flex justify-between font-mono text-[10px] tracking-[0.2em] text-muted">
+                    <span>SYNC WITH SKYBRIDGE OPS</span><span class="blink">▮</span>
+                  </div>
+                  <div class="scan mt-2 h-1 overflow-hidden rounded-full bg-surface-2"></div>
+                </div>
+                <p class="mt-6 text-xs text-muted">You can leave this page open. We will take you to your cockpit when it is ready.</p>
+              </div>
+            </div>
           </div>
         </div>
       }
@@ -146,7 +203,20 @@ export class AccountGate {
   });
 
   protected readonly progress = computed(() => Math.min(1, Math.max(0, 1 - this.remainingMs() / REACTIVATION_MS)));
-  protected readonly steps = computed(() => PREPARATION_STEPS.map(step => ({ label: step.label, done: this.progress() >= step.at })));
+  protected readonly steps = computed(() => {
+    const progress = this.progress();
+    const current = PREPARATION_STEPS.findIndex(step => progress < step.at);
+    return PREPARATION_STEPS.map((step, index) => ({ label: step.label, done: progress >= step.at, current: index === current }));
+  });
+
+  protected readonly currentStep = computed(() => {
+    const index = this.steps().findIndex(step => step.current);
+    return index === -1 ? this.steps().length : index + 1;
+  });
+
+  protected readonly percent = computed(() => (this.progress() * 100).toFixed(1));
+  protected readonly ticks = computed(() => Array.from({ length: 60 }, (_, index) => ({ index, lit: index < Math.round(this.progress() * 60) })));
+  protected readonly ring = 2 * Math.PI * 88;
 
   constructor() {
     effect(() => {

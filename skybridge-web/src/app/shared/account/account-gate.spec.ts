@@ -87,6 +87,8 @@ describe('AccountGate', () => {
 
     expect(query('gate-reactivating')).not.toBeNull();
     expect(['10:00', '09:59']).toContain(query('countdown')!.textContent!.trim());
+    expect(query('percent')!.textContent).toContain('0.0%');
+    expect(query('gate-reactivating')!.textContent).toContain('SEQ 1/5');
   });
 
   it('takes the pilot to the cockpit when the account is ready', async () => {
