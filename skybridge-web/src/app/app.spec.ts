@@ -28,6 +28,24 @@ describe('App', () => {
     expect(icon.getAttribute('src')).toBe('favicon.svg');
   });
 
+  it('links the brand to the landing page for guests', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('[data-testid="brand"]').getAttribute('href')).toBe('/');
+  });
+
+  it('links the brand to the cockpit when signed in', async () => {
+    signInAs(['Pilot']);
+    const fixture = TestBed.createComponent(App);
+    const http = TestBed.inject(HttpTestingController);
+    TestBed.tick();
+    http.expectOne('/api/auth/me').flush({
+      id: '1', email: 'ana@skybridge.test', firstName: 'Ana', lastName: 'Silva', twoFactorEnabled: false, roles: ['Pilot']
+    });
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('[data-testid="brand"]').getAttribute('href')).toBe('/cockpit');
+  });
+
   it('shows sign in links and hides the catalog for guests', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
