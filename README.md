@@ -6,7 +6,13 @@
 
 **Plataforma arcade de aviação virtual: companhias reais, freelance e voos executivos, do Cessna 172 ao 777.**
 
+### ✈️ [flyskybridge.tech](https://flyskybridge.tech)
+
 `Callsign: SKB` · `Site em inglês` · `Qualquer simulador, online ou offline`
+
+[![CI](https://github.com/alexandrefgs/skybridge-network/actions/workflows/ci.yml/badge.svg)](https://github.com/alexandrefgs/skybridge-network/actions/workflows/ci.yml)
+[![Site](https://img.shields.io/badge/site-flyskybridge.tech-EF233C)](https://flyskybridge.tech)
+[![Discord](https://img.shields.io/badge/Discord-SkyBridge-5865F2?logo=discord&logoColor=white)](https://discord.gg/mKTSjZntJ4)
 
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-Web_API-512BD4?logo=dotnet&logoColor=white)
@@ -14,8 +20,10 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-EF_Core_10-CC2927?logo=microsoftsqlserver&logoColor=white)
 ![Leaflet](https://img.shields.io/badge/Leaflet-CARTO-199900?logo=leaflet&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-xUnit_%7C_Vitest-EF233C)
-![Status](https://img.shields.io/badge/status-rumo_à_v1.0-EF233C)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Caddy](https://img.shields.io/badge/Caddy-HTTPS-1F88C0?logo=caddy&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-647_passing-10B981)
+![Status](https://img.shields.io/badge/status-v1.0_no_ar-EF233C)
 
 ![SkyBridge Network](docs/screenshots/landing.png)
 
@@ -35,9 +43,10 @@
 - [Identidade visual](#identidade-visual)
 - [Stack](#stack)
 - [Arquitetura](#arquitetura)
+- [Produção](#produção)
 - [Estrutura de pastas](#estrutura-de-pastas)
 - [Como rodar o projeto](#como-rodar-o-projeto)
-- [Testes](#testes)
+- [Testes e CI](#testes-e-ci)
 - [Créditos dos dados](#créditos-dos-dados)
 - [Roadmap](#roadmap)
 - [Autor](#autor)
@@ -54,6 +63,8 @@ O **SkyBridge Network** é uma companhia aérea virtual para pilotos de simulado
 - **Linhas aéreas:** rotas reais das companhias. As brasileiras vêm do **RPL do CGNA**, e o pagamento é por hora de voo.
 
 As horas de voo liberam categorias maiores de aeronave, do pistão ao widebody. O piloto voa em **qualquer simulador** (MSFS 2020/2024, X-Plane, Prepar3D), **online na VATSIM ou IVAO ou offline**, planeja com o **SimBrief** e reporta cada perna com um **PIREP** revisado pelo staff.
+
+O site está no ar em **[flyskybridge.tech](https://flyskybridge.tech)**, e a comunidade se encontra no **[Discord](https://discord.gg/mKTSjZntJ4)**.
 
 ---
 
@@ -78,15 +89,16 @@ As horas de voo liberam categorias maiores de aeronave, do pistão ao widebody. 
 ### Site público
 - **Landing** com painel de chegadas no estilo *split-flap* mostrando os últimos voos aceitos, números da VA e os quatro caminhos de carreira.
 - **Operations:** total de voos, voos do mês, frota, destinos e um **radar** com os pilotos SkyBridge online agora na **VATSIM** e na **IVAO** (feeds públicos, cache de 1 minuto).
-- **Last flights**, **About**, **Staff** (crachás por setor com voos e horas) e rodapé com Discord, Instagram, Regulations e Privacy.
+- **Last flights**, **About**, **Staff** (crachás por setor com voos e horas) e rodapé com Discord, Regulations e Privacy.
+- **Responsivo**, com menu mobile em tela cheia no celular.
 
 ### Piloto
-- **Cockpit:** horas, saldo, voos, média de pouso, voo ativo, carteira e voos recentes.
+- **Cockpit:** horas, saldo, voos, média de pouso, voo ativo, carteira e voos recentes. Para quem está logado, o logo do site leva direto para cá.
 - **Jumpseat** para trocar de aeroporto, e reserva de **um voo ativo por vez**.
 - **Freelance:** quadro de missões a partir do aeroporto atual, com briefing, passageiros, carga, **carga perigosa (classe ONU)**, aeronaves permitidas e validade.
 - **Linhas aéreas:** reserva das rotas reais, podendo voar **qualquer aeronave da mesma família** que a companhia opera (ex.: 737-700/800/MAX, família A320).
 - **SimBrief:** importa o OFP completo (combustível, pesos, METAR/TAF, alternado, navlog, plano ATC) e mostra no layout do site.
-- **PIREP** por perna, com verificação automática de tempos e **pagamento** (por hora na linha aérea, recompensa fixa no freelance).
+- **PIREP** por perna, com verificação automática de tempos e **pagamento** (por hora na linha aérea, recompensa fixa no freelance). O conversor de combustível usa **AVGAS** nas aeronaves a pistão e **JET** nas demais.
 - **Logbook** com mapa dos voos e filtros (30 dias, 1 ano, tudo) e **Wallet** com o extrato.
 - **Perfil:** foto, SimBrief Pilot ID, **VATSIM CID / IVAO VID** (pedidos no primeiro acesso), 2FA e exclusão da conta.
 
@@ -140,7 +152,7 @@ As horas e os valores são editáveis pelo staff.
 
 - **Regulations** e **Privacy Policy** versionadas. Quando a versão muda, o piloto vê um popup com o que mudou e escolhe **aceitar** ou **recusar**. Recusar leva à exclusão da conta, com confirmação.
 - Idade mínima de **16 anos**.
-- **Inatividade:** depois de 60 dias sem acesso, a conta fica inativa. A reativação é gratuita e leva 10 minutos, com contagem regressiva controlada pelo servidor.
+- **Inatividade:** depois de 60 dias sem acesso, a conta fica inativa. A reativação é gratuita e leva 10 minutos, com contagem regressiva controlada pelo servidor. Enquanto isso, a **API bloqueia** tudo o que não for conta, login ou configuração.
 - **Retenção:** contas sem atividade por 12 meses são excluídas por um serviço em segundo plano.
 - **Exclusão de conta** a qualquer momento, com senha e confirmação, apagando todos os dados (LGPD, art. 18, VI e IX).
 - Sem Google Analytics, anúncios ou cookies de rastreamento. Terceiros: SimBrief, CARTO/OpenStreetMap, VATSIM e IVAO.
@@ -150,10 +162,13 @@ As horas e os valores são editáveis pelo staff.
 ## Segurança
 
 - **ASP.NET Core Identity** com **JWT** e roles `Pilot`, `Staff` e `Admin`.
-- **Bloqueio** da conta após 5 tentativas erradas.
+- **Bloqueio** da conta após 5 tentativas erradas e **rate limit** de 10 requisições por minuto, por IP, em cadastro e login.
 - **2FA** com app autenticador (TOTP), QR code e **códigos de recuperação**; login com seis caixas que aceitam colar e preenchimento automático.
 - O token do segundo passo expira em poucos minutos e cai quando o security stamp muda.
-- **Segredos nunca vão para o repositório:** senha do admin, chave da CARTO e chave JWT de produção ficam em **user-secrets** (ou variáveis de ambiente em produção).
+- **Segredos nunca vão para o repositório:** em desenvolvimento ficam nos **user-secrets**; em produção, num `.env` que só existe no servidor (o repositório tem apenas o `.env.example`).
+- Chaves do **Data Protection** persistidas em volume, para logins e 2FA sobreviverem a atualizações.
+- Em produção: **HTTPS** automático com HSTS, firewall liberando só SSH, 80 e 443, **SSH só por chave** e banco sem porta exposta.
+- Chaves da **CARTO** separadas para desenvolvimento (`localhost`) e produção (restrita ao domínio).
 
 ---
 
@@ -198,6 +213,13 @@ As horas e os valores são editáveis pelo staff.
 - xUnit + WebApplicationFactory + **Testcontainers** (SQL Server em Docker)
 - Vitest + jsdom no front
 
+**Produção**
+- Docker (imagem multi-stage) e Docker Compose
+- Caddy (proxy reverso e HTTPS automático com Let's Encrypt)
+- SQL Server 2022 Express em container, com backup diário
+- VPS Ubuntu 24.04 (Hostinger, Campinas)
+- GitHub Actions (CI)
+
 **Integrações**
 - **SimBrief** (OFP), **VATSIM** e **IVAO** (pilotos online), **OurAirports**, **OpenFlights**, **CGNA/DECEA** (RPL), **CARTO** e **OpenStreetMap**
 
@@ -224,7 +246,39 @@ flowchart LR
 | **Domain** | Entidades e regras: aeroportos e pistas, aeronaves e famílias, companhias e rotas, reservas, missões freelance, planos de voo, PIREPs, pilotos, staff e atividade da conta |
 | **Application** | Contratos, `Result<T>`, buscas paginadas, catálogo do regulamento e interfaces dos casos de uso |
 | **Infrastructure** | DbContext, migrations, Identity e JWT, 2FA, seed, importadores, SimBrief, feeds da VATSIM/IVAO e o serviço de retenção |
-| **Api** | Endpoints HTTP, autorização por role, tratamento de erros, opções do site e Swagger |
+| **Api** | Endpoints HTTP, autorização por role, filtro de conta inativa, rate limit, opções do site e Swagger; em produção, também serve o site Angular |
+
+---
+
+## Produção
+
+O site roda numa VPS com quatro containers do `docker-compose.yml`. Em produção, a **API serve o próprio site Angular**, então front e API ficam na mesma origem, sem CORS.
+
+```mermaid
+flowchart LR
+    USER(["Piloto"]) -->|HTTPS 443| CADDY["caddy<br/>Let's Encrypt"]
+    CADDY --> APP["app<br/>ASP.NET Core + Angular"]
+    APP --> DB[("db<br/>SQL Server Express")]
+    BACKUP["backup<br/>diário, 7 dias"] --> DB
+    APP -.-> EXT["SimBrief · VATSIM · IVAO<br/>OurAirports · OpenFlights"]
+```
+
+| Container | O que faz |
+|---|---|
+| `caddy` | Único exposto na internet; gera e renova o certificado HTTPS e redireciona o `www` |
+| `app` | API + site, rodando como usuário sem privilégios; aplica as migrations na subida |
+| `db` | SQL Server 2022 Express, acessível só pela rede interna do Docker |
+| `backup` | `BACKUP DATABASE` uma vez por dia, guardando os últimos 7 dias |
+
+O passo a passo completo, do servidor zerado até o site no ar (DNS, firewall, segredos, SSH, atualização e restauração de backup), está em **[docs/deploy.md](docs/deploy.md)**.
+
+Para atualizar o site depois de um push:
+
+```bash
+cd /opt/skybridge
+git pull
+docker compose up -d --build
+```
 
 ---
 
@@ -248,7 +302,13 @@ skybridge-network/
 │                                  # airports, aircraft, account, legal, auth e admin
 ├── docs/
 │   ├── brand/                     # logo
-│   └── screenshots/               # prints do README
+│   ├── screenshots/               # prints do README
+│   └── deploy.md                  # guia de deploy na VPS
+├── .github/workflows/ci.yml       # CI: testes da API, do front e build da imagem
+├── Dockerfile                     # imagem de produção (Angular + .NET)
+├── docker-compose.yml             # caddy, app, db e backup
+├── Caddyfile                      # HTTPS e redirecionamento do www
+├── .env.example                   # modelo dos segredos de produção
 ├── SkyBridge.slnx
 └── package.json                   # scripts para rodar API + front juntos
 ```
@@ -305,11 +365,11 @@ dotnet user-secrets set "Maps:CartoApiKey" "SUA_CHAVE_DA_CARTO" --project src/Sk
 ```json
 "Site": {
   "ContactEmail": null,
-  "DiscordUrl": "https://discord.gg/SEU-CONVITE",
-  "InstagramUrl": "https://instagram.com/SEU-PERFIL"
+  "DiscordUrl": "https://discord.gg/mKTSjZntJ4",
+  "InstagramUrl": null
 }
 ```
-Enquanto o `ContactEmail` estiver vazio, as páginas de Regulations e Privacy indicam o Discord como contato.
+Um link `null` esconde o ícone no rodapé. Enquanto o `ContactEmail` estiver vazio, as páginas de Regulations e Privacy indicam o Discord como contato.
 
 **6. Confie no certificado HTTPS de desenvolvimento** (uma vez só)
 ```bash
@@ -343,17 +403,25 @@ Na **primeira execução**, a API aplica as migrations e o seed (roles, categori
 
 ---
 
-## Testes
+## Testes e CI
 
 ```bash
 npm test
 ```
 
+| Suíte | Testes |
+|---|---:|
+| .NET (unidade + integração) | 346 |
+| Front (Vitest) | 301 |
+
 - **Unidade (xUnit):** regras do Domain (aeronaves, pistas, reservas, PIREPs, staff, atividade da conta), leitores de CSV/RPL/OpenFlights, parser do SimBrief e dos feeds da VATSIM/IVAO.
 - **Integração (xUnit + Testcontainers):** a API inteira contra um SQL Server real em Docker, cobrindo autenticação, 2FA, reservas, freelance, PIREPs, pagamentos, staff, regulamento, inatividade e exclusão de conta. **O Docker Desktop precisa estar aberto.**
 - **Front (Vitest):** páginas, componentes e serviços, com `HttpTestingController` e seletores `data-testid`.
+- **Produção:** um teste sobe a API em modo `Production` e confere que o site entrega os arquivos `.js` e que só as rotas do Angular caem no `index.html`.
 
 Toda funcionalidade nova entra com testes.
+
+A cada push na `main`, o **GitHub Actions** roda três jobs: testes da API, testes e build do front, e o build da imagem Docker de produção.
 
 ---
 
@@ -395,12 +463,21 @@ Toda funcionalidade nova entra com testes.
 - [x] Regulations e Privacy versionados, aceite de mudanças e exclusão de conta
 - [x] Inatividade de 60 dias com reativação e retenção de 12 meses
 
-### 🔜 v1.0
-- [ ] Menu mobile e revisão de estados vazios, erros e responsividade
-- [ ] Bloqueio de conta inativa também na API
-- [ ] Publicação: hospedagem, domínio, HTTPS e e-mail de contato
+### ✅ v1.0 no ar
+- [x] Menu mobile e revisão de estados vazios, erros e responsividade
+- [x] Bloqueio de conta inativa também na API
+- [x] Rate limit no login e no cadastro
+- [x] Docker, Caddy com HTTPS, SQL Server Express e backup diário
+- [x] CI no GitHub Actions
+- [x] Publicação em [flyskybridge.tech](https://flyskybridge.tech)
 
-### 💡 Depois da v1.0
+### 🔜 v1.1
+- [ ] Limite de tamanho dos logs e monitoramento do `/health`
+- [ ] E-mail de contato `@flyskybridge.tech`
+- [ ] Envio de e-mails: "Esqueci a senha" e confirmação de cadastro
+- [ ] Deploy automático depois do CI
+
+### 💡 Depois
 - [ ] App ACARS para o simulador (FSUIPC / XPUIPC)
 - [ ] Awards e perfil público do piloto
 - [ ] Empresa própria, loja de aviões e manutenção
@@ -412,6 +489,8 @@ Toda funcionalidade nova entra com testes.
 
 **Alexandre**, criador do SkyBridge Network
 
+[![Site](https://img.shields.io/badge/flyskybridge.tech-EF233C?logo=googlechrome&logoColor=white)](https://flyskybridge.tech)
+[![Discord](https://img.shields.io/badge/Discord-SkyBridge-5865F2?logo=discord&logoColor=white)](https://discord.gg/mKTSjZntJ4)
 [![GitHub](https://img.shields.io/badge/GitHub-alexandrefgs-181717?logo=github)](https://github.com/alexandrefgs)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-alexandre--fgs-0A66C2?logo=linkedin)](https://www.linkedin.com/in/alexandre-fgs)
 
