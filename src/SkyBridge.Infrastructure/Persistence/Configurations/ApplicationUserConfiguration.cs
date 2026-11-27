@@ -10,5 +10,7 @@ internal sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Ap
     {
         builder.Property(u => u.FirstName).HasMaxLength(50).IsRequired();
         builder.Property(u => u.LastName).HasMaxLength(50).IsRequired();
+        builder.Property(u => u.LastActiveAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+        builder.HasIndex(u => u.LastActiveAtUtc);
     }
 }

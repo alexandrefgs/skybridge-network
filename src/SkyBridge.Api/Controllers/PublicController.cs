@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SkyBridge.Application.Legal;
 using SkyBridge.Application.Public;
 using SkyBridge.Application.Staff;
 
@@ -24,4 +25,9 @@ public class PublicController(IPublicQueries queries, IStaffDirectory staff) : C
     [ProducesResponseType<IReadOnlyList<PublicStaffResponse>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Staff(CancellationToken cancellationToken) =>
         Ok(await staff.PublicListAsync(cancellationToken));
+    
+    [HttpGet("regulations")]
+    [ProducesResponseType<RegulationsResponse>(StatusCodes.Status200OK)]
+    public IActionResult Regulations() =>
+        Ok(new RegulationsResponse(RegulationsCatalog.Current.Version, RegulationsCatalog.History));
 }

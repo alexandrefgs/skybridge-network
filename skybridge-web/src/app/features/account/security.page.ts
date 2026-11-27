@@ -7,10 +7,11 @@ import { TwoFactorSetup } from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { problemMessages } from '../../core/http/problem';
 import { CodeInput } from '../../shared/forms/code-input';
+import { DeleteAccountSection } from './delete-account-section';
 
 @Component({
   selector: 'sb-security-page',
-  imports: [ReactiveFormsModule, CodeInput],
+  imports: [ReactiveFormsModule, CodeInput, DeleteAccountSection],
   template: `
     <div>
       <p class="text-muted">Manage how you sign in to SkyBridge.</p>
@@ -86,6 +87,8 @@ import { CodeInput } from '../../shared/forms/code-input';
           }
         </div>
       </div>
+
+      <sb-delete-account-section />
     </div>
   `
 })

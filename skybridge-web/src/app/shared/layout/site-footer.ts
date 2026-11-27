@@ -44,6 +44,10 @@ import { ClientConfigService } from '../../core/config/client-config.service';
       </div>
       <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 border-t border-line px-6 py-6 text-xs text-muted">
         <p>© 2026 SkyBridge Network · All rights reserved</p>
+        <nav class="flex gap-4" aria-label="Legal">
+          <a routerLink="/regulations" class="hover:text-primary" data-testid="footer-regulations">Regulations</a>
+          <a routerLink="/privacy" class="hover:text-primary" data-testid="footer-privacy">Privacy</a>
+        </nav>
         <p>This website is for flight simulation purposes only.</p>
         <button type="button" (click)="toTop()" aria-label="Back to top" data-testid="back-to-top"
           class="grid h-10 w-10 place-items-center rounded-full border border-line text-foreground transition-colors hover:border-primary hover:text-primary">

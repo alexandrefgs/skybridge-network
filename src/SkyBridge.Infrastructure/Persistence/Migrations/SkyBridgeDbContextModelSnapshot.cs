@@ -1050,6 +1050,9 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("AcceptedRegulationsVersion")
+                        .HasColumnType("int");
+
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
@@ -1058,6 +1061,9 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeactivatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -1071,6 +1077,11 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("LastActiveAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -1100,6 +1111,12 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ReactivationReadyAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RegulationsAcceptedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -1111,6 +1128,8 @@ namespace SkyBridge.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LastActiveAtUtc");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");

@@ -2,13 +2,14 @@ import { Component, effect, inject, untracked } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
 import { ThemeService } from './core/theme/theme.service';
+import { AccountGate } from './shared/account/account-gate';
 import { NavDropdown, NavItem } from './shared/layout/nav-dropdown';
 import { SiteFooter } from './shared/layout/site-footer';
 import { UserMenu } from './shared/layout/user-menu';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, UserMenu, NavDropdown, SiteFooter],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, UserMenu, NavDropdown, SiteFooter, AccountGate],
   templateUrl: './app.html'
 })
 export class App {

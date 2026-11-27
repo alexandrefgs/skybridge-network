@@ -19,6 +19,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/public/staff.page').then(m => m.StaffPage)
   },
   {
+    path: 'regulations',
+    title: 'Regulations · SkyBridge',
+    loadComponent: () => import('./features/legal/regulations.page').then(m => m.RegulationsPage)
+  },
+  {
+    path: 'privacy',
+    title: 'Privacy · SkyBridge',
+    loadComponent: () => import('./features/legal/privacy.page').then(m => m.PrivacyPage)
+  },
+  {
     path: 'operations',
     title: 'Operations · SkyBridge',
     loadComponent: () => import('./features/public/operations.page').then(m => m.OperationsPage)

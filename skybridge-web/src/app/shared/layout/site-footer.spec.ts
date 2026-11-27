@@ -20,6 +20,15 @@ describe('SiteFooter', () => {
     expect(query('footer-instagram')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('© 2026 SkyBridge Network');
   });
+  
+  it('links to the regulations and the privacy policy', async () => {
+    const fixture = TestBed.createComponent(SiteFooter);
+    await fixture.whenStable();
+    const query = (id: string) => fixture.nativeElement.querySelector(`[data-testid="${id}"]`) as HTMLElement;
+
+    expect(query('footer-regulations').getAttribute('href')).toBe('/regulations');
+    expect(query('footer-privacy').getAttribute('href')).toBe('/privacy');
+  });
 
   it('goes back to the top', async () => {
     const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);

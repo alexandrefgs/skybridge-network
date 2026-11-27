@@ -6,9 +6,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using SkyBridge.Application.Account;
 using SkyBridge.Application.Aircraft;
 using SkyBridge.Application.Airlines;
 using SkyBridge.Application.Airports;
+using SkyBridge.Infrastructure.Account;
 using SkyBridge.Infrastructure.Aircraft;
 using SkyBridge.Infrastructure.Airlines;
 using SkyBridge.Application.Auth;
@@ -43,7 +45,6 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Connection string 'Default' not found.");
 
         services.AddDbContext<SkyBridgeDbContext>(options => options.UseSqlServer(connectionString));
-
         services.AddIdentityCore<ApplicationUser>(options =>
             {
                 options.User.RequireUniqueEmail = true;
@@ -54,12 +55,10 @@ public static class DependencyInjection
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<SkyBridgeDbContext>()
             .AddDefaultTokenProviders();
-
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<JwtOptions>>((options, jwtOptions) =>
@@ -78,7 +77,6 @@ public static class DependencyInjection
                 };
             });
         services.AddAuthorization();
-
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<JwtTokenService>();
         services.AddScoped<CurrentUserReader>();
@@ -87,9 +85,7 @@ public static class DependencyInjection
         services.AddScoped<ITwoFactorService, TwoFactorService>();
         services.AddDataProtection();
         services.AddSingleton<TwoFactorLoginTokens>();
-
         services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.SectionName));
-
         services.AddScoped<IAirportQueries, AirportQueries>();
         services.AddScoped<IAircraftCatalog, AircraftCatalog>();
         services.AddScoped<IAirportImporter, AirportImporter>();
@@ -107,7 +103,6 @@ public static class DependencyInjection
             client.BaseAddress = new Uri("https://davidmegginson.github.io/ourairports-data/");
             client.Timeout = TimeSpan.FromMinutes(2);
         });
-
         services.AddScoped<IAirlineQueries, AirlineQueries>();
         services.AddScoped<IAirlineAdmin, AirlineAdmin>();
         services.AddScoped<IAirlineImporter, AirlineImporter>();
@@ -121,35 +116,28 @@ public static class DependencyInjection
             client.BaseAddress = new Uri("https://portal.cgna.decea.mil.br/files/abas/");
             client.Timeout = TimeSpan.FromMinutes(1);
         });
-
         services.AddHttpClient<ISimBriefClient, SimBriefClient>(client =>
         {
             client.BaseAddress = new Uri("https://www.simbrief.com/");
             client.Timeout = TimeSpan.FromSeconds(20);
         });
-        
         services.AddMemoryCache();
-
         services.AddHttpClient(OnlineNetworks.Vatsim, client =>
         {
             client.BaseAddress = new Uri("https://data.vatsim.net/");
             client.Timeout = TimeSpan.FromSeconds(10);
         });
-
         services.AddHttpClient(OnlineNetworks.Ivao, client =>
         {
             client.BaseAddress = new Uri("https://api.ivao.aero/");
             client.Timeout = TimeSpan.FromSeconds(10);
         });
-
         services.AddSingleton<IOnlineNetworks, OnlineNetworks>();
-        
         services.AddScoped<IPublicQueries, PublicQueries>();
-        
         services.AddScoped<IStaffDirectory, StaffDirectory>();
-
+        services.AddScoped<IAccountLifecycle, AccountLifecycle>();
+        services.AddHostedService<AccountRetentionWorker>();
         services.AddHealthChecks().AddDbContextCheck<SkyBridgeDbContext>();
-
         return services;
     }
 }
