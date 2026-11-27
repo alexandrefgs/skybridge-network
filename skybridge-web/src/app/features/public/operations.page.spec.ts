@@ -29,7 +29,8 @@ describe('OperationsPage', () => {
     expect(text('aircraft-count')).toBe('58');
     expect(text('destinations')).toBe('214');
     expect(text('checklist')).toContain('236 pilots in the crew');
-    expect(fixture.nativeElement.querySelectorAll('[data-testid="radar-card"] circle.fill-primary').length).toBe(12);
+    const traffic = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="traffic"]')) as SVGElement[];
+    expect(traffic.map(t => t.getAttribute('class'))).toEqual(['blip traffic-red', 'blip traffic-white', 'blip traffic-white']);
     expect(text('live')).not.toContain('--:--');
   });
 

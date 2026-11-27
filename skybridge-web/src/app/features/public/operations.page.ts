@@ -8,8 +8,24 @@ import { PublicService } from '../../core/public/public.service';
   selector: 'sb-operations-page',
   styles: `
     .sweep { animation: sweep 4s linear infinite; transform-origin: 100px 100px; }
+    .blip { transform-box: fill-box; transform-origin: center; opacity: 0.15; animation: blip 4s linear infinite; }
+    .echo { transform-box: fill-box; transform-origin: center; opacity: 0; animation: echo 4s ease-out infinite; }
+    .traffic-red { fill: var(--sb-primary); }
+    .traffic-white { fill: var(--sb-foreground); }
     @keyframes sweep { to { transform: rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) { .sweep { animation: none; } }
+    @keyframes blip {
+      0% { opacity: 1; transform: scale(1.5); }
+      8% { opacity: 1; transform: scale(1); }
+      45%, 100% { opacity: 0.15; transform: scale(1); }
+    }
+    @keyframes echo {
+      0% { opacity: 0.7; transform: scale(1); }
+      30%, 100% { opacity: 0; transform: scale(3.5); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sweep, .echo { animation: none; }
+      .blip { animation: none; opacity: 1; }
+    }
   `,
   template: `
     <div class="flex flex-wrap items-end justify-between gap-4">
@@ -37,8 +53,8 @@ import { PublicService } from '../../core/public/public.service';
         <svg class="h-48 w-48 shrink-0" viewBox="0 0 200 200" aria-hidden="true">
           <defs>
             <linearGradient id="sweep-fill" x1="100" y1="100" x2="100" y2="10" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="currentColor" stop-opacity="0" />
-              <stop offset="1" stop-color="currentColor" stop-opacity="0.45" />
+              <stop offset="0" stop-color="var(--sb-primary)" stop-opacity="0" />
+              <stop offset="1" stop-color="var(--sb-primary)" stop-opacity="0.45" />
             </linearGradient>
           </defs>
           <g class="text-line" fill="none" stroke="currentColor">
@@ -48,8 +64,14 @@ import { PublicService } from '../../core/public/public.service';
             <path d="M100 10V190M10 100H190" />
           </g>
           <path class="sweep text-primary" d="M100 100 L100 10 A90 90 0 0 1 163.6 36.4 Z" fill="url(#sweep-fill)" />
+          @for (target of traffic; track $index) {
+            <circle [attr.cx]="target.x" [attr.cy]="target.y" r="4" fill="none" stroke-width="1" class="echo"
+              [attr.stroke]="target.red ? 'var(--sb-primary)' : 'var(--sb-foreground)'" [style.animation-delay]="target.delay" />
+            <circle [attr.cx]="target.x" [attr.cy]="target.y" r="3.5" [class]="target.red ? 'blip traffic-red' : 'blip traffic-white'"
+              [style.animation-delay]="target.delay" data-testid="traffic" />
+          }
           @for (blip of blips(); track $index) {
-            <circle [attr.cx]="blip.x" [attr.cy]="blip.y" r="3.5" class="fill-primary" />
+            <circle [attr.cx]="blip.x" [attr.cy]="blip.y" r="3.5" class="blip fill-primary" [style.animation-delay]="blip.delay" />
           }
         </svg>
         <div class="mt-6 w-full sm:mt-0">
@@ -131,13 +153,15 @@ export class OperationsPage {
     ];
   });
 
+  protected readonly traffic = [
+    { ...radarTarget(70, 58), red: true },
+    { ...radarTarget(205, 72), red: false },
+    { ...radarTarget(315, 34), red: false }
+  ];
+
   protected readonly blips = computed(() => {
     const total = Math.min((this.stats()?.onlineVatsim ?? 0) + (this.stats()?.onlineIvao ?? 0), 12);
-    return Array.from({ length: total }, (_, index) => {
-      const angle = index * 2.399;
-      const radius = 22 + ((index * 37) % 62);
-      return { x: 100 + Math.cos(angle) * radius, y: 100 + Math.sin(angle) * radius };
-    });
+    return Array.from({ length: total }, (_, index) => radarTarget((index * 137.5) % 360, 22 + ((index * 37) % 62)));
   });
 
   constructor() {
@@ -166,4 +190,17 @@ export class OperationsPage {
   protected show(value: number | null | undefined): string {
     return value === null || value === undefined ? '—' : value.toLocaleString('en-US');
   }
+}
+
+const SWEEP_SECONDS = 4;
+const SWEEP_EDGE_DEGREES = 45;
+
+function radarTarget(bearing: number, range: number) {
+  const radians = (bearing * Math.PI) / 180;
+  const hitAt = (((bearing - SWEEP_EDGE_DEGREES + 360) % 360) / 360) * SWEEP_SECONDS;
+  return {
+    x: 100 + Math.sin(radians) * range,
+    y: 100 - Math.cos(radians) * range,
+    delay: `${(hitAt - SWEEP_SECONDS).toFixed(2)}s`
+  };
 }
