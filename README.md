@@ -4,17 +4,20 @@
 
 # SkyBridge Network
 
-**Plataforma arcade de aviação virtual: companhias reais, freelance, empresa própria e loja de aviões, do Cessna 172 ao 777.**
+**Plataforma arcade de aviação virtual: companhias reais, freelance e voos executivos, do Cessna 172 ao 777.**
 
-`Callsign: SKB` · `Site em inglês`
+`Callsign: SKB` · `Site em inglês` · `Qualquer simulador, online ou offline`
 
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-Web_API-512BD4?logo=dotnet&logoColor=white)
 ![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL_Server-Express-CC2927?logo=microsoftsqlserver&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-EF_Core_10-CC2927?logo=microsoftsqlserver&logoColor=white)
 ![Leaflet](https://img.shields.io/badge/Leaflet-CARTO-199900?logo=leaflet&logoColor=white)
-![Status](https://img.shields.io/badge/status-em_desenvolvimento-EF233C)
+![Tests](https://img.shields.io/badge/tests-xUnit_%7C_Vitest-EF233C)
+![Status](https://img.shields.io/badge/status-rumo_à_v1.0-EF233C)
+
+![SkyBridge Network](docs/screenshots/landing.png)
 
 </div>
 
@@ -24,17 +27,17 @@
 
 - [Sobre o projeto](#sobre-o-projeto)
 - [Telas](#telas)
-- [Identidade visual](#identidade-visual)
-- [Segmentos do jogo](#segmentos-do-jogo)
+- [Funcionalidades](#funcionalidades)
 - [Carreira do piloto](#carreira-do-piloto)
-- [Catálogo](#catálogo)
-- [Companhias e rotas](#companhias-e-rotas)
-- [Painel do staff](#painel-do-staff)
+- [Regras do PIREP](#regras-do-pirep)
+- [Conta, privacidade e LGPD](#conta-privacidade-e-lgpd)
 - [Segurança](#segurança)
+- [Identidade visual](#identidade-visual)
 - [Stack](#stack)
 - [Arquitetura](#arquitetura)
 - [Estrutura de pastas](#estrutura-de-pastas)
 - [Como rodar o projeto](#como-rodar-o-projeto)
+- [Testes](#testes)
 - [Créditos dos dados](#créditos-dos-dados)
 - [Roadmap](#roadmap)
 - [Autor](#autor)
@@ -43,34 +46,114 @@
 
 ## Sobre o projeto
 
-O **SkyBridge Network** é uma plataforma de aviação virtual para pilotos de simulador, com um formato **arcade**: em vez de uma companhia só, o piloto escolhe como quer voar.
+O **SkyBridge Network** é uma companhia aérea virtual para pilotos de simulador, com formato **arcade**: em vez de uma companhia só, o piloto escolhe como quer construir a carreira.
 
-- Voos de **companhias aéreas reais**, com rotas e frota de verdade (as brasileiras vêm do **RPL do CGNA**)
-- **Freelance**: trabalhos avulsos de passageiros, carga e fretamento criados pelo staff
-- **Empresa própria**: o piloto monta a sua companhia, compra aviões na **loja** e cuida da manutenção
-- **Progressão por horas**: cada categoria de aeronave libera com as horas de voo, do pistão ao widebody
+- **Freelance:** missões com história (medevac, repatriação, carga, táxi aéreo, transporte de órgãos…), passageiros com nome, carga perigosa e recompensa fixa.
+- **Executiva:** fretamentos com várias pernas em jatos leves e médios.
+- **Regional:** turboélices em pistas curtas e cidades pequenas.
+- **Linhas aéreas:** rotas reais das companhias. As brasileiras vêm do **RPL do CGNA**, e o pagamento é por hora de voo.
 
-O sistema já reúne:
-
-- **Cadastro aberto**, login com JWT e **autenticação em dois fatores** (app autenticador e códigos de recuperação)
-- Catálogo de **48 mil aeroportos** do OurAirports, com busca e mapa
-- **9 categorias de aeronave** com horas para liberar e **47 tipos** no seed, e o staff cadastra mais (alcance, cruzeiro, teto, assentos e carga)
-- **6.160 companhias** do OpenFlights, com a tag **Retro** nas que não operam mais, e cerca de **51 mil rotas**
-- **Sincronização com o CGNA**: as rotas reais da GOL, Azul e LATAM, com tipo de avião, rota ATS e nível de voo
-- **Mapa da malha** de cada companhia: clique num aeroporto para ver as saídas e numa linha para ver a rota
-- **Painel do staff** para categorias, tipos de aeronave, companhias, frotas, rotas e importação de aeroportos
-
-Compatibilidade planejada com **MSFS 2020, MSFS 2024, X-Plane 11/12 e Prepar3D**, voando nas networks **IVAO** e **VATSIM**.
+As horas de voo liberam categorias maiores de aeronave, do pistão ao widebody. O piloto voa em **qualquer simulador** (MSFS 2020/2024, X-Plane, Prepar3D), **online na VATSIM ou IVAO ou offline**, planeja com o **SimBrief** e reporta cada perna com um **PIREP** revisado pelo staff.
 
 ---
 
 ## Telas
 
-| Companhias | Página da companhia |
+| Landing | Operations |
 |---|---|
-| ![Airlines](docs/screenshots/airlines.png) | ![Airline](docs/screenshots/airline.png) |
-| **Admin da companhia** | **Login com 2FA** |
-| ![Admin airline](docs/screenshots/admin-airline.png) | ![Two-factor](docs/screenshots/two-factor.png) |
+| ![Landing](docs/screenshots/landing.png) | ![Operations](docs/screenshots/operations.png) |
+| **Cockpit** | **Freelance** |
+| ![Cockpit](docs/screenshots/cockpit.png) | ![Freelance](docs/screenshots/freelance.png) |
+| **Plano de voo do SimBrief** | **Wallet** |
+| ![Flight plan](docs/screenshots/flight-plan.png) | ![Wallet](docs/screenshots/wallet.png) |
+| **Revisão de PIREPs (staff)** | **Staff** |
+| ![Admin PIREPs](docs/screenshots/admin-pireps.png) | ![Staff](docs/screenshots/staff.png) |
+| **Regulations** | **Companhias** |
+| ![Regulations](docs/screenshots/regulations.png) | ![Airlines](docs/screenshots/airlines.png) |
+
+---
+
+## Funcionalidades
+
+### Site público
+- **Landing** com painel de chegadas no estilo *split-flap* mostrando os últimos voos aceitos, números da VA e os quatro caminhos de carreira.
+- **Operations:** total de voos, voos do mês, frota, destinos e um **radar** com os pilotos SkyBridge online agora na **VATSIM** e na **IVAO** (feeds públicos, cache de 1 minuto).
+- **Last flights**, **About**, **Staff** (crachás por setor com voos e horas) e rodapé com Discord, Instagram, Regulations e Privacy.
+
+### Piloto
+- **Cockpit:** horas, saldo, voos, média de pouso, voo ativo, carteira e voos recentes.
+- **Jumpseat** para trocar de aeroporto, e reserva de **um voo ativo por vez**.
+- **Freelance:** quadro de missões a partir do aeroporto atual, com briefing, passageiros, carga, **carga perigosa (classe ONU)**, aeronaves permitidas e validade.
+- **Linhas aéreas:** reserva das rotas reais, podendo voar **qualquer aeronave da mesma família** que a companhia opera (ex.: 737-700/800/MAX, família A320).
+- **SimBrief:** importa o OFP completo (combustível, pesos, METAR/TAF, alternado, navlog, plano ATC) e mostra no layout do site.
+- **PIREP** por perna, com verificação automática de tempos e **pagamento** (por hora na linha aérea, recompensa fixa no freelance).
+- **Logbook** com mapa dos voos e filtros (30 dias, 1 ano, tudo) e **Wallet** com o extrato.
+- **Perfil:** foto, SimBrief Pilot ID, **VATSIM CID / IVAO VID** (pedidos no primeiro acesso), 2FA e exclusão da conta.
+
+### Catálogo
+- **~48 mil aeroportos** do OurAirports, com **pistas** (comprimento e piso), busca e mapa.
+- **9 categorias** e **47 tipos de aeronave** no seed, com alcance, cruzeiro, teto, assentos, carga e pista mínima.
+- **6.160 companhias** e **~51 mil rotas** do OpenFlights, tag **Retro** e **mapa da malha** de cada companhia.
+- **Sincronização com o CGNA** (RPL) para as companhias brasileiras: tipo de avião, rota ATS e FL.
+
+### Painel do staff
+| Aba | O que faz |
+|---|---|
+| **Categories** | Nome, horas para liberar e pagamento por hora |
+| **Aircraft types** | Criar, editar e excluir tipos |
+| **Airlines** | Companhias, frota, rotas (formulário, CSV ou RPL) e sync com o CGNA |
+| **Airports** | Reimportar aeroportos e pistas do OurAirports |
+| **Freelance** | Missões com várias pernas, aeronaves permitidas e avisos de pista e alcance |
+| **PIREPs** | Aprovar ou rejeitar voos suspeitos, com nota ao piloto |
+| **Staff** *(só Admin)* | Cadastrar membros por setor, ordem e acesso ao painel |
+
+---
+
+## Carreira do piloto
+
+| Categoria | Horas para liberar | Pagamento por hora | Exemplos |
+|---|---:|---:|---|
+| Single piston | 0 h | $60 | C152, C172, SR22, DA40 |
+| Twin piston | 0 h | $90 | DA62, Baron 58, Seneca V |
+| Turboprop | 25 h | $130 | Caravan, Kodiak, TBM, PC-12, King Air |
+| Regional | 75 h | $180 | ATR 72, Dash 8, E175, E195, CRJ900 |
+| Light jet | 75 h | $170 | Phenom 100/300, HondaJet, CJ4 |
+| Mid-size jet | 150 h | $220 | Latitude, Longitude, Challenger 350 |
+| Large business jet | 300 h | $280 | G650ER, Global 7500, Falcon 7X |
+| Medium (narrow-body) | 300 h | $320 | A320 family, 737 NG e MAX |
+| Heavy (wide-body) | 600 h | $450 | A330, A350, A380, 777, 787, 747-8 |
+
+As horas e os valores são editáveis pelo staff.
+
+---
+
+## Regras do PIREP
+
+- Cada voo precisa de um **OFP do SimBrief** com a mesma origem, destino e aeronave da reserva.
+- O PIREP vai para **revisão do staff** quando o tempo é curto demais para a distância (menos de 70% do esperado pelo cruzeiro da aeronave) ou quando a decolagem é anterior ao início da perna.
+- Voo **rejeitado não paga e não conta horas**, e o staff explica o motivo.
+- **Slew, aceleração de tempo e teletransporte** não são permitidos.
+
+---
+
+## Conta, privacidade e LGPD
+
+- **Regulations** e **Privacy Policy** versionadas. Quando a versão muda, o piloto vê um popup com o que mudou e escolhe **aceitar** ou **recusar**. Recusar leva à exclusão da conta, com confirmação.
+- Idade mínima de **16 anos**.
+- **Inatividade:** depois de 60 dias sem acesso, a conta fica inativa. A reativação é gratuita e leva 10 minutos, com contagem regressiva controlada pelo servidor.
+- **Retenção:** contas sem atividade por 12 meses são excluídas por um serviço em segundo plano.
+- **Exclusão de conta** a qualquer momento, com senha e confirmação, apagando todos os dados (LGPD, art. 18, VI e IX).
+- Sem Google Analytics, anúncios ou cookies de rastreamento. Terceiros: SimBrief, CARTO/OpenStreetMap, VATSIM e IVAO.
+
+---
+
+## Segurança
+
+- **ASP.NET Core Identity** com **JWT** e roles `Pilot`, `Staff` e `Admin`.
+- **Bloqueio** da conta após 5 tentativas erradas.
+- **2FA** com app autenticador (TOTP), QR code e **códigos de recuperação**; login com seis caixas que aceitam colar e preenchimento automático.
+- O token do segundo passo expira em poucos minutos e cai quando o security stamp muda.
+- **Segredos nunca vão para o repositório:** senha do admin, chave da CARTO e chave JWT de produção ficam em **user-secrets** (ou variáveis de ambiente em produção).
 
 ---
 
@@ -78,13 +161,10 @@ Compatibilidade planejada com **MSFS 2020, MSFS 2024, X-Plane 11/12 e Prepar3D**
 
 | | |
 |---|---|
-| **Nome** | SkyBridge Network |
-| **Prefixo de callsign** | `SKB`, opcional para o piloto |
 | **Logo** | Globo com um avião e trilha contínua |
 | **Idioma do site** | Inglês |
 | **Temas** | Escuro (padrão) e claro |
-
-### Paleta "Preto e vermelho"
+| **Fontes** | Space Grotesk (títulos), Inter (texto) e JetBrains Mono (ICAO, números e dados de voo) |
 
 | Cor | Hex | Uso |
 |---|---|---|
@@ -92,132 +172,8 @@ Compatibilidade planejada com **MSFS 2020, MSFS 2024, X-Plane 11/12 e Prepar3D**
 | ⬛ Superfície | `#141416` / `#1C1C1F` | Cards, tabelas e campos |
 | 🟥 Vermelho | `#EF233C` | Cor principal no tema escuro |
 | 🟥 Vermelho escuro | `#D90429` | Cor principal no tema claro |
-| 🟨 Âmbar | `#F59E0B` | Tag **Retro** e destaques |
+| 🟨 Âmbar | `#F59E0B` | Tag Retro, PIREP pendente e carga perigosa |
 | 🟩 Verde | `#10B981` | Mensagens de sucesso |
-
-**Fontes:** Space Grotesk (títulos), Inter (texto) e JetBrains Mono (códigos ICAO, números e dados de voo).
-
----
-
-## Segmentos do jogo
-
-| Segmento | Como funciona | Fase |
-|---|---|:---:|
-| **Linhas aéreas** | Voos das rotas reais das companhias, com a frota de cada uma, SimBrief e PIREP | 2 |
-| **Freelance** | Trabalhos criados pelo staff, com as aeronaves permitidas em cada rota | 3 |
-| **Empresa própria** | Companhia do piloto, com aviões comprados na loja e manutenção | 4 |
-| **Multiplayer** | Voos e empresas em grupo | 5 |
-
-Cada aeronave só pode estar em **um PIREP aberto por vez**.
-
----
-
-## Carreira do piloto
-
-As categorias de aeronave são liberadas pelas **horas de voo**. As horas de cada categoria podem ser editadas pelo staff.
-
-| Categoria | Horas para liberar | Exemplos |
-|---|---:|---|
-| Single piston | 0 h | C152, C172, SR22, DA40 |
-| Twin piston | 0 h | DA62, Baron 58, Seneca V |
-| Turboprop | 25 h | Caravan, Kodiak, TBM, PC-12, King Air |
-| Regional | 75 h | ATR 72, Dash 8, E175, E195, CRJ900 |
-| Light jet | 75 h | Phenom 100/300, HondaJet, CJ4 |
-| Mid-size jet | 150 h | Latitude, Longitude, Challenger 350 |
-| Large business jet | 300 h | G650ER, Global 7500, Falcon 7X |
-| Medium (narrow-body) | 300 h | A320 family, 737 NG e MAX |
-| Heavy (wide-body) | 600 h | A330, A350, A380, 777, 787, 747-8 |
-
----
-
-## Catálogo
-
-O catálogo exige login. Os visitantes veem só a página inicial.
-
-### Aeroportos
-
-- Importados do [OurAirports](https://ourairports.com/data/): **cerca de 48 mil** aeroportos pequenos, médios e grandes. Helipontos, aeroportos fechados, bases de hidroavião e balões ficam de fora.
-- A importação roda sozinha na primeira execução em desenvolvimento e pode ser repetida pelo staff em **Admin › Airports**. Ela é **idempotente**: só adiciona o que é novo e atualiza o que mudou.
-- Página **Airports** com busca por ICAO, IATA, nome ou cidade, filtro por país, paginação e **mapa** com os aeroportos da página.
-
-### Aeronaves
-
-- **47 tipos** no seed, do C152 ao 747-8, com **alcance**, **cruzeiro**, **teto operacional**, **assentos**, **carga** e motores.
-- Página **Aircraft** com a escada das 9 categorias, busca e paginação (5, 10, 20, 50 ou 100 por página).
-- O staff cria, edita e exclui tipos em **Admin › Aircraft types**, com validação por campo.
-
----
-
-## Companhias e rotas
-
-### Fontes
-
-| Fonte | O que traz |
-|---|---|
-| **OpenFlights** | 6.160 companhias (1.253 ativas) e cerca de 51 mil rotas sem escala, importadas na primeira execução |
-| **RPL do CGNA** | Voos regulares das companhias que operam no Brasil: tipo de avião, rota ATS e nível de voo |
-| **CSV** | Rotas cadastradas em lote pelo staff, para qualquer companhia |
-| **Formulário** | Uma rota por vez, no Admin |
-
-As rotas do OpenFlights são de 2014 e têm erros conhecidos. Por isso, as companhias brasileiras são sincronizadas pelo CGNA.
-
-### Companhias
-
-- Página **Airlines** com busca por nome, ICAO, IATA, callsign ou país, e as companhias com mais rotas primeiro. A linha inteira abre a companhia.
-- Companhias que não operam mais aparecem com a tag **Retro** e ficam escondidas por padrão (**Hide retro**).
-- Página da companhia com códigos, callsign, país, **frota**, data da última atualização das rotas e a lista de rotas, com distância, aeronaves, FL e rota ATS.
-- **Mapa da malha:** pins em todos os aeroportos. Clicando num aeroporto aparecem as rotas que **saem** dele. Clicando numa linha, ela fica em destaque e a tabela mostra a rota nos dois sentidos. As linhas sempre seguem o lado mais curto do globo: Honolulu → Tóquio cruza o Pacífico.
-- Duas companhias **ativas** não podem ter o mesmo ICAO.
-
-### Rotas
-
-Cada rota guarda origem, destino, **distância** (círculo máximo, em NM), **tipos de aeronave**, **rota ATS** e **nível de voo**. Uma rota é única por companhia + origem + destino.
-
-**Importação (CSV ou RPL), sem duplicar:**
-
-- **Rota nova:** é cadastrada.
-- **Rota existente com dados diferentes:** é atualizada. Campo vazio no arquivo não apaga o que já existe.
-- **Rota existente igual:** é pulada.
-- **Linha com problema** (aeroporto inexistente, tipo fora do catálogo, FL inválido): é ignorada e listada no resumo com o número da linha.
-- Os tipos de avião usados nas rotas entram automaticamente na **frota** da companhia.
-
-Formato do CSV:
-
-```csv
-origin,destination,aircraft,route,fl
-SBFL,SBGR,B738 B38M,NIBRU UZ171 KEVUN,370
-SBGR,SBFL,B738,,
-```
-
-**Sync from CGNA:** o botão baixa o RPL atual direto do portal do CGNA (`Cia_<ICAO>_CS.txt`), procurando a edição mais recente dos últimos 14 dias. No RPL, os voos de um mesmo par de aeroportos viram uma rota só: os tipos de avião são somados, e a rota ATS e o FL vêm do voo mais frequente. O Admin mostra quando foi a **última sincronização**, a fonte e a edição do RPL.
-
-O **FL** só é gravado quando vem de fonte real (RPL, CSV ou formulário). Nos outros casos fica em branco e o **SimBrief** escolhe o nível na hora do voo.
-
----
-
-## Painel do staff
-
-O menu **Admin** aparece para as roles **Admin** e **Staff**.
-
-| Aba | O que faz |
-|---|---|
-| **Categories** | Nome e horas de cada categoria |
-| **Aircraft types** | Criar, editar e excluir tipos, com validação por campo e mensagem de confirmação |
-| **Airlines** | Criar companhias, editar dados e status Retro, montar a frota, cadastrar e editar rotas, importar CSV/RPL, sincronizar com o CGNA e apagar todas as rotas |
-| **Airports** | Reimportar o catálogo do OurAirports |
-
-Ações destrutivas (excluir tipo, companhia, rota ou todas as rotas) pedem confirmação.
-
----
-
-## Segurança
-
-- **ASP.NET Core Identity** com **JWT** (claims `sub`, `email`, `name` e `role`).
-- **Bloqueio** da conta após 5 tentativas erradas.
-- **Autenticação em dois fatores** com app autenticador (TOTP), QR code e chave manual, e **códigos de recuperação** de uso único.
-- No login, o código é digitado em **seis caixas**, uma por dígito: aceita colar, preenchimento automático do celular e verifica sozinho ao completar. O botão **Use a recovery code** troca para o campo do código de recuperação.
-- O token do segundo passo expira em poucos minutos e é invalidado quando o security stamp muda.
-- **Segredos nunca vão para o repositório:** a senha do admin, a chave da CARTO, a futura chave do SimBrief e a chave JWT de produção ficam em **user-secrets** (ou variáveis de ambiente em produção). O `appsettings.Development.json` só tem a conexão local e a chave JWT de desenvolvimento.
 
 ---
 
@@ -226,30 +182,24 @@ Ações destrutivas (excluir tipo, companhia, rota ou todas as rotas) pedem conf
 **Back-end**
 - .NET 10 / ASP.NET Core Web API
 - Entity Framework Core 10 + SQL Server
-- ASP.NET Core Identity + JWT, com 2FA (TOTP) e Data Protection
-- OpenAPI + Swagger UI
-- Health checks
+- ASP.NET Core Identity + JWT, 2FA (TOTP) e Data Protection
+- `IMemoryCache`, `HttpClientFactory`, `TimeProvider` e `BackgroundService`
+- OpenAPI + Swagger UI e health checks
 - Clean Architecture
 
 **Front-end**
 - Angular 22 (standalone, signals e zoneless)
 - Tailwind CSS 4
 - Leaflet + mapas CARTO
-- uqr (QR code do app autenticador)
-- Fontes Inter, Space Grotesk e JetBrains Mono
+- uqr (QR code do 2FA)
 - Tema escuro e claro
 
 **Testes**
-- xUnit
-- WebApplicationFactory + Testcontainers (SQL Server)
+- xUnit + WebApplicationFactory + **Testcontainers** (SQL Server em Docker)
 - Vitest + jsdom no front
 
-**Dados e integrações**
-- **OurAirports**: aeroportos
-- **OpenFlights**: companhias e rotas (ODbL)
-- **CGNA/DECEA**: Planos de Voo Repetitivos (RPL)
-- **CARTO** e **OpenStreetMap**: mapas
-- **SimBrief** (Fase 2): OFP e nível de voo
+**Integrações**
+- **SimBrief** (OFP), **VATSIM** e **IVAO** (pilotos online), **OurAirports**, **OpenFlights**, **CGNA/DECEA** (RPL), **CARTO** e **OpenStreetMap**
 
 ---
 
@@ -259,22 +209,22 @@ Ações destrutivas (excluir tipo, companhia, rota ou todas as rotas) pedem conf
 flowchart LR
     WEB["skybridge-web<br/>Angular + Tailwind + Leaflet"] -->|/api via proxy| API
     API["SkyBridge.Api<br/>Controllers, Auth, Swagger"] --> APP["SkyBridge.Application<br/>Contratos e casos de uso"]
-    API --> INFRA["SkyBridge.Infrastructure<br/>EF Core, Identity, importadores"]
+    API --> INFRA["SkyBridge.Infrastructure<br/>EF Core, Identity, integrações"]
     APP --> DOMAIN["SkyBridge.Domain<br/>Entidades e regras"]
     INFRA --> APP
     INFRA --> DOMAIN
-    INFRA --> DB[("SQL Server<br/>SkyBridge")]
-    INFRA -.-> OA["OurAirports"]
-    INFRA -.-> OF["OpenFlights"]
-    INFRA -.-> CGNA["CGNA (RPL)"]
+    INFRA --> DB[("SQL Server")]
+    INFRA -.-> SB["SimBrief"]
+    INFRA -.-> NET["VATSIM / IVAO"]
+    INFRA -.-> DATA["OurAirports · OpenFlights · CGNA"]
 ```
 
 | Camada | Responsabilidade |
 |---|---|
-| **Domain** | Entidades e regras: aeroportos, categorias e tipos de aeronave, companhias, frotas, rotas, distância por círculo máximo e roles |
-| **Application** | Contratos, buscas paginadas e interfaces dos casos de uso |
-| **Infrastructure** | DbContext, configurações e migrations do EF Core, Identity e JWT, 2FA, seed e importadores (OurAirports, OpenFlights, RPL do CGNA e CSV) |
-| **Api** | Endpoints HTTP, autorização por role, tratamento de erros e Swagger |
+| **Domain** | Entidades e regras: aeroportos e pistas, aeronaves e famílias, companhias e rotas, reservas, missões freelance, planos de voo, PIREPs, pilotos, staff e atividade da conta |
+| **Application** | Contratos, `Result<T>`, buscas paginadas, catálogo do regulamento e interfaces dos casos de uso |
+| **Infrastructure** | DbContext, migrations, Identity e JWT, 2FA, seed, importadores, SimBrief, feeds da VATSIM/IVAO e o serviço de retenção |
+| **Api** | Endpoints HTTP, autorização por role, tratamento de erros, opções do site e Swagger |
 
 ---
 
@@ -285,17 +235,17 @@ skybridge-network/
 ├── src/
 │   ├── SkyBridge.Domain/          # Entidades e regras de negócio
 │   ├── SkyBridge.Application/     # Contratos e interfaces dos casos de uso
-│   ├── SkyBridge.Infrastructure/  # EF Core, Identity, importadores, seed e migrations
+│   ├── SkyBridge.Infrastructure/  # EF Core, Identity, integrações, seed e migrations
 │   └── SkyBridge.Api/             # Controllers, Program.cs e Swagger
 ├── tests/
-│   ├── SkyBridge.UnitTests/         # Domain, leitores de CSV/RPL/OpenFlights e JWT
+│   ├── SkyBridge.UnitTests/         # Domain, leitores CSV/RPL/OpenFlights, SimBrief e feeds
 │   └── SkyBridge.IntegrationTests/  # API com SQL Server no Testcontainers
 ├── skybridge-web/                 # Front-end Angular
-│   ├── public/                    # favicon
 │   └── src/app/
 │       ├── core/                  # auth, http, tema, config e serviços de cada área
-│       ├── shared/                # mapas, lista de rotas, campo de código do 2FA e créditos
-│       └── features/              # home, auth, account, airports, aircraft, airlines e admin
+│       ├── shared/                # mapas, layout, formulários, cards e conta
+│       └── features/              # public, dashboard, flights, freelance, airlines,
+│                                  # airports, aircraft, account, legal, auth e admin
 ├── docs/
 │   ├── brand/                     # logo
 │   └── screenshots/               # prints do README
@@ -312,7 +262,7 @@ skybridge-network/
 - [.NET SDK 10](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org/) 22.12+ ou 24 LTS
 - SQL Server (Express, Developer ou LocalDB)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/), só para os testes de integração
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/), para os testes de integração
 - Ferramenta de migrations do EF Core:
   ```bash
   dotnet tool install --global dotnet-ef
@@ -349,20 +299,28 @@ dotnet user-secrets set "Seed:AdminPassword" "UmaSenhaForte!" --project src/SkyB
 dotnet user-secrets set "Maps:CartoApiKey" "SUA_CHAVE_DA_CARTO" --project src/SkyBridge.Api
 ```
 - O **admin** é criado (ou recebe as roles) na subida da API em desenvolvimento.
-- A chave da **CARTO** é gratuita e vem por e-mail. Sem ela, os mapas aparecem com a marca d'água *API key required*. O front busca a chave em `/api/config/client`, então ela não fica no código do Angular.
+- A chave da **CARTO** é gratuita. Sem ela, os mapas aparecem com a marca d'água *API key required*. O front busca a chave em `/api/config/client`, então ela não fica no código do Angular.
 
-**5. Confie no certificado HTTPS de desenvolvimento** (uma vez só)
+**5. Configure o site** em `src/SkyBridge.Api/appsettings.json` (não são segredos):
+```json
+"Site": {
+  "ContactEmail": null,
+  "DiscordUrl": "https://discord.gg/SEU-CONVITE",
+  "InstagramUrl": "https://instagram.com/SEU-PERFIL"
+}
+```
+Enquanto o `ContactEmail` estiver vazio, as páginas de Regulations e Privacy indicam o Discord como contato.
+
+**6. Confie no certificado HTTPS de desenvolvimento** (uma vez só)
 ```bash
 dotnet dev-certs https --trust
 ```
 
-**6. Rode a API e o front juntos**
+**7. Rode a API e o front juntos**
 ```bash
 npm run dev
 ```
-A API sobe primeiro e o navegador abre o Swagger. Quando ela responde, o front sobe e abre o site.
-
-Na **primeira execução** em desenvolvimento, a API aplica as migrations e o seed (roles, categorias, tipos de aeronave e admin) e importa os **aeroportos do OurAirports** e as **companhias e rotas do OpenFlights**. Isso leva cerca de um minuto, e o log mostra quantos registros entraram.
+Na **primeira execução**, a API aplica as migrations e o seed (roles, categorias, tipos de aeronave e admin) e importa os aeroportos, as pistas, as companhias e as rotas. Isso leva cerca de um minuto.
 
 | Serviço | Endereço |
 |---|---|
@@ -370,14 +328,7 @@ Na **primeira execução** em desenvolvimento, a API aplica as migrations e o se
 | Swagger | https://localhost:7148/swagger |
 | Health check | https://localhost:7148/health |
 
-> **Swagger com 2FA:** o `POST /api/auth/login` devolve um `twoFactorToken`. Envie esse token junto com o código do app em `POST /api/auth/login/2fa` para receber o `accessToken`, e cole só o token no **Authorize**.
-
-### Testes
-
-```bash
-npm test
-```
-Roda os testes do .NET (unidade e integração) e os do front. Os testes de integração sobem um SQL Server no **Docker** (Testcontainers), então o Docker Desktop precisa estar aberto. A primeira execução baixa a imagem e demora alguns minutos.
+> **Swagger com 2FA:** o `POST /api/auth/login` devolve um `twoFactorToken`. Envie esse token com o código do app em `POST /api/auth/login/2fa` para receber o `accessToken` e cole só o token no **Authorize**.
 
 ### Comandos úteis
 
@@ -387,8 +338,22 @@ Roda os testes do .NET (unidade e integração) e os do front. Os testes de inte
 | `npm run api` | Sobe só a API (com hot reload) |
 | `npm run web` | Sobe só o front |
 | `npm test` | Roda os testes do .NET e do front |
-| `dotnet build` | Compila a solução |
 | `dotnet ef migrations add Nome --project src/SkyBridge.Infrastructure --startup-project src/SkyBridge.Api --output-dir Persistence/Migrations` | Cria uma migration |
+| `dotnet ef database update --project src/SkyBridge.Infrastructure --startup-project src/SkyBridge.Api` | Aplica as migrations |
+
+---
+
+## Testes
+
+```bash
+npm test
+```
+
+- **Unidade (xUnit):** regras do Domain (aeronaves, pistas, reservas, PIREPs, staff, atividade da conta), leitores de CSV/RPL/OpenFlights, parser do SimBrief e dos feeds da VATSIM/IVAO.
+- **Integração (xUnit + Testcontainers):** a API inteira contra um SQL Server real em Docker, cobrindo autenticação, 2FA, reservas, freelance, PIREPs, pagamentos, staff, regulamento, inatividade e exclusão de conta. **O Docker Desktop precisa estar aberto.**
+- **Front (Vitest):** páginas, componentes e serviços, com `HttpTestingController` e seletores `data-testid`.
+
+Toda funcionalidade nova entra com testes.
 
 ---
 
@@ -396,70 +361,50 @@ Roda os testes do .NET (unidade e integração) e os do front. Os testes de inte
 
 | Dado | Fonte | Licença |
 |---|---|---|
-| Aeroportos | [OurAirports](https://ourairports.com/data/) | Domínio público |
-| Companhias e rotas | [OpenFlights](https://openflights.org/data) | [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/1-0/) |
-| Rotas das companhias brasileiras | [CGNA / DECEA](https://portal.cgna.decea.mil.br/), Planos de Voo Repetitivos (RPL) | Dados públicos |
+| Aeroportos e pistas | [OurAirports](https://ourairports.com/data/) | Domínio público |
+| Companhias e rotas | [OpenFlights](https://openflights.org/data) | [ODbL](https://opendatacommons.org/licenses/odbl/1-0/) |
+| Rotas das companhias brasileiras | [CGNA / DECEA](https://portal.cgna.decea.mil.br/), RPL | Dados públicos |
+| Planos de voo | [SimBrief](https://www.simbrief.com/) | API pública do piloto |
+| Pilotos online | [VATSIM](https://vatsim.net/) e [IVAO](https://ivao.aero/) | Feeds públicos |
 | Mapas | [CARTO](https://carto.com/attributions) e [OpenStreetMap](https://www.openstreetmap.org/copyright) | ODbL (dados do OSM) |
-| Dados das aeronaves | Especificações publicadas pelos fabricantes | Referência |
-
-O crédito do OpenFlights e do CGNA também aparece nas páginas de companhias.
 
 ---
 
 ## Roadmap
 
-### ✅ Fase 0: Fundação
-- [x] Repositório e solução .NET 10 em Clean Architecture
-- [x] Front-end Angular 22 + Tailwind CSS 4, com `features/` e testes `.spec.ts`
-- [x] Identidade visual: paleta preto e vermelho, logo e favicon
-- [x] Tema escuro e claro
-- [x] API com Swagger, health check e redirecionamento da raiz para o Swagger
-- [x] Cadastro aberto, login com JWT e bloqueio após 5 tentativas
-- [x] Autenticação em dois fatores com códigos de recuperação
-- [x] Login do 2FA com seis caixas e código de recuperação
-- [x] API e front rodando juntos com `npm run dev`
+### ✅ Fundação
+- [x] Clean Architecture em .NET 10, Angular 22 + Tailwind 4, tema escuro e claro
+- [x] Cadastro, login com JWT, bloqueio de conta e 2FA com códigos de recuperação
 
-### 🔜 Fase 1: Catálogo
-- [x] Aeroportos do OurAirports com importação idempotente, busca, paginação e mapa
-- [x] 9 categorias de aeronave com horas editáveis pelo staff
-- [x] 47 tipos de aeronave no seed com alcance, cruzeiro, teto, assentos e carga
-- [x] Catálogo só para usuários logados
-- [x] Admin: categorias, tipos de aeronave e importação de aeroportos
-- [x] Companhias e rotas do OpenFlights, com crédito ODbL e tag Retro
-- [x] Frota por companhia
-- [x] Rotas com aeronaves, rota ATS e FL, cadastradas por formulário, CSV ou RPL
-- [x] Sincronização com o RPL do CGNA e registro da última sincronização
-- [x] Mapa da malha com saídas por aeroporto e seleção de rota
-- [ ] Pistas do OurAirports (comprimento e piso) por aeroporto
-- [ ] Pista mínima por tipo de aeronave
+### ✅ Catálogo
+- [x] Aeroportos e pistas do OurAirports, com busca e mapa
+- [x] Categorias, tipos e famílias de aeronave, com pista mínima
+- [x] Companhias e rotas do OpenFlights, frota, tag Retro e mapa da malha
+- [x] Rotas por formulário, CSV ou RPL e sincronização com o CGNA
 
-### 🔜 Fase 2: Voos de linha
-- [ ] Reserva de voos das rotas das companhias
-- [ ] Voos programados do RPL (número do voo, dias e horários)
-- [ ] SimBrief: OFP, rota e nível de voo
-- [ ] ACARS v1 e PIREP
-- [ ] Pagamento por voo
-- [ ] Dashboard do piloto: números, próximo voo, carreira e mapa "My flights" (30 dias, 1 ano e todos)
+### ✅ Voos
+- [x] Jumpseat e reserva de um voo ativo por vez
+- [x] Freelance com missões de várias pernas, passageiros, carga perigosa e avisos de pista e alcance
+- [x] Linhas aéreas com aeronaves da mesma família
+- [x] SimBrief com OFP completo no layout do site
+- [x] PIREP com verificação automática, revisão do staff e pagamento
+- [x] Cockpit, Logbook e Wallet
 
-### 🔜 Fase 3: Freelance
-- [ ] Trabalhos criados pelo staff, com as aeronaves permitidas em cada rota
-- [ ] Aviso de pista e alcance ao montar a rota
-- [ ] Economia do freelance
+### ✅ Site público
+- [x] Landing, About, Operations com VATSIM/IVAO online, Last flights e Staff
+- [x] Regulations e Privacy versionados, aceite de mudanças e exclusão de conta
+- [x] Inatividade de 60 dias com reativação e retenção de 12 meses
 
-### 🔜 Fase 4: Empresa própria
-- [ ] Companhia do piloto
-- [ ] Loja de aviões
-- [ ] Manutenção
+### 🔜 v1.0
+- [ ] Menu mobile e revisão de estados vazios, erros e responsividade
+- [ ] Bloqueio de conta inativa também na API
+- [ ] Publicação: hospedagem, domínio, HTTPS e e-mail de contato
 
-### 🔜 Fase 5: Multiplayer
-- [ ] Voos e empresas em grupo
-
-### 🔜 Fase 6: Mapa ao vivo e estatísticas
-- [ ] Mapa dos voos em andamento
-- [ ] Estatísticas e ranking
-
-### 💡 v2
-- [ ] Aplicativo desktop completo
+### 💡 Depois da v1.0
+- [ ] App ACARS para o simulador (FSUIPC / XPUIPC)
+- [ ] Awards e perfil público do piloto
+- [ ] Empresa própria, loja de aviões e manutenção
+- [ ] Voar com amigos
 
 ---
 
@@ -474,6 +419,6 @@ O crédito do OpenFlights e do CGNA também aparece nas páginas de companhias.
 
 <div align="center">
 
-*SkyBridge Network é uma plataforma de aviação virtual para simulação de voo, sem vínculo com nenhuma companhia aérea real. Nomes e códigos de companhias pertencem aos seus donos.*
+*SkyBridge Network é uma companhia aérea virtual para simulação de voo, sem vínculo com nenhuma companhia aérea real. Nomes e códigos de companhias pertencem aos seus donos.*
 
 </div>
