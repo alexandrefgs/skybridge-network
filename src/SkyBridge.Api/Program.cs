@@ -1,4 +1,7 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 using SkyBridge.Api.Filters;
 using SkyBridge.Api.OpenApi;
 using SkyBridge.Api.Options;
@@ -14,11 +17,35 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.Configure<MapOptions>(builder.Configuration.GetSection(MapOptions.SectionName));
 builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection(SiteOptions.SectionName));
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+builder.Services.Configure<RateLimitOptions>(builder.Configuration.GetSection(RateLimitOptions.SectionName));
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy(RateLimitOptions.AuthPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = context.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value.AuthPermitPerMinute,
+            Window = TimeSpan.FromMinutes(1)
+        }));
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders();
+
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Database:InitializeOnStartup"))
+    await DatabaseInitializer.InitializeAsync(app.Services);
 
 if (app.Environment.IsDevelopment())
 {
-    await DatabaseInitializer.InitializeAsync(app.Services);
     app.MapOpenApi();
     app.UseSwaggerUI(options =>
     {
@@ -27,11 +54,21 @@ if (app.Environment.IsDevelopment())
     });
     app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 }
+else
+{
+    app.UseHsts();
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
+
+if (!app.Environment.IsDevelopment())
+    app.MapFallbackToFile("{*path:regex(^(?!api/|health).*$)}", "index.html");
 
 app.Run();

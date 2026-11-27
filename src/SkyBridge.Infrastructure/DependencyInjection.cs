@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -83,7 +84,9 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<ITwoFactorService, TwoFactorService>();
-        services.AddDataProtection();
+        var dataProtection = services.AddDataProtection().SetApplicationName("SkyBridge");
+        if (configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
+            dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keysPath));
         services.AddSingleton<TwoFactorLoginTokens>();
         services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.SectionName));
         services.AddScoped<IAirportQueries, AirportQueries>();

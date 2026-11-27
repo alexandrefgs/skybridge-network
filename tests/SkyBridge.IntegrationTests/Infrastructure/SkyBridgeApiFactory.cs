@@ -36,6 +36,8 @@ public sealed class SkyBridgeApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseSetting("Maps:CartoApiKey", "test-carto-key");
         builder.UseSetting("Site:ContactEmail", "privacy@skybridge.test");
         builder.UseSetting("Site:DiscordUrl", "https://discord.gg/skybridge");
+        builder.UseSetting("Site:InstagramUrl", "https://instagram.com/skybridge");
+        builder.UseSetting("RateLimiting:AuthPermitPerMinute", "100000");
 
         builder.ConfigureTestServices(services =>
         {

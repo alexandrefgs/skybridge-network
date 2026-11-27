@@ -16,6 +16,6 @@ public class ConfigTests(SkyBridgeApiFactory factory)
 
         Assert.Equal("test-carto-key", config!.CartoApiKey);
         Assert.Equal(("privacy@skybridge.test", "https://discord.gg/skybridge"), (config.ContactEmail, config.DiscordUrl));
-        Assert.Null(config.InstagramUrl);
+        Assert.Equal("https://instagram.com/skybridge", config.InstagramUrl);
     }
 }

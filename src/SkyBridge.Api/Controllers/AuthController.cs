@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SkyBridge.Api.Filters;
+using SkyBridge.Api.Options;
 using SkyBridge.Api.Extensions;
 using SkyBridge.Application.Auth;
 
@@ -12,6 +14,7 @@ namespace SkyBridge.Api.Controllers;
 public class AuthController(IAuthService auth) : ControllerBase
 {
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimitOptions.AuthPolicy)]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken cancellationToken)
@@ -24,12 +27,14 @@ public class AuthController(IAuthService auth) : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitOptions.AuthPolicy)]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken) =>
         ToLoginResult(await auth.LoginAsync(request, cancellationToken));
 
     [HttpPost("login/2fa")]
+    [EnableRateLimiting(RateLimitOptions.AuthPolicy)]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> LoginWithTwoFactor(TwoFactorLoginRequest request, CancellationToken cancellationToken) =>

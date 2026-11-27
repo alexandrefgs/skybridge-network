@@ -111,7 +111,7 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
         var leg = await LegAsync(booking, cancellationToken);
         var aircraft = await db.AircraftTypes.AsNoTracking()
             .Where(t => t.Id == booking.AircraftTypeId)
-            .Select(t => new { t.IcaoCode, t.EngineType })
+            .Select(t => t.IcaoCode)
             .FirstAsync(cancellationToken);
 
         var problems = FlightPlan.Problems(data, leg.Origin, leg.Destination, aircraft, booking.BookedAtUtc);

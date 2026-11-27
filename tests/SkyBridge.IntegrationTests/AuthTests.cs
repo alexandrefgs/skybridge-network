@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Hosting;
 using SkyBridge.Application.Auth;
 using SkyBridge.Domain.Users;
 using SkyBridge.IntegrationTests.Infrastructure;
@@ -20,6 +21,22 @@ public class AuthTests(SkyBridgeApiFactory factory)
 
     private Task<HttpResponseMessage> LoginAsync(string email, string password) =>
         _client.PostAsJsonAsync("/api/auth/login", new LoginRequest(email, password));
+    
+    [Fact]
+    public async Task Login_IsRateLimited_PerAddress()
+    {
+        using var limited = factory.WithWebHostBuilder(builder => builder.UseSetting("RateLimiting:AuthPermitPerMinute", "2"));
+        var client = limited.CreateClient();
+        var request = new LoginRequest(NewEmail(), "Wrong!Pass2026");
+
+        var first = await client.PostAsJsonAsync("/api/auth/login", request);
+        var second = await client.PostAsJsonAsync("/api/auth/login", request);
+        var third = await client.PostAsJsonAsync("/api/auth/login", request);
+
+        Assert.NotEqual(HttpStatusCode.TooManyRequests, first.StatusCode);
+        Assert.NotEqual(HttpStatusCode.TooManyRequests, second.StatusCode);
+        Assert.Equal(HttpStatusCode.TooManyRequests, third.StatusCode);
+    }
 
     [Fact]
     public async Task Register_ReturnsToken_ForNewPilot()
