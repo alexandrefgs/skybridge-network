@@ -20,6 +20,14 @@ describe('PilotService', () => {
 
     expect(http.expectOne('/api/pilot').request.method).toBe('GET');
   });
+  
+  it('loads the wallet transactions', () => {
+    service.transactions(2, 10).subscribe();
+
+    const request = http.expectOne(r => r.url === '/api/pilot/transactions');
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('pageSize')).toBe('10');
+  });
 
   it('links the SimBrief pilot ID', () => {
     service.linkSimBrief('123456').subscribe();

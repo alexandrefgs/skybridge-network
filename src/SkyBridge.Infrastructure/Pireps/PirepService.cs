@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SkyBridge.Application.Airlines;
 using SkyBridge.Application.Bookings;
 using SkyBridge.Application.Common;
 using SkyBridge.Application.Pilots;
@@ -6,6 +7,7 @@ using SkyBridge.Application.Pireps;
 using SkyBridge.Domain.Bookings;
 using SkyBridge.Domain.Freelance;
 using SkyBridge.Domain.Pireps;
+using SkyBridge.Infrastructure.Airports;
 using SkyBridge.Infrastructure.Persistence;
 
 namespace SkyBridge.Infrastructure.Pireps;
@@ -83,6 +85,80 @@ internal sealed class PirepService(
             .ToListAsync(cancellationToken);
 
         return new PagedResult<PirepResponse>(await mapper.ToResponsesAsync(items, cancellationToken), page, pageSize, total);
+    }
+
+    public async Task<Result<LogbookResponse>> GetLogbookAsync(Guid userId, LogbookSearch search, CancellationToken cancellationToken)
+    {
+        if (!LogbookPeriods.TrySince(search.Period, time.GetUtcNow().UtcDateTime, out var period, out var since))
+            return Result<LogbookResponse>.Invalid("Period", "Use 30d, 1y or all.");
+
+        var page = Math.Max(search.Page, 1);
+        var pageSize = Math.Clamp(search.PageSize, 1, 100);
+
+        var query = db.Pireps.AsNoTracking().Where(p => p.PilotUserId == userId);
+        if (since is { } from)
+            query = query.Where(p => p.ArrivedAtUtc >= from);
+
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(p => p.ArrivedAtUtc)
+            .ThenByDescending(p => p.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        var flown = await query
+            .Where(p => p.Status != PirepStatus.Rejected)
+            .Select(p => new { p.OriginAirportId, p.DestinationAirportId, p.FlightMinutes, p.DistanceNm, p.LandingRateFpm, p.AircraftTypeId })
+            .ToListAsync(cancellationToken);
+
+        var payments = db.PilotTransactions.AsNoTracking().Where(t => t.PilotUserId == userId && t.Amount > 0);
+        if (since is { } paidFrom)
+            payments = payments.Where(t => t.CreatedAtUtc >= paidFrom);
+        var earned = await payments.SumAsync(t => (int?)t.Amount, cancellationToken) ?? 0;
+
+        var favoriteId = flown
+            .GroupBy(f => f.AircraftTypeId)
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key)
+            .Select(g => (int?)g.Key)
+            .FirstOrDefault();
+        var favorite = favoriteId is { } typeId
+            ? await db.AircraftTypes.AsNoTracking().Where(t => t.Id == typeId).Select(t => t.IcaoCode).FirstOrDefaultAsync(cancellationToken)
+            : null;
+
+        var landings = flown.Where(f => f.LandingRateFpm is not null).Select(f => f.LandingRateFpm!.Value).ToList();
+        var airportIds = flown.SelectMany(f => new[] { f.OriginAirportId, f.DestinationAirportId }).Distinct().ToList();
+        var airports = (await db.Airports.AsNoTracking()
+                .Where(a => airportIds.Contains(a.Id))
+                .ToListAsync(cancellationToken))
+            .OrderBy(AirportCodes.Display, StringComparer.Ordinal)
+            .ToList();
+        var index = airports.Select((airport, position) => (airport.Id, position)).ToDictionary(x => x.Id, x => x.position);
+        var links = flown
+            .Select(f => (A: index[f.OriginAirportId], B: index[f.DestinationAirportId]))
+            .Where(l => l.A != l.B)
+            .Select(l => (From: Math.Min(l.A, l.B), To: Math.Max(l.A, l.B)))
+            .Distinct()
+            .OrderBy(l => l.From)
+            .ThenBy(l => l.To)
+            .Select(l => new[] { l.From, l.To })
+            .ToList();
+
+        var summary = new LogbookSummary(
+            flown.Count,
+            flown.Sum(f => f.FlightMinutes),
+            flown.Sum(f => f.DistanceNm),
+            earned,
+            landings.Count == 0 ? null : (int)Math.Round(landings.Average()),
+            airports.Count,
+            favorite);
+        var network = new RouteNetworkResponse(
+            airports.Select(a => new NetworkAirport(AirportCodes.Display(a), a.IataCode, a.Name, a.Latitude, a.Longitude)).ToList(),
+            links);
+        var flights = new PagedResult<PirepResponse>(await mapper.ToResponsesAsync(items, cancellationToken), page, pageSize, total);
+
+        return Result<LogbookResponse>.Ok(new LogbookResponse(period, summary, network, flights));
     }
 
     private async Task<LegInfo?> LegAsync(Booking booking, CancellationToken cancellationToken)

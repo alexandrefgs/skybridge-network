@@ -37,8 +37,8 @@ export interface NavItem {
       <div role="menu" [attr.data-testid]="testId() + '-panel'"
         class="absolute left-0 z-[1100] mt-2 w-60 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-xl shadow-black/30">
         @for (item of items(); track item.link) {
-          <a role="menuitem" [routerLink]="item.link" routerLinkActive="!text-primary" (click)="open.set(false)"
-            [attr.data-testid]="testId() + '-' + item.link.replace('/', '')"
+          <a role="menuitem" [routerLink]="item.link" routerLinkActive="!text-primary" [routerLinkActiveOptions]="{ exact: item.link === '/' }" (click)="open.set(false)"
+            [attr.data-testid]="testId() + '-' + (item.link.replace('/', '') || 'home')"
             class="block rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-surface-2">
             {{ item.label }}
             @if (item.description) {

@@ -48,6 +48,7 @@ describe('App', () => {
 
     expect(fixture.nativeElement.querySelector('[data-testid="user-name"]').textContent).toContain('Ana Silva');
     expect(fixture.nativeElement.querySelector('[data-testid="nav-about"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="nav-pilot"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="nav-admin"]')).toBeNull();
   });
 

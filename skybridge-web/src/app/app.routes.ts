@@ -38,6 +38,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/freelance/freelance.page').then(m => m.FreelancePage)
   },
   {
+    path: 'logbook',
+    title: 'Logbook · SkyBridge',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/dashboard/logbook.page').then(m => m.LogbookPage)
+  },
+  {
+    path: 'wallet',
+    title: 'Wallet · SkyBridge',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/dashboard/wallet.page').then(m => m.WalletPage)
+  },
+  {
     path: 'flight',
     title: 'My flight · SkyBridge',
     canActivate: [authGuard],

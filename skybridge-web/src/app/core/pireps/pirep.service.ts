@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PagedResult } from '../http/paged-result';
-import { Pirep, PirepFiled, PirepInput, PirepStatus } from './pirep.models';
+import { Logbook, LogbookPeriod, Pirep, PirepFiled, PirepInput, PirepStatus } from './pirep.models';
 
 export const PIREP_PAGE_SIZE = 20;
 
@@ -16,6 +16,10 @@ export class PirepService {
 
   mine(page = 1): Observable<PagedResult<Pirep>> {
     return this.http.get<PagedResult<Pirep>>('/api/pireps/mine', { params: { page, pageSize: PIREP_PAGE_SIZE } });
+  }
+  
+  logbook(period: LogbookPeriod, page = 1, pageSize = PIREP_PAGE_SIZE): Observable<Logbook> {
+    return this.http.get<Logbook>('/api/pireps/logbook', { params: { period, page, pageSize } });
   }
 }
 

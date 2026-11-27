@@ -13,6 +13,7 @@ import { ATTRIBUTION, PRIMARY, tileUrl } from './map-tiles';
 export class RouteMap implements OnDestroy {
   readonly network = input<RouteNetwork | null>(null);
   readonly filter = input<RouteFilter | null>(null);
+  readonly showAll = input(false);
   readonly filterChange = output<RouteFilter | null>();
 
   private readonly theme = inject(ThemeService);
@@ -58,6 +59,7 @@ export class RouteMap implements OnDestroy {
     effect(() => {
       const network = this.network();
       const filter = this.filter();
+      this.showAll();
       this.theme.theme();
       if (!this.ready() || !network) return;
       this.renderRoutes(network, filter);
@@ -85,7 +87,10 @@ export class RouteMap implements OnDestroy {
 
     const origin = filter ? network.airports.findIndex(a => a.code === filter.from) : -1;
     const from = origin >= 0 ? network.airports[origin] : null;
-    const destinations = from ? network.links.filter(([a]) => a === origin).map(([, b]) => network.airports[b]) : [];
+    const both = this.showAll();
+    const destinations = from
+      ? network.links.filter(([a, b]) => a === origin || (both && b === origin)).map(([a, b]) => network.airports[a === origin ? b : a])
+      : [];
     const reachable = new Set(destinations.map(d => d.code));
 
     for (const [code, pin] of this.pinLayers) {
@@ -102,6 +107,19 @@ export class RouteMap implements OnDestroy {
     }
 
     const bounds: L.LatLngTuple[] = [];
+    if (!from && both) {
+      for (const [a, b] of network.links) {
+        const start = network.airports[a];
+        const end = network.airports[b];
+        L.polyline([[start.latitude, start.longitude], [end.latitude, nearestLongitude(start.longitude, end.longitude)]], {
+          color: PRIMARY,
+          weight: 1.5,
+          opacity: 0.8
+        })
+          .bindTooltip(`<span class="sb-tooltip-code">${escape(start.code)} ⇄ ${escape(end.code)}</span>`, { sticky: true })
+          .addTo(this.routes);
+      }
+    }
     if (from) {
       bounds.push([from.latitude, from.longitude]);
       for (const destination of destinations) {
@@ -133,7 +151,7 @@ export class RouteMap implements OnDestroy {
       this.lastOrigin = originCode;
       const points = bounds.length > 1 ? bounds : network.airports.map(a => [a.latitude, a.longitude] as L.LatLngTuple);
       this.map!.invalidateSize();
-      this.map!.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: from ? 6 : 7 });
+      if (points.length) this.map!.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: from ? 6 : 7 });
     }
   }
 

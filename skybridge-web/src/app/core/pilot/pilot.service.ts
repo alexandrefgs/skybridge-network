@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Pilot } from './pilot.models';
+import { PagedResult } from '../http/paged-result';
+import { Pilot, PilotTransaction } from './pilot.models';
 
 @Injectable({ providedIn: 'root' })
 export class PilotService {
@@ -13,6 +14,10 @@ export class PilotService {
 
   linkSimBrief(pilotId: string | null): Observable<Pilot> {
     return this.http.put<Pilot>('/api/pilot/simbrief', { pilotId });
+  }
+  
+  transactions(page = 1, pageSize = 20): Observable<PagedResult<PilotTransaction>> {
+    return this.http.get<PagedResult<PilotTransaction>>('/api/pilot/transactions', { params: { page, pageSize } });
   }
 
   jumpseat(airport: string): Observable<Pilot> {

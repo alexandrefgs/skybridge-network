@@ -6,6 +6,7 @@ public interface IPirepService
 {
     Task<Result<PirepFiledResponse>> FileAsync(Guid userId, FilePirepRequest request, CancellationToken cancellationToken);
     Task<PagedResult<PirepResponse>> GetMineAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken);
+    Task<Result<LogbookResponse>> GetLogbookAsync(Guid userId, LogbookSearch search, CancellationToken cancellationToken);
 }
 
 public interface IPirepReview

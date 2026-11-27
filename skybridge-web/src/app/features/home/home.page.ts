@@ -1,18 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
+import { Cockpit } from '../dashboard/cockpit';
 
 @Component({
   selector: 'sb-home-page',
-  imports: [RouterLink],
+  imports: [RouterLink, Cockpit],
   template: `
     @if (auth.currentUser(); as user) {
-      <p class="font-mono text-xs tracking-[0.2em] text-primary">PILOT DASHBOARD</p>
-      <h1 class="mt-2 font-display text-4xl font-bold">Welcome, {{ user.firstName }}.</h1>
-      <p class="mt-2 max-w-xl text-muted">Flights, jobs and your own company are coming soon. For now, make sure your account is secure.</p>
-
       @if (!user.twoFactorEnabled) {
-        <div class="sb-card mt-8 flex flex-wrap items-center justify-between gap-4 p-6" data-testid="two-factor-tip">
+        <div class="sb-card mb-8 flex flex-wrap items-center justify-between gap-4 p-6" data-testid="two-factor-tip">
           <div>
             <p class="font-semibold">Protect your account</p>
             <p class="text-sm text-muted">Turn on two-factor authentication with an authenticator app.</p>
@@ -20,6 +17,7 @@ import { AuthService } from '../../core/auth/auth.service';
           <a routerLink="/account/security" class="sb-btn-primary w-auto">Enable 2FA</a>
         </div>
       }
+      <sb-cockpit [firstName]="user.firstName" />
     } @else {
       <section class="py-10">
         <p class="font-mono text-xs tracking-[0.2em] text-primary">FLY ANYTHING · ANYWHERE</p>

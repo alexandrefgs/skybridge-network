@@ -1,4 +1,6 @@
+import { RouteNetwork } from '../airlines/airline.models';
 import { Booking } from '../bookings/booking.models';
+import { PagedResult } from '../http/paged-result';
 import { Pilot } from '../pilot/pilot.models';
 
 export type PirepStatus = 'Accepted' | 'Pending' | 'Rejected';
@@ -39,4 +41,23 @@ export interface PirepFiled {
   booking: Booking | null;
   rewardPaid: number | null;
   pilot: Pilot;
+}
+
+export type LogbookPeriod = '30d' | '1y' | 'all';
+
+export interface LogbookSummary {
+  flights: number;
+  flightMinutes: number;
+  distanceNm: number;
+  earned: number;
+  averageLandingRateFpm: number | null;
+  airports: number;
+  favoriteAircraft: string | null;
+}
+
+export interface Logbook {
+  period: LogbookPeriod;
+  summary: LogbookSummary;
+  network: RouteNetwork;
+  flights: PagedResult<Pirep>;
 }

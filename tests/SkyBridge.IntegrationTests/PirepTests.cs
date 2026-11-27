@@ -50,6 +50,30 @@ public class PirepTests(SkyBridgeApiFactory factory)
         var board = await GetAsync<PagedResult<FreelanceJobResponse>>("/api/freelance?pageSize=100", pilot);
         Assert.DoesNotContain(board.Items, j => j.Id == job.Id);
     }
+    
+    [Fact]
+    public async Task Logbook_SummarizesThePeriod_AndDrawsTheRoutes()
+    {
+        var job = await CreateJobAsync(reward: 800, roundTrip: true);
+        var pilot = await PilotAtAsync("SBFL");
+        await AcceptAndStartAsync(pilot, job.Id);
+        await FileAsync(pilot, minutes: 140);
+        await StartAsync(pilot);
+        await FileAsync(pilot, minutes: 150);
+
+        var month = await GetAsync<LogbookResponse>("/api/pireps/logbook", pilot);
+        var all = await GetAsync<LogbookResponse>("/api/pireps/logbook?period=all&pageSize=1", pilot);
+        var invalid = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/pireps/logbook?period=week", pilot);
+
+        Assert.Equal("30d", month.Period);
+        Assert.Equal((2, 290, 800, 2, "C172"), (month.Summary.Flights, month.Summary.FlightMinutes, month.Summary.Earned,
+            month.Summary.Airports, month.Summary.FavoriteAircraft));
+        Assert.Equal(new[] { "SBFL", "SBGR" }, month.Network.Airports.Select(a => a.Code));
+        Assert.Equal(new[] { 0, 1 }, Assert.Single(month.Network.Links));
+        Assert.Equal(("SBGR", "SBFL"), (month.Flights.Items[0].Origin, month.Flights.Items[0].Destination));
+        Assert.Equal(("all", 2, 1), (all.Period, all.Flights.TotalCount, all.Flights.Items.Count));
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+    }
 
     [Fact]
     public async Task File_TooFast_WaitsForStaff_ThenApprovalPaysTheReward()

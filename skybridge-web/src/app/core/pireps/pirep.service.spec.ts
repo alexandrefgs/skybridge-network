@@ -28,6 +28,14 @@ describe('PirepService', () => {
     const request = http.expectOne(r => r.url === '/api/pireps/mine');
     expect(request.request.params.get('page')).toBe('2');
   });
+    it('loads the logbook of a period', () => {
+    TestBed.inject(PirepService).logbook('1y', 3, 5).subscribe();
+
+    const request = http.expectOne(r => r.url === '/api/pireps/logbook');
+    expect(request.request.params.get('period')).toBe('1y');
+    expect(request.request.params.get('page')).toBe('3');
+    expect(request.request.params.get('pageSize')).toBe('5');
+  });
 
   it('searches, approves and rejects as staff', () => {
     const admin = TestBed.inject(AdminPirepService);

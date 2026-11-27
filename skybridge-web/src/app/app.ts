@@ -20,6 +20,13 @@ export class App {
     { label: 'Aircraft', link: '/aircraft', description: 'Types, categories and hours to unlock' }
   ];
 
+  protected readonly pilotItems: NavItem[] = [
+    { label: 'Cockpit', link: '/', description: 'Your hours, balance and latest flights' },
+    { label: 'My flight', link: '/flight', description: 'The flight you are flying now' },
+    { label: 'Logbook', link: '/logbook', description: 'Every leg you filed, on a map' },
+    { label: 'Wallet', link: '/wallet', description: 'Payments and balance' }
+  ];
+
   constructor() {
     effect(() => {
       if (this.auth.isSignedIn() && !untracked(this.auth.currentUser)) {

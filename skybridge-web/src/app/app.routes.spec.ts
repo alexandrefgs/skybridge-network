@@ -2,7 +2,7 @@ import { authGuard, staffGuard } from './core/auth/auth.guards';
 import { routes } from './app.routes';
 
 describe('routes', () => {
-  it.each(['airports', 'aircraft', 'airlines', 'airlines/:id', 'freelance', 'account'])('requires sign in for /%s', path => {
+  it.each(['airports', 'aircraft', 'airlines', 'airlines/:id', 'freelance', 'flight', 'logbook', 'wallet', 'account'])('requires sign in for /%s', path => {
     const route = routes.find(r => r.path === path);
 
     expect(route?.canActivate).toContain(authGuard);
