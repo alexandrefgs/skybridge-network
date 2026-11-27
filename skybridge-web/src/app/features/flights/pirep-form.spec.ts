@@ -34,6 +34,16 @@ describe('PirepForm', () => {
     await fixture.whenStable();
   }
 
+  it('converts fuel with Jet A-1 for turbines and AvGas for piston aircraft', async () => {
+    query('fuel-converter').click();
+    await fixture.whenStable();
+    expect(query('fuel-converter-panel').textContent).toContain('6.7 lb per US gallon');
+
+    fixture.componentRef.setInput('booking', { ...acceptedMedevac, aircraft: 'C172', aircraftEngine: 'Piston', legInProgress: true, legStartedAtUtc: '2026-11-23T14:05:00Z' });
+    await fixture.whenStable();
+    expect(query('fuel-converter-panel').textContent).toContain('6.0 lb per US gallon');
+  });
+
   it('starts with the takeoff at the leg start and shows the flight time', async () => {
     expect(query('pirep-departed').textContent).toContain('23 NOV 2026');
     expect(query('pirep-departed').textContent).toContain('14:05');

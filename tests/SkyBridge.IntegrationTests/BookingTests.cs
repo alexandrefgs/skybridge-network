@@ -35,6 +35,7 @@ public class BookingTests(SkyBridgeApiFactory factory)
         accepted.EnsureSuccessStatusCode();
         var booking = (await accepted.Content.ReadFromJsonAsync<BookingResponse>())!;
         Assert.Equal(("Active", "Freelance", "C172", 1, 2), (booking.Status, booking.Source, booking.Aircraft, booking.CurrentLeg, booking.LegCount));
+        Assert.Equal("Piston", booking.AircraftEngine);
         Assert.Equal(job.Id, booking.Job!.Id);
 
         var other = await PilotAtAsync("SBFL");

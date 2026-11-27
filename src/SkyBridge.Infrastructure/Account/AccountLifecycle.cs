@@ -29,6 +29,16 @@ internal sealed class AccountLifecycle(SkyBridgeDbContext db, UserManager<Applic
         return ToResponse(user, touched, now);
     }
 
+    public async Task<bool> IsActiveAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var activity = await db.Users.AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new AccountActivity(u.LastActiveAtUtc, u.DeactivatedAtUtc, u.ReactivationReadyAtUtc))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return activity?.StatusAt(Now()) == AccountStatus.Active;
+    }
+
     public async Task<Result<AccountStatusResponse>> ReactivateAsync(Guid userId, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());

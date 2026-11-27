@@ -104,7 +104,9 @@ import { AirportMap } from '../../shared/map/airport-map';
 
             <div class="mt-6 border-t border-line pt-5" data-testid="runways">
               <h3 class="text-sm font-semibold">Runways</h3>
-              @if (runways(); as list) {
+              @if (runwaysError(); as message) {
+                <p class="sb-error mt-2" data-testid="runways-error">{{ message }}</p>
+              } @else if (runways(); as list) {
                 @if (list.length) {
                   <div class="mt-2 overflow-x-auto">
                     <table class="w-full text-sm">
@@ -167,6 +169,7 @@ export class AirportsPage {
   protected readonly result = signal<PagedResult<Airport> | null>(null);
   protected readonly selected = signal<Airport | null>(null);
   protected readonly runways = signal<Runway[] | null>(null);
+  protected readonly runwaysError = signal<string | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly totalCount = computed(() => this.result()?.totalCount ?? 0);
@@ -206,8 +209,20 @@ export class AirportsPage {
 
     toObservable(this.selected)
       .pipe(
-        tap(() => this.runways.set(null)),
-        switchMap(airport => (airport ? this.airports.runways(airport.ident).pipe(catchError(() => of([]))) : of(null))),
+        tap(() => {
+          this.runways.set(null);
+          this.runwaysError.set(null);
+        }),
+        switchMap(airport =>
+          airport
+            ? this.airports.runways(airport.ident).pipe(
+                catchError(error => {
+                  this.runwaysError.set(problemMessages(error)[0]);
+                  return of(null);
+                })
+              )
+            : of(null)
+        ),
         takeUntilDestroyed()
       )
       .subscribe(runways => this.runways.set(runways));

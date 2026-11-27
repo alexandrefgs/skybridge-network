@@ -19,6 +19,7 @@ public sealed record DeleteAccountRequest([Required] string Password);
 public interface IAccountLifecycle
 {
     Task<AccountStatusResponse?> GetStatusAsync(Guid userId, CancellationToken cancellationToken);
+    Task<bool> IsActiveAsync(Guid userId, CancellationToken cancellationToken);
     Task<Result<AccountStatusResponse>> ReactivateAsync(Guid userId, CancellationToken cancellationToken);
     Task<Result<AccountStatusResponse>> AcceptRegulationsAsync(Guid userId, AcceptRegulationsRequest request, CancellationToken cancellationToken);
     Task<Result<bool>> DeleteAsync(Guid userId, DeleteAccountRequest request, CancellationToken cancellationToken);

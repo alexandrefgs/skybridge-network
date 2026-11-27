@@ -73,6 +73,29 @@
     @apply border-primary;
   }
 
+  select.sb-input,
+  .sb-select {
+    appearance: none;
+    cursor: pointer;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8a93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+  }
+
+  .sb-select {
+    @apply rounded-md border border-line bg-surface-2 py-1 pl-2.5 text-foreground outline-none transition-colors focus:border-primary;
+    padding-right: 2rem;
+    background-position: right 0.5rem center;
+  }
+
+  select.sb-input option,
+  .sb-select option {
+    background-color: var(--sb-surface-2);
+    color: var(--sb-foreground);
+  }
+
   .sb-btn-primary {
     @apply inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60;
   }

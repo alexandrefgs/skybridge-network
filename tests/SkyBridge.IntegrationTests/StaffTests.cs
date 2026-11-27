@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using SkyBridge.Application.Auth;
 using SkyBridge.Application.Staff;
 using SkyBridge.Domain.Staff;
@@ -10,6 +12,7 @@ namespace SkyBridge.IntegrationTests;
 [Collection(ApiCollection.Name)]
 public class StaffTests(SkyBridgeApiFactory factory)
 {
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
     private const string AdminUrl = "/api/admin/staff";
     private readonly HttpClient _client = factory.CreateClient();
 
@@ -22,7 +25,7 @@ public class StaffTests(SkyBridgeApiFactory factory)
         var candidates = await GetAsync<List<StaffCandidateResponse>>($"{AdminUrl}/candidates?search={me.Email}", admin);
         var saved = await _client.SendAuthorizedAsync(HttpMethod.Put, $"{AdminUrl}/{me.Id}", admin,
             new StaffMemberRequest("  Director of Operations ", StaffDepartment.Operations, 2, false));
-        var publicList = await _client.GetFromJsonAsync<List<PublicStaffResponse>>("/api/public/staff");
+        var publicList = await _client.GetFromJsonAsync<List<PublicStaffResponse>>("/api/public/staff", Json);
         var adminList = await GetAsync<List<StaffMemberResponse>>(AdminUrl, admin);
 
         Assert.Equal((me.Id, false), (candidates.Single().UserId, candidates.Single().IsStaff));
@@ -46,7 +49,7 @@ public class StaffTests(SkyBridgeApiFactory factory)
         var removed = await _client.SendAuthorizedAsync(HttpMethod.Delete, $"{AdminUrl}/{me.Id}", admin);
         var again = await _client.SendAuthorizedAsync(HttpMethod.Delete, $"{AdminUrl}/{me.Id}", admin);
         var withoutAccess = await MeAsync(token);
-        var publicList = await _client.GetFromJsonAsync<List<PublicStaffResponse>>("/api/public/staff");
+        var publicList = await _client.GetFromJsonAsync<List<PublicStaffResponse>>("/api/public/staff", Json);
 
         Assert.Contains("Staff", withAccess.Roles);
         Assert.True(candidates.Single().IsStaff);
@@ -64,7 +67,7 @@ public class StaffTests(SkyBridgeApiFactory factory)
         await _client.SendAuthorizedAsync(HttpMethod.Put, $"{AdminUrl}/{me.Id}", admin, new StaffMemberRequest("Events Manager", StaffDepartment.Events, 4, false));
         var updated = await _client.SendAuthorizedAsync(HttpMethod.Put, $"{AdminUrl}/{me.Id}", admin, new StaffMemberRequest("Head of Training", StaffDepartment.Training, 1, false));
 
-        var body = (await updated.Content.ReadFromJsonAsync<StaffMemberResponse>())!;
+        var body = (await updated.Content.ReadFromJsonAsync<StaffMemberResponse>(Json))!;
         Assert.Equal(("Head of Training", StaffDepartment.Training, 1), (body.Position, body.Department, body.SortOrder));
         var list = await GetAsync<List<StaffMemberResponse>>(AdminUrl, admin);
         Assert.Single(list, m => m.UserId == me.Id);
@@ -106,7 +109,7 @@ public class StaffTests(SkyBridgeApiFactory factory)
         var email = $"{Guid.NewGuid():N}@skybridge.test";
         var response = await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest("Marina", "Costa", email, TestAuth.Password));
         response.EnsureSuccessStatusCode();
-        var token = (await response.Content.ReadFromJsonAsync<LoginResponse>())!.AccessToken!;
+        var token = (await response.Content.ReadFromJsonAsync<LoginResponse>(Json))!.AccessToken!;
         return (token, await MeAsync(token));
     }
 
@@ -116,6 +119,6 @@ public class StaffTests(SkyBridgeApiFactory factory)
     {
         var response = await _client.SendAuthorizedAsync(HttpMethod.Get, url, token);
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<T>())!;
+        return (await response.Content.ReadFromJsonAsync<T>(Json))!;
     }
 }

@@ -88,6 +88,18 @@ describe('AirportsPage', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="no-runways"]')).not.toBeNull();
   });
 
+  it('shows the API error instead of claiming there is no runway data', async () => {
+    const fixture = await render();
+
+    fixture.nativeElement.querySelectorAll('[data-testid="airport-list"] button')[1].click();
+    await fixture.whenStable();
+    http.expectOne('/api/airports/SSKT/runways').flush({ title: 'The runway service is unavailable.' }, { status: 503, statusText: 'Service Unavailable' });
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="runways-error"]').textContent).toContain('The runway service is unavailable.');
+    expect(fixture.nativeElement.querySelector('[data-testid="no-runways"]')).toBeNull();
+  });
+
   it('shows the range with seven airports per page', async () => {
     const fixture = await render(45);
 

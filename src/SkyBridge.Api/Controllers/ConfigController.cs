@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using SkyBridge.Api.Filters;
 using SkyBridge.Api.Options;
 
 namespace SkyBridge.Api.Controllers;
@@ -7,6 +8,7 @@ namespace SkyBridge.Api.Controllers;
 public sealed record ClientConfigResponse(string? CartoApiKey, string? ContactEmail, string? DiscordUrl, string? InstagramUrl);
 
 [ApiController]
+[AllowInactiveAccount]
 [Route("api/config")]
 public class ConfigController(IOptions<MapOptions> maps, IOptions<SiteOptions> site) : ControllerBase
 {

@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SkyBridge.Api.Filters;
 using SkyBridge.Api.Extensions;
 using SkyBridge.Application.Auth;
 
 namespace SkyBridge.Api.Controllers;
 
 [ApiController]
+[AllowInactiveAccount]
 [Route("api/auth")]
 public class AuthController(IAuthService auth) : ControllerBase
 {

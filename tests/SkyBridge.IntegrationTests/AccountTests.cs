@@ -1,7 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SkyBridge.Api.Filters;
 using SkyBridge.Application.Account;
 using SkyBridge.Application.Auth;
 using SkyBridge.Application.Legal;
@@ -14,6 +18,7 @@ namespace SkyBridge.IntegrationTests;
 [Collection(ApiCollection.Name)]
 public class AccountTests(SkyBridgeApiFactory factory)
 {
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
     private const string StatusUrl = "/api/account/status";
     private readonly HttpClient _client = factory.CreateClient();
 
@@ -52,7 +57,7 @@ public class AccountTests(SkyBridgeApiFactory factory)
         var inactive = await GetStatusAsync(token);
         var started = await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/account/reactivate", token);
         var twice = await _client.SendAuthorizedAsync(HttpMethod.Post, "/api/account/reactivate", token);
-        var preparing = (await started.Content.ReadFromJsonAsync<AccountStatusResponse>())!;
+        var preparing = (await started.Content.ReadFromJsonAsync<AccountStatusResponse>(Json))!;
 
         Assert.Equal(AccountStatus.Inactive, inactive.Status);
         Assert.Equal(AccountStatus.Reactivating, preparing.Status);
@@ -65,6 +70,28 @@ public class AccountTests(SkyBridgeApiFactory factory)
 
         Assert.Equal((AccountStatus.Active, (DateTime?)null), (active.Status, active.ReactivationReadyAtUtc));
         Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+    }
+
+    [Fact]
+    public async Task InactivePilot_CanOnlyUseTheAccountEndpoints_UntilReactivated()
+    {
+        var (token, email) = await RegisterAsync();
+        await UpdateUserAsync(email, DateTime.UtcNow.AddDays(-61), null);
+
+        var blocked = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/pilot", token);
+        var problem = await blocked.Content.ReadFromJsonAsync<ProblemDetails>(Json);
+        var status = await _client.SendAuthorizedAsync(HttpMethod.Get, StatusUrl, token);
+        var me = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/auth/me", token);
+        var config = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/config/client", token);
+
+        Assert.Equal(HttpStatusCode.Forbidden, blocked.StatusCode);
+        Assert.Equal(ActiveAccountFilter.InactiveMessage, problem!.Title);
+        Assert.Equal((HttpStatusCode.OK, HttpStatusCode.OK, HttpStatusCode.OK), (status.StatusCode, me.StatusCode, config.StatusCode));
+
+        await UpdateUserAsync(email, DateTime.UtcNow.AddDays(-61), DateTime.UtcNow.AddMinutes(-1));
+        var allowed = await _client.SendAuthorizedAsync(HttpMethod.Get, "/api/pilot", token);
+
+        Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
     }
 
     [Fact]
@@ -111,7 +138,7 @@ public class AccountTests(SkyBridgeApiFactory factory)
     [Fact]
     public async Task Regulations_AreOpenToVisitors()
     {
-        var regulations = await _client.GetFromJsonAsync<RegulationsResponse>("/api/public/regulations");
+        var regulations = await _client.GetFromJsonAsync<RegulationsResponse>("/api/public/regulations", Json);
 
         Assert.Equal(RegulationsCatalog.Current.Version, regulations!.CurrentVersion);
         Assert.Equal(RegulationsCatalog.History.Count, regulations.History.Count);
@@ -122,14 +149,14 @@ public class AccountTests(SkyBridgeApiFactory factory)
         var email = $"{Guid.NewGuid():N}@skybridge.test";
         var response = await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest("Lucas", "Prado", email, TestAuth.Password));
         response.EnsureSuccessStatusCode();
-        return ((await response.Content.ReadFromJsonAsync<LoginResponse>())!.AccessToken!, email);
+        return ((await response.Content.ReadFromJsonAsync<LoginResponse>(Json))!.AccessToken!, email);
     }
 
     private async Task<AccountStatusResponse> GetStatusAsync(string token)
     {
         var response = await _client.SendAuthorizedAsync(HttpMethod.Get, StatusUrl, token);
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<AccountStatusResponse>())!;
+        return (await response.Content.ReadFromJsonAsync<AccountStatusResponse>(Json))!;
     }
 
     private async Task UpdateUserAsync(string email, DateTime lastActiveAtUtc, DateTime? reactivationReadyAtUtc)

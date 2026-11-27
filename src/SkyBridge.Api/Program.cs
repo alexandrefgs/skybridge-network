@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using SkyBridge.Api.Filters;
 using SkyBridge.Api.OpenApi;
 using SkyBridge.Api.Options;
 using SkyBridge.Infrastructure;
@@ -6,7 +7,7 @@ using SkyBridge.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
+builder.Services.AddControllers(options => options.Filters.Add<ActiveAccountFilter>())
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 builder.Services.AddInfrastructure(builder.Configuration);

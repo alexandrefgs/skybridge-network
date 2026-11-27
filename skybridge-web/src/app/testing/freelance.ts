@@ -59,7 +59,7 @@ export const acceptedMedevac: Booking = {
   currentLeg: 1, legCount: 1, legInProgress: false,
   bookedAtUtc: '2026-11-23T12:00:00Z', startDeadlineUtc: '2026-11-26T12:00:00Z',
   startedAtUtc: null, legStartedAtUtc: null, job: { ...medevac, taken: true },
-    flightNumber: null, payPerHour: 0, flight: null, flightPlan: null
+    flightNumber: null, payPerHour: 0, flight: null, flightPlan: null, aircraftEngine: 'Turboprop'
 };
 
 export const bookedGolFlight: Booking = {
@@ -74,7 +74,8 @@ export const bookedGolFlight: Booking = {
     destination: 'SBGR', destinationName: 'São Paulo/Guarulhos International Airport',
     distanceNm: 278, atsRoute: 'UZ6 PAKOT DCT', flightLevel: 360
   },
-  flightPlan: null
+  flightPlan: null,
+  aircraftEngine: 'Jet'
 };
 
 export const golOfp: FlightPlan = {

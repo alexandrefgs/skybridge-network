@@ -194,7 +194,7 @@ export class AccountGate {
 
   protected readonly remainingMs = computed(() => {
     const ready = this.account.state()?.reactivationReadyAtUtc;
-    return ready ? Math.max(0, Date.parse(ready) - this.now()) : 0;
+    return ready ? Math.min(REACTIVATION_MS, Math.max(0, Date.parse(ready) - this.now())) : 0;
   });
 
   protected readonly countdown = computed(() => {

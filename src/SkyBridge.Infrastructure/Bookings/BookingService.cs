@@ -111,7 +111,7 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
         var leg = await LegAsync(booking, cancellationToken);
         var aircraft = await db.AircraftTypes.AsNoTracking()
             .Where(t => t.Id == booking.AircraftTypeId)
-            .Select(t => t.IcaoCode)
+            .Select(t => new { t.IcaoCode, t.EngineType })
             .FirstAsync(cancellationToken);
 
         var problems = FlightPlan.Problems(data, leg.Origin, leg.Destination, aircraft, booking.BookedAtUtc);
@@ -224,7 +224,7 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
     {
         var aircraft = await db.AircraftTypes.AsNoTracking()
             .Where(t => t.Id == booking.AircraftTypeId)
-            .Select(t => t.IcaoCode)
+            .Select(t => new { t.IcaoCode, t.EngineType })
             .FirstAsync(cancellationToken);
 
         var job = booking.FreelanceJobId is { } jobId ? await freelance.GetAsync(jobId, cancellationToken) : null;
@@ -236,7 +236,7 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
             booking.Id,
             booking.Status.ToString(),
             booking.Source.ToString(),
-            aircraft,
+            aircraft.IcaoCode,
             booking.CurrentLeg,
             booking.LegCount,
             booking.LegInProgress,
@@ -248,7 +248,8 @@ internal sealed class BookingService(SkyBridgeDbContext db, IFreelanceQueries fr
             booking.FlightNumber,
             booking.PayPerHour,
             flight,
-            plan is null ? null : ToResponse(plan));
+            plan is null ? null : ToResponse(plan),
+            aircraft.EngineType.ToString());
     }
 
     private static FlightPlanResponse ToResponse(FlightPlan plan) => new(

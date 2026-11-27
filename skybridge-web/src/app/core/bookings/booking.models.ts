@@ -1,3 +1,4 @@
+import { EngineType } from '../aircraft/aircraft.models';
 import { FreelanceJob } from '../freelance/freelance.models';
 
 export type BookingStatus = 'Active' | 'Completed' | 'Cancelled' | 'Expired';
@@ -144,4 +145,5 @@ export interface Booking {
   payPerHour: number;
   flight: AirlineFlight | null;
   flightPlan: FlightPlan | null;
+  aircraftEngine: EngineType;
 }

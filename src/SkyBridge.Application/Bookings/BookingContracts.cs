@@ -20,7 +20,8 @@ public sealed record BookingResponse(
     string? FlightNumber,
     int PayPerHour,
     AirlineFlightResponse? Flight,
-    FlightPlanResponse? FlightPlan);
+    FlightPlanResponse? FlightPlan,
+    string AircraftEngine);
 
 public sealed record AirlineFlightResponse(
     int? RouteId,

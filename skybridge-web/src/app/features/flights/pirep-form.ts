@@ -37,7 +37,7 @@ import { durationLabel, fromUtcInput, toUtcInput } from '../../shared/time/utc';
           <label class="text-muted" for="pirep-fuel">Fuel used (kg)</label>
           <div class="mt-1 flex items-stretch gap-2">
             <input id="pirep-fuel" type="number" min="0" class="sb-input font-mono" formControlName="fuel" data-testid="pirep-fuel">
-            <sb-fuel-converter testId="fuel-converter" (use)="form.controls.fuel.setValue($event)" />
+            <sb-fuel-converter testId="fuel-converter" [fuelType]="booking().aircraftEngine === 'Piston' ? 'AVGAS' : 'JET'" (use)="form.controls.fuel.setValue($event)" />
           </div>
         </div>
         <label class="block text-sm">

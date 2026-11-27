@@ -104,7 +104,7 @@ import { problemMessages } from '../../core/http/problem';
           <div class="flex items-center gap-4 text-muted">
             <label class="flex items-center gap-2">
               Per page
-              <select class="rounded-md border border-line bg-surface-2 px-2 py-1 text-foreground outline-none focus:border-primary"
+              <select class="sb-select"
                 [value]="query().pageSize" (change)="setPageSize($any($event.target).value)" data-testid="page-size">
                 @for (size of pageSizes; track size) {
                   <option [value]="size">{{ size }}</option>

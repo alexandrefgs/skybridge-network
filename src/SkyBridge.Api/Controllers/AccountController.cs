@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SkyBridge.Api.Filters;
 using SkyBridge.Api.Extensions;
 using SkyBridge.Application.Account;
 using SkyBridge.Application.Auth;
@@ -9,6 +10,7 @@ using SkyBridge.Domain.Users;
 namespace SkyBridge.Api.Controllers;
 
 [ApiController]
+[AllowInactiveAccount]
 [Authorize]
 [Route("api/account")]
 public class AccountController(IProfileService profiles, IAccountLifecycle lifecycle) : ControllerBase

@@ -3,13 +3,14 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { AuthService } from './core/auth/auth.service';
 import { ThemeService } from './core/theme/theme.service';
 import { AccountGate } from './shared/account/account-gate';
+import { MobileMenu } from './shared/layout/mobile-menu';
 import { NavDropdown, NavItem } from './shared/layout/nav-dropdown';
 import { SiteFooter } from './shared/layout/site-footer';
 import { UserMenu } from './shared/layout/user-menu';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, UserMenu, NavDropdown, SiteFooter, AccountGate],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, UserMenu, NavDropdown, SiteFooter, AccountGate, MobileMenu],
   templateUrl: './app.html'
 })
 export class App {
