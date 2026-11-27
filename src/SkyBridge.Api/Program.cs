@@ -69,6 +69,6 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 if (!app.Environment.IsDevelopment())
-    app.MapFallbackToFile("{*path:regex(^(?!api/|health).*$)}", "index.html");
+    app.MapFallbackToFile("{*path:nonfile:regex(^(?!api/|health).*$)}", "index.html");
 
 app.Run();
